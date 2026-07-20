@@ -11,6 +11,8 @@ import { Card } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+
 
 type ServiceKey =
   | "cleaning" | "detailing" | "lawn" | "moving" | "snow" | "tire" | "handyman"
@@ -100,7 +102,14 @@ export function QuoteFunnel({ startWith }: { startWith?: "client" | "partner" })
 
       {userType === "client" && showContact && (
         <StepBlock title="Great! Where should we send your quote?" subtitle="We'll get back to you within one business day." onBack={() => setShowContact(false)}>
-          <ContactForm service={activeService?.label ?? ""} onSubmitted={() => { toast.success("Quote request received — check your inbox soon!"); reset(); }} />
+          <ContactForm
+  service={activeService?.label ?? ""}
+  answers={answers}
+  onSubmitted={() => {
+    toast.success("Quote request received — we'll contact you soon!");
+    reset();
+  }}
+/>
         </StepBlock>
       )}
     </Card>
@@ -298,45 +307,186 @@ function questionsFor(key: ServiceKey, a: Record<string, string>): QItem[] {
   }
 }
 
-function ContactForm({ service, onSubmitted }: { service: string; onSubmitted: () => void }) {
+function ContactForm({
+  service,
+  answers,
+  onSubmitted,
+}: {
+  service: string;
+  answers: Record<string, string>;
+  onSubmitted: () => void;
+}) {
   const [pending, setPending] = useState(false);
+
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
-        const data = new FormData(e.currentTarget as HTMLFormElement);
-        const name = String(data.get("name") ?? "").trim();
+
+        const form = e.currentTarget;
+        const data = new FormData(form);
+
+        const fullName = String(data.get("name") ?? "").trim();
         const email = String(data.get("email") ?? "").trim();
         const phone = String(data.get("phone") ?? "").trim();
         const address = String(data.get("address") ?? "").trim();
-        if (!name || !email || !phone || !address) { toast.error("Please fill in all required fields."); return; }
-        if (!/^\S+@\S+\.\S+$/.test(email)) { toast.error("Please enter a valid email."); return; }
+        const contactMethod = String(
+          data.get("contactMethod") ?? "Email",
+        ).trim();
+        const notes = String(data.get("notes") ?? "").trim();
+
+        if (!fullName || !email || !phone || !address) {
+          toast.error("Please complete all required fields.");
+          return;
+        }
+
+        const nameParts = fullName.split(/\s+/);
+        const firstName = nameParts[0];
+
+        const lastName =
+          nameParts.length > 1
+            ? nameParts.slice(1).join(" ")
+            : null;
+
         setPending(true);
-        setTimeout(() => { setPending(false); onSubmitted(); }, 600);
+
+        try {
+          const { error } = await supabase
+            .from("service_requests")
+            .insert({
+              first_name: firstName,
+              last_name: lastName,
+              email,
+              phone: phone || null,
+              address_line: address,
+              province: "Ontario",
+              service_name: service || null,
+              description: notes || null,
+              questionnaire_answers: {
+                ...answers,
+                preferredContactMethod: contactMethod,
+              },
+              status: "new",
+              source: "website",
+            });
+
+          if (error) {
+            console.error("Supabase service request error:", error);
+
+            toast.error(
+              "The quote request could not be submitted. Please try again.",
+            );
+
+            return;
+          }
+
+          form.reset();
+          onSubmitted();
+        } catch (error) {
+          console.error("Unexpected service request error:", error);
+
+          toast.error(
+            "A connection error occurred. Please try again.",
+          );
+        } finally {
+          setPending(false);
+        }
       }}
       className="grid gap-5"
     >
-      {service && <div className="rounded-lg bg-secondary/60 px-4 py-3 text-sm">Requesting quote for: <span className="font-semibold text-navy">{service}</span></div>}
+      {service && (
+        <div className="rounded-lg bg-secondary/60 px-4 py-3 text-sm">
+          Requesting quote for:{" "}
+          <span className="font-semibold text-navy">
+            {service}
+          </span>
+        </div>
+      )}
+
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Full Name" required><Input name="name" placeholder="Jane Doe" required maxLength={80} /></Field>
-        <Field label="Email Address" required><Input name="email" type="email" placeholder="jane@example.com" required maxLength={120} /></Field>
-        <Field label="Phone Number" required><Input name="phone" type="tel" placeholder="(613) 555-0123" required maxLength={30} /></Field>
-        <Field label="Address or Postal Code" required><Input name="address" placeholder="K1A 0B1 or full address" required maxLength={140} /></Field>
+        <Field label="Full Name" required>
+          <Input
+            name="name"
+            placeholder="Jane Doe"
+            required
+            maxLength={80}
+          />
+        </Field>
+
+        <Field label="Email Address" required>
+          <Input
+            name="email"
+            type="email"
+            placeholder="jane@example.com"
+            required
+            maxLength={120}
+          />
+        </Field>
+
+        <Field label="Phone Number" required>
+          <Input
+            name="phone"
+            type="tel"
+            placeholder="(613) 555-0123"
+            required
+            maxLength={30}
+          />
+        </Field>
+
+        <Field label="Address or Postal Code" required>
+          <Input
+            name="address"
+            placeholder="K1A 0B1 or full address"
+            required
+            maxLength={140}
+          />
+        </Field>
       </div>
+
       <Field label="Preferred Contact Method">
-        <RadioGroup name="contactMethod" defaultValue="Email" className="grid gap-2 sm:grid-cols-3">
-          {[{ v: "Email", i: Mail },{ v: "Phone", i: Phone },{ v: "Text", i: MessageSquare }].map((o) => (
-            <label key={o.v} className="flex items-center gap-3 rounded-lg border border-border p-3 cursor-pointer hover:border-accent/60">
-              <RadioGroupItem value={o.v} id={`cm-${o.v}`} />
-              <o.i className="h-4 w-4 text-navy" />
-              <span className="text-sm">{o.v}</span>
+        <RadioGroup
+          name="contactMethod"
+          defaultValue="Email"
+          className="grid gap-2 sm:grid-cols-3"
+        >
+          {[
+            { v: "Email", i: Mail },
+            { v: "Phone", i: Phone },
+            { v: "Text", i: MessageSquare },
+          ].map((option) => (
+            <label
+              key={option.v}
+              className="flex cursor-pointer items-center gap-3 rounded-lg border border-border p-3 hover:border-accent/60"
+            >
+              <RadioGroupItem
+                value={option.v}
+                id={`cm-${option.v}`}
+              />
+
+              <option.i className="h-4 w-4 text-navy" />
+
+              <span className="text-sm">{option.v}</span>
             </label>
           ))}
         </RadioGroup>
       </Field>
-      <Field label="Additional Details"><Textarea name="notes" placeholder="Anything specific we should know?" rows={4} maxLength={1000} /></Field>
+
+      <Field label="Additional Details">
+        <Textarea
+          name="notes"
+          placeholder="Anything specific we should know?"
+          rows={4}
+          maxLength={1000}
+        />
+      </Field>
+
       <div className="flex justify-end">
-        <Button type="submit" size="lg" disabled={pending} className="bg-accent text-accent-foreground hover:brightness-105 h-12 px-8 text-base font-semibold">
+        <Button
+          type="submit"
+          size="lg"
+          disabled={pending}
+          className="h-12 bg-accent px-8 text-base font-semibold text-accent-foreground hover:brightness-105"
+        >
           {pending ? "Sending…" : "Get My Free Quote Now"}
         </Button>
       </div>
@@ -346,33 +496,104 @@ function ContactForm({ service, onSubmitted }: { service: string; onSubmitted: (
 
 function PartnerForm({ onSubmitted }: { onSubmitted: () => void }) {
   const [pending, setPending] = useState(false);
+
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
-        const data = new FormData(e.currentTarget as HTMLFormElement);
-        const name = String(data.get("name") ?? "").trim();
+
+        const form = e.currentTarget;
+        const data = new FormData(form);
+
+        const fullName = String(data.get("name") ?? "").trim();
         const email = String(data.get("email") ?? "").trim();
-        if (!name || !email) { toast.error("Please provide your name and email."); return; }
+        const phone = String(data.get("phone") ?? "").trim();
+        const trade = String(data.get("trade") ?? "").trim();
+        const about = String(data.get("about") ?? "").trim();
+
+        if (!fullName || !email) {
+          toast.error("Please provide your name and email.");
+          return;
+        }
+
+        const nameParts = fullName.split(/\s+/);
+        const firstName = nameParts[0];
+        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Not provided";
+
         setPending(true);
-        setTimeout(() => { setPending(false); onSubmitted(); }, 600);
+
+        try {
+          const { error } = await supabase
+            .from("partner_applications")
+            .insert({
+              contact_first_name: firstName,
+              contact_last_name: lastName,
+              business_name: fullName,
+              email,
+              phone: phone || null,
+              service_areas: trade ? [trade] : [],
+              availability: about || null,
+            });
+
+          if (error) {
+            console.error("Supabase partner application error:", error);
+            toast.error("The application could not be submitted. Please try again.");
+            return;
+          }
+
+          form.reset();
+          onSubmitted();
+        } catch (error) {
+          console.error("Unexpected partner application error:", error);
+          toast.error("A connection error occurred. Please try again.");
+        } finally {
+          setPending(false);
+        }
       }}
       className="grid gap-5"
     >
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Business / Contact Name" required><Input name="name" required maxLength={100} /></Field>
-        <Field label="Email" required><Input type="email" name="email" required maxLength={120} /></Field>
-        <Field label="Phone"><Input type="tel" name="phone" maxLength={30} /></Field>
+        <Field label="Business / Contact Name" required>
+          <Input name="name" required maxLength={100} />
+        </Field>
+        <Field label="Email" required>
+          <Input type="email" name="email" required maxLength={120} />
+        </Field>
+        <Field label="Phone">
+          <Input type="tel" name="phone" maxLength={30} />
+        </Field>
         <Field label="Primary Trade">
           <Select name="trade">
-            <SelectTrigger className="h-11"><SelectValue placeholder="Select a trade" /></SelectTrigger>
-            <SelectContent>{["Cleaning","Snow Removal","Landscaping","Moving","Detailing","Handyman","Other"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+            <SelectTrigger className="h-11">
+              <SelectValue placeholder="Select a trade" />
+            </SelectTrigger>
+            <SelectContent>
+              {["Cleaning", "Snow Removal", "Landscaping", "Moving", "Detailing", "Handyman", "Other"].map((tradeName) => (
+                <SelectItem key={tradeName} value={tradeName}>
+                  {tradeName}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         </Field>
       </div>
-      <Field label="Tell us about your business"><Textarea name="about" rows={4} maxLength={800} placeholder="Years in business, service area, team size…" /></Field>
+
+      <Field label="Tell us about your business">
+        <Textarea
+          name="about"
+          rows={4}
+          maxLength={800}
+          placeholder="Years in business, service area, team size…"
+        />
+      </Field>
+
       <div className="flex justify-end">
-        <Button type="submit" size="lg" disabled={pending} className="bg-accent text-accent-foreground hover:brightness-105 h-12 px-8">
+        <Button
+          type="submit"
+          size="lg"
+          disabled={pending}
+          className="h-12 bg-accent px-8 text-accent-foreground hover:brightness-105"
+        >
           {pending ? "Sending…" : "Submit Application"}
         </Button>
       </div>
