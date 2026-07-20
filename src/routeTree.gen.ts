@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FaqRouteImport } from './routes/faq'
@@ -21,6 +22,10 @@ import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminQuotesIndexRouteImport } from './routes/admin/quotes.index'
+import { Route as AdminQuotesRequestIdRouteImport } from './routes/admin/quotes.$requestId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,6 +35,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogRoute = BlogRouteImport.update({
@@ -82,10 +92,31 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminQuotesIndexRoute = AdminQuotesIndexRouteImport.update({
+  id: '/quotes/',
+  path: '/quotes/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminQuotesRequestIdRoute = AdminQuotesRequestIdRouteImport.update({
+  id: '/quotes/$requestId',
+  path: '/quotes/$requestId',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -96,6 +127,10 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/': typeof AdminIndexRoute
+  '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
+  '/admin/quotes/': typeof AdminQuotesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,11 +145,16 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin': typeof AdminIndexRoute
+  '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
+  '/admin/quotes': typeof AdminQuotesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -125,12 +165,17 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/': typeof AdminIndexRoute
+  '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
+  '/admin/quotes/': typeof AdminQuotesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
     | '/blog'
     | '/contact'
     | '/faq'
@@ -141,6 +186,10 @@ export interface FileRouteTypes {
     | '/services'
     | '/sitemap.xml'
     | '/terms'
+    | '/admin/login'
+    | '/admin/'
+    | '/admin/quotes/$requestId'
+    | '/admin/quotes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,10 +204,15 @@ export interface FileRouteTypes {
     | '/services'
     | '/sitemap.xml'
     | '/terms'
+    | '/admin/login'
+    | '/admin'
+    | '/admin/quotes/$requestId'
+    | '/admin/quotes'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
     | '/blog'
     | '/contact'
     | '/faq'
@@ -169,11 +223,16 @@ export interface FileRouteTypes {
     | '/services'
     | '/sitemap.xml'
     | '/terms'
+    | '/admin/login'
+    | '/admin/'
+    | '/admin/quotes/$requestId'
+    | '/admin/quotes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
   BlogRoute: typeof BlogRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
@@ -200,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog': {
@@ -272,12 +338,57 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/quotes/': {
+      id: '/admin/quotes/'
+      path: '/quotes'
+      fullPath: '/admin/quotes/'
+      preLoaderRoute: typeof AdminQuotesIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/quotes/$requestId': {
+      id: '/admin/quotes/$requestId'
+      path: '/quotes/$requestId'
+      fullPath: '/admin/quotes/$requestId'
+      preLoaderRoute: typeof AdminQuotesRequestIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminQuotesRequestIdRoute: typeof AdminQuotesRequestIdRoute
+  AdminQuotesIndexRoute: typeof AdminQuotesIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminLoginRoute: AdminLoginRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminQuotesRequestIdRoute: AdminQuotesRequestIdRoute,
+  AdminQuotesIndexRoute: AdminQuotesIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
   BlogRoute: BlogRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
