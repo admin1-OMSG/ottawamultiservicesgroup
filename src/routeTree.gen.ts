@@ -24,6 +24,12 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminCustomersIndexRouteImport } from './routes/admin/customers.index'
+import { Route as AdminCustomersCustomerIdRouteImport } from './routes/admin/customers.$customerId'
+import { Route as AdminCustomersNewRouteImport } from './routes/admin/customers.new'
+import { Route as AdminEstimatesIndexRouteImport } from './routes/admin/estimates.index'
+import { Route as AdminEstimatesEstimateIdRouteImport } from './routes/admin/estimates.$estimateId'
+import { Route as AdminEstimatesNewRouteImport } from './routes/admin/estimates.new'
 import { Route as AdminQuotesIndexRouteImport } from './routes/admin/quotes.index'
 import { Route as AdminQuotesRequestIdRouteImport } from './routes/admin/quotes.$requestId'
 
@@ -102,6 +108,38 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCustomersIndexRoute = AdminCustomersIndexRouteImport.update({
+  id: '/customers/',
+  path: '/customers/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCustomersCustomerIdRoute =
+  AdminCustomersCustomerIdRouteImport.update({
+    id: '/customers/$customerId',
+    path: '/customers/$customerId',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminCustomersNewRoute = AdminCustomersNewRouteImport.update({
+  id: '/customers/new',
+  path: '/customers/new',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEstimatesIndexRoute = AdminEstimatesIndexRouteImport.update({
+  id: '/estimates/',
+  path: '/estimates/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEstimatesEstimateIdRoute =
+  AdminEstimatesEstimateIdRouteImport.update({
+    id: '/estimates/$estimateId',
+    path: '/estimates/$estimateId',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminEstimatesNewRoute = AdminEstimatesNewRouteImport.update({
+  id: '/estimates/new',
+  path: '/estimates/new',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminQuotesIndexRoute = AdminQuotesIndexRouteImport.update({
   id: '/quotes/',
   path: '/quotes/',
@@ -129,7 +167,13 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
+  '/admin/customers/new': typeof AdminCustomersNewRoute
+  '/admin/estimates/$estimateId': typeof AdminEstimatesEstimateIdRoute
+  '/admin/estimates/new': typeof AdminEstimatesNewRoute
   '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
+  '/admin/customers/': typeof AdminCustomersIndexRoute
+  '/admin/estimates/': typeof AdminEstimatesIndexRoute
   '/admin/quotes/': typeof AdminQuotesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -147,7 +191,13 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
+  '/admin/customers/new': typeof AdminCustomersNewRoute
+  '/admin/estimates/$estimateId': typeof AdminEstimatesEstimateIdRoute
+  '/admin/estimates/new': typeof AdminEstimatesNewRoute
   '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
+  '/admin/customers': typeof AdminCustomersIndexRoute
+  '/admin/estimates': typeof AdminEstimatesIndexRoute
   '/admin/quotes': typeof AdminQuotesIndexRoute
 }
 export interface FileRoutesById {
@@ -167,7 +217,13 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
+  '/admin/customers/new': typeof AdminCustomersNewRoute
+  '/admin/estimates/$estimateId': typeof AdminEstimatesEstimateIdRoute
+  '/admin/estimates/new': typeof AdminEstimatesNewRoute
   '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
+  '/admin/customers/': typeof AdminCustomersIndexRoute
+  '/admin/estimates/': typeof AdminEstimatesIndexRoute
   '/admin/quotes/': typeof AdminQuotesIndexRoute
 }
 export interface FileRouteTypes {
@@ -188,7 +244,13 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin/login'
     | '/admin/'
+    | '/admin/customers/$customerId'
+    | '/admin/customers/new'
+    | '/admin/estimates/$estimateId'
+    | '/admin/estimates/new'
     | '/admin/quotes/$requestId'
+    | '/admin/customers/'
+    | '/admin/estimates/'
     | '/admin/quotes/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -206,7 +268,13 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin/login'
     | '/admin'
+    | '/admin/customers/$customerId'
+    | '/admin/customers/new'
+    | '/admin/estimates/$estimateId'
+    | '/admin/estimates/new'
     | '/admin/quotes/$requestId'
+    | '/admin/customers'
+    | '/admin/estimates'
     | '/admin/quotes'
   id:
     | '__root__'
@@ -225,7 +293,13 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin/login'
     | '/admin/'
+    | '/admin/customers/$customerId'
+    | '/admin/customers/new'
+    | '/admin/estimates/$estimateId'
+    | '/admin/estimates/new'
     | '/admin/quotes/$requestId'
+    | '/admin/customers/'
+    | '/admin/estimates/'
     | '/admin/quotes/'
   fileRoutesById: FileRoutesById
 }
@@ -352,6 +426,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/customers/': {
+      id: '/admin/customers/'
+      path: '/customers'
+      fullPath: '/admin/customers/'
+      preLoaderRoute: typeof AdminCustomersIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/customers/$customerId': {
+      id: '/admin/customers/$customerId'
+      path: '/customers/$customerId'
+      fullPath: '/admin/customers/$customerId'
+      preLoaderRoute: typeof AdminCustomersCustomerIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/customers/new': {
+      id: '/admin/customers/new'
+      path: '/customers/new'
+      fullPath: '/admin/customers/new'
+      preLoaderRoute: typeof AdminCustomersNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/estimates/': {
+      id: '/admin/estimates/'
+      path: '/estimates'
+      fullPath: '/admin/estimates/'
+      preLoaderRoute: typeof AdminEstimatesIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/estimates/$estimateId': {
+      id: '/admin/estimates/$estimateId'
+      path: '/estimates/$estimateId'
+      fullPath: '/admin/estimates/$estimateId'
+      preLoaderRoute: typeof AdminEstimatesEstimateIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/estimates/new': {
+      id: '/admin/estimates/new'
+      path: '/estimates/new'
+      fullPath: '/admin/estimates/new'
+      preLoaderRoute: typeof AdminEstimatesNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/quotes/': {
       id: '/admin/quotes/'
       path: '/quotes'
@@ -372,14 +488,26 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminCustomersCustomerIdRoute: typeof AdminCustomersCustomerIdRoute
+  AdminCustomersNewRoute: typeof AdminCustomersNewRoute
+  AdminEstimatesEstimateIdRoute: typeof AdminEstimatesEstimateIdRoute
+  AdminEstimatesNewRoute: typeof AdminEstimatesNewRoute
   AdminQuotesRequestIdRoute: typeof AdminQuotesRequestIdRoute
+  AdminCustomersIndexRoute: typeof AdminCustomersIndexRoute
+  AdminEstimatesIndexRoute: typeof AdminEstimatesIndexRoute
   AdminQuotesIndexRoute: typeof AdminQuotesIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminCustomersCustomerIdRoute: AdminCustomersCustomerIdRoute,
+  AdminCustomersNewRoute: AdminCustomersNewRoute,
+  AdminEstimatesEstimateIdRoute: AdminEstimatesEstimateIdRoute,
+  AdminEstimatesNewRoute: AdminEstimatesNewRoute,
   AdminQuotesRequestIdRoute: AdminQuotesRequestIdRoute,
+  AdminCustomersIndexRoute: AdminCustomersIndexRoute,
+  AdminEstimatesIndexRoute: AdminEstimatesIndexRoute,
   AdminQuotesIndexRoute: AdminQuotesIndexRoute,
 }
 

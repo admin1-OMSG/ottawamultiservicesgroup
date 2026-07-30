@@ -580,6 +580,19 @@ function AdminQuoteDetailPage() {
           </div>
 
           <aside className="space-y-6">
+            {quote.customer_id ? (
+              <Link
+                to="/admin/estimates/new"
+                search={{ customerId: quote.customer_id }}
+                className="block w-full rounded-lg bg-emerald-600 px-4 py-3 text-center font-semibold text-white hover:bg-emerald-700"
+              >
+                Créer un devis officiel
+              </Link>
+            ) : (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                Synchronisez cette demande avec un client avant de créer un devis officiel.
+              </div>
+            )}
             <section className="rounded-xl border bg-white p-5 shadow-sm">
               <h2 className="text-lg font-bold text-slate-900">
                 Modifier le statut
