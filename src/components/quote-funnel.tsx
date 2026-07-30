@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { sendCrmEmail } from "@/lib/email-notifications";
 
 
 type ServiceKey =
@@ -351,9 +352,11 @@ function ContactForm({
         setPending(true);
 
         try {
+          const requestId = crypto.randomUUID();
           const { error } = await supabase
             .from("service_requests")
             .insert({
+              id: requestId,
               first_name: firstName,
               last_name: lastName,
               email,
@@ -378,6 +381,15 @@ function ContactForm({
             );
 
             return;
+          }
+
+          const notification = await sendCrmEmail({
+            type: "quote_requested",
+            requestId,
+          });
+
+          if (!notification.ok) {
+            console.warn("Quote saved, but admin email was not sent.");
           }
 
           form.reset();
