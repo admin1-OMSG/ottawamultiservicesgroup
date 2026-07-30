@@ -32,9 +32,13 @@ import { Route as AdminEmployeesIndexRouteImport } from './routes/admin/employee
 import { Route as AdminEstimatesIndexRouteImport } from './routes/admin/estimates.index'
 import { Route as AdminEstimatesEstimateIdRouteImport } from './routes/admin/estimates.$estimateId'
 import { Route as AdminEstimatesNewRouteImport } from './routes/admin/estimates.new'
+import { Route as AdminInvoicesIndexRouteImport } from './routes/admin/invoices.index'
+import { Route as AdminInvoicesInvoiceIdRouteImport } from './routes/admin/invoices.$invoiceId'
+import { Route as AdminInvoicesNewRouteImport } from './routes/admin/invoices.new'
 import { Route as AdminJobsIndexRouteImport } from './routes/admin/jobs.index'
 import { Route as AdminJobsJobIdRouteImport } from './routes/admin/jobs.$jobId'
 import { Route as AdminJobsNewRouteImport } from './routes/admin/jobs.new'
+import { Route as AdminPaymentsIndexRouteImport } from './routes/admin/payments.index'
 import { Route as AdminQuotesIndexRouteImport } from './routes/admin/quotes.index'
 import { Route as AdminQuotesRequestIdRouteImport } from './routes/admin/quotes.$requestId'
 
@@ -155,6 +159,21 @@ const AdminEstimatesNewRoute = AdminEstimatesNewRouteImport.update({
   path: '/estimates/new',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminInvoicesIndexRoute = AdminInvoicesIndexRouteImport.update({
+  id: '/invoices/',
+  path: '/invoices/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInvoicesInvoiceIdRoute = AdminInvoicesInvoiceIdRouteImport.update({
+  id: '/invoices/$invoiceId',
+  path: '/invoices/$invoiceId',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInvoicesNewRoute = AdminInvoicesNewRouteImport.update({
+  id: '/invoices/new',
+  path: '/invoices/new',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminJobsIndexRoute = AdminJobsIndexRouteImport.update({
   id: '/jobs/',
   path: '/jobs/',
@@ -168,6 +187,11 @@ const AdminJobsJobIdRoute = AdminJobsJobIdRouteImport.update({
 const AdminJobsNewRoute = AdminJobsNewRouteImport.update({
   id: '/jobs/new',
   path: '/jobs/new',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPaymentsIndexRoute = AdminPaymentsIndexRouteImport.update({
+  id: '/payments/',
+  path: '/payments/',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminQuotesIndexRoute = AdminQuotesIndexRouteImport.update({
@@ -202,13 +226,17 @@ export interface FileRoutesByFullPath {
   '/admin/customers/new': typeof AdminCustomersNewRoute
   '/admin/estimates/$estimateId': typeof AdminEstimatesEstimateIdRoute
   '/admin/estimates/new': typeof AdminEstimatesNewRoute
+  '/admin/invoices/$invoiceId': typeof AdminInvoicesInvoiceIdRoute
+  '/admin/invoices/new': typeof AdminInvoicesNewRoute
   '/admin/jobs/$jobId': typeof AdminJobsJobIdRoute
   '/admin/jobs/new': typeof AdminJobsNewRoute
   '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
   '/admin/customers/': typeof AdminCustomersIndexRoute
   '/admin/employees/': typeof AdminEmployeesIndexRoute
   '/admin/estimates/': typeof AdminEstimatesIndexRoute
+  '/admin/invoices/': typeof AdminInvoicesIndexRoute
   '/admin/jobs/': typeof AdminJobsIndexRoute
+  '/admin/payments/': typeof AdminPaymentsIndexRoute
   '/admin/quotes/': typeof AdminQuotesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -231,13 +259,17 @@ export interface FileRoutesByTo {
   '/admin/customers/new': typeof AdminCustomersNewRoute
   '/admin/estimates/$estimateId': typeof AdminEstimatesEstimateIdRoute
   '/admin/estimates/new': typeof AdminEstimatesNewRoute
+  '/admin/invoices/$invoiceId': typeof AdminInvoicesInvoiceIdRoute
+  '/admin/invoices/new': typeof AdminInvoicesNewRoute
   '/admin/jobs/$jobId': typeof AdminJobsJobIdRoute
   '/admin/jobs/new': typeof AdminJobsNewRoute
   '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
   '/admin/customers': typeof AdminCustomersIndexRoute
   '/admin/employees': typeof AdminEmployeesIndexRoute
   '/admin/estimates': typeof AdminEstimatesIndexRoute
+  '/admin/invoices': typeof AdminInvoicesIndexRoute
   '/admin/jobs': typeof AdminJobsIndexRoute
+  '/admin/payments': typeof AdminPaymentsIndexRoute
   '/admin/quotes': typeof AdminQuotesIndexRoute
 }
 export interface FileRoutesById {
@@ -262,13 +294,17 @@ export interface FileRoutesById {
   '/admin/customers/new': typeof AdminCustomersNewRoute
   '/admin/estimates/$estimateId': typeof AdminEstimatesEstimateIdRoute
   '/admin/estimates/new': typeof AdminEstimatesNewRoute
+  '/admin/invoices/$invoiceId': typeof AdminInvoicesInvoiceIdRoute
+  '/admin/invoices/new': typeof AdminInvoicesNewRoute
   '/admin/jobs/$jobId': typeof AdminJobsJobIdRoute
   '/admin/jobs/new': typeof AdminJobsNewRoute
   '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
   '/admin/customers/': typeof AdminCustomersIndexRoute
   '/admin/employees/': typeof AdminEmployeesIndexRoute
   '/admin/estimates/': typeof AdminEstimatesIndexRoute
+  '/admin/invoices/': typeof AdminInvoicesIndexRoute
   '/admin/jobs/': typeof AdminJobsIndexRoute
+  '/admin/payments/': typeof AdminPaymentsIndexRoute
   '/admin/quotes/': typeof AdminQuotesIndexRoute
 }
 export interface FileRouteTypes {
@@ -294,13 +330,17 @@ export interface FileRouteTypes {
     | '/admin/customers/new'
     | '/admin/estimates/$estimateId'
     | '/admin/estimates/new'
+    | '/admin/invoices/$invoiceId'
+    | '/admin/invoices/new'
     | '/admin/jobs/$jobId'
     | '/admin/jobs/new'
     | '/admin/quotes/$requestId'
     | '/admin/customers/'
     | '/admin/employees/'
     | '/admin/estimates/'
+    | '/admin/invoices/'
     | '/admin/jobs/'
+    | '/admin/payments/'
     | '/admin/quotes/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -323,13 +363,17 @@ export interface FileRouteTypes {
     | '/admin/customers/new'
     | '/admin/estimates/$estimateId'
     | '/admin/estimates/new'
+    | '/admin/invoices/$invoiceId'
+    | '/admin/invoices/new'
     | '/admin/jobs/$jobId'
     | '/admin/jobs/new'
     | '/admin/quotes/$requestId'
     | '/admin/customers'
     | '/admin/employees'
     | '/admin/estimates'
+    | '/admin/invoices'
     | '/admin/jobs'
+    | '/admin/payments'
     | '/admin/quotes'
   id:
     | '__root__'
@@ -353,13 +397,17 @@ export interface FileRouteTypes {
     | '/admin/customers/new'
     | '/admin/estimates/$estimateId'
     | '/admin/estimates/new'
+    | '/admin/invoices/$invoiceId'
+    | '/admin/invoices/new'
     | '/admin/jobs/$jobId'
     | '/admin/jobs/new'
     | '/admin/quotes/$requestId'
     | '/admin/customers/'
     | '/admin/employees/'
     | '/admin/estimates/'
+    | '/admin/invoices/'
     | '/admin/jobs/'
+    | '/admin/payments/'
     | '/admin/quotes/'
   fileRoutesById: FileRoutesById
 }
@@ -542,6 +590,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEstimatesNewRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/invoices/': {
+      id: '/admin/invoices/'
+      path: '/invoices'
+      fullPath: '/admin/invoices/'
+      preLoaderRoute: typeof AdminInvoicesIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/invoices/$invoiceId': {
+      id: '/admin/invoices/$invoiceId'
+      path: '/invoices/$invoiceId'
+      fullPath: '/admin/invoices/$invoiceId'
+      preLoaderRoute: typeof AdminInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/invoices/new': {
+      id: '/admin/invoices/new'
+      path: '/invoices/new'
+      fullPath: '/admin/invoices/new'
+      preLoaderRoute: typeof AdminInvoicesNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/jobs/': {
       id: '/admin/jobs/'
       path: '/jobs'
@@ -561,6 +630,13 @@ declare module '@tanstack/react-router' {
       path: '/jobs/new'
       fullPath: '/admin/jobs/new'
       preLoaderRoute: typeof AdminJobsNewRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/payments/': {
+      id: '/admin/payments/'
+      path: '/payments'
+      fullPath: '/admin/payments/'
+      preLoaderRoute: typeof AdminPaymentsIndexRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/quotes/': {
@@ -588,13 +664,17 @@ interface AdminRouteChildren {
   AdminCustomersNewRoute: typeof AdminCustomersNewRoute
   AdminEstimatesEstimateIdRoute: typeof AdminEstimatesEstimateIdRoute
   AdminEstimatesNewRoute: typeof AdminEstimatesNewRoute
+  AdminInvoicesInvoiceIdRoute: typeof AdminInvoicesInvoiceIdRoute
+  AdminInvoicesNewRoute: typeof AdminInvoicesNewRoute
   AdminJobsJobIdRoute: typeof AdminJobsJobIdRoute
   AdminJobsNewRoute: typeof AdminJobsNewRoute
   AdminQuotesRequestIdRoute: typeof AdminQuotesRequestIdRoute
   AdminCustomersIndexRoute: typeof AdminCustomersIndexRoute
   AdminEmployeesIndexRoute: typeof AdminEmployeesIndexRoute
   AdminEstimatesIndexRoute: typeof AdminEstimatesIndexRoute
+  AdminInvoicesIndexRoute: typeof AdminInvoicesIndexRoute
   AdminJobsIndexRoute: typeof AdminJobsIndexRoute
+  AdminPaymentsIndexRoute: typeof AdminPaymentsIndexRoute
   AdminQuotesIndexRoute: typeof AdminQuotesIndexRoute
 }
 
@@ -606,13 +686,17 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCustomersNewRoute: AdminCustomersNewRoute,
   AdminEstimatesEstimateIdRoute: AdminEstimatesEstimateIdRoute,
   AdminEstimatesNewRoute: AdminEstimatesNewRoute,
+  AdminInvoicesInvoiceIdRoute: AdminInvoicesInvoiceIdRoute,
+  AdminInvoicesNewRoute: AdminInvoicesNewRoute,
   AdminJobsJobIdRoute: AdminJobsJobIdRoute,
   AdminJobsNewRoute: AdminJobsNewRoute,
   AdminQuotesRequestIdRoute: AdminQuotesRequestIdRoute,
   AdminCustomersIndexRoute: AdminCustomersIndexRoute,
   AdminEmployeesIndexRoute: AdminEmployeesIndexRoute,
   AdminEstimatesIndexRoute: AdminEstimatesIndexRoute,
+  AdminInvoicesIndexRoute: AdminInvoicesIndexRoute,
   AdminJobsIndexRoute: AdminJobsIndexRoute,
+  AdminPaymentsIndexRoute: AdminPaymentsIndexRoute,
   AdminQuotesIndexRoute: AdminQuotesIndexRoute,
 }
 
