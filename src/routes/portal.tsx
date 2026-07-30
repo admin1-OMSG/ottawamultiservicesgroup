@@ -1,79 +1,34 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
-import { PageHero } from "@/components/page-hero";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Toaster } from "@/components/ui/sonner";
-import { toast } from "sonner";
-import { LogIn, UserPlus } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react"
+import { createFileRoute, Link } from "@tanstack/react-router"
+import { CalendarDays, CheckCircle2, FileText, LogOut, ReceiptText, UserRound } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { formatCad, formatDate } from "@/features/admin/formatters"
 
-export const Route = createFileRoute("/portal")({
-  head: () => ({
-    meta: [
-      { title: "Client Portal | Ottawa Multi Services Group" },
-      { name: "description", content: "Sign in or create a client account to manage bookings, invoices and faster quotes with Ottawa Multi Services Group." },
-      { property: "og:title", content: "Client Portal — Ottawa MSG" },
-      { property: "og:description", content: "Sign in or create a client account." },
-      { property: "og:url", content: "/portal" },
-    ],
-    links: [{ rel: "canonical", href: "/portal" }],
-  }),
-  component: PortalPage,
-});
+export const Route = createFileRoute("/portal")({ component: CustomerPortal })
 
-function PortalPage() {
-  return (
-    <div className="min-h-screen bg-background">
-      <Toaster richColors position="top-center" />
-      <SiteHeader />
-      <PageHero eyebrow="Client Portal" title="Your bookings, invoices and quotes — in one place." />
-      <section className="py-16">
-        <div className="mx-auto max-w-md px-6">
-          <Card className="p-6 border-border/60 shadow-soft">
-            <Tabs defaultValue="signin">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin"><LogIn className="h-4 w-4 mr-2" />Sign In</TabsTrigger>
-                <TabsTrigger value="signup"><UserPlus className="h-4 w-4 mr-2" />Create Account</TabsTrigger>
-              </TabsList>
-              <TabsContent value="signin"><AuthForm mode="signin" /></TabsContent>
-              <TabsContent value="signup"><AuthForm mode="signup" /></TabsContent>
-            </Tabs>
-          </Card>
-          <p className="mt-4 text-center text-xs text-muted-foreground">Portal accounts are coming soon. Enter your email and we'll notify you when they're live.</p>
-        </div>
-      </section>
-      <SiteFooter />
-    </div>
-  );
+type Customer={id:string;first_name:string;last_name:string|null;email:string;phone:string|null}
+type Estimate={id:string;estimate_number:string;title:string|null;status:string;valid_until:string|null;total:number;created_at:string}
+type Invoice={id:string;invoice_number:string;title:string|null;status:string;issue_date:string;due_date:string|null;total:number;amount_paid:number;balance_due:number}
+type Job={id:string;job_number:string;title:string;status:string;scheduled_start:string|null;address_line:string|null;city:string|null}
+
+const statusLabel:Record<string,string>={draft:"Brouillon",pending_review:"À réviser",sent:"Envoyé",viewed:"Consulté",accepted:"Accepté",rejected:"Refusé",expired:"Expiré",cancelled:"Annulé",converted_to_job:"Converti",partially_paid:"Partiellement payée",paid:"Payée",overdue:"En retard",void:"Annulée",unscheduled:"À planifier",scheduled:"Planifiée",in_progress:"En cours",completed:"Terminée"}
+
+function CustomerPortal(){
+ const [sessionReady,setSessionReady]=useState(false),[loggedIn,setLoggedIn]=useState(false),[email,setEmail]=useState(""),[sending,setSending]=useState(false),[message,setMessage]=useState("")
+ const [customer,setCustomer]=useState<Customer|null>(null),[estimates,setEstimates]=useState<Estimate[]>([]),[invoices,setInvoices]=useState<Invoice[]>([]),[jobs,setJobs]=useState<Job[]>([]),[error,setError]=useState("")
+ useEffect(()=>{void initialise();const {data}=supabase.auth.onAuthStateChange((_e,s)=>{setLoggedIn(Boolean(s));if(s)void loadPortal()});return()=>data.subscription.unsubscribe()},[])
+ async function initialise(){const {data}=await supabase.auth.getSession();setLoggedIn(Boolean(data.session));setSessionReady(true);if(data.session)await loadPortal()}
+ async function sendLink(e:FormEvent){e.preventDefault();setSending(true);setError("");setMessage("");const {error}=await supabase.auth.signInWithOtp({email,options:{emailRedirectTo:`${window.location.origin}/portal`}});setSending(false);if(error)setError(error.message);else setMessage("Un lien de connexion sécurisé vient d’être envoyé à votre adresse courriel.")}
+ async function loadPortal(){setError("");const {data:a,error:ae}=await supabase.from("customer_accounts").select("customer_id").single();if(ae||!a){setCustomer(null);setError("Aucun dossier client n’est associé à cette adresse. Communiquez avec Ottawa Multiservices Group pour faire vérifier votre courriel.");return}const cid=a.customer_id;const [c,e,i,j]=await Promise.all([supabase.from("customers").select("id,first_name,last_name,email,phone").eq("id",cid).single(),supabase.from("estimates").select("id,estimate_number,title,status,valid_until,total,created_at").eq("customer_id",cid).order("created_at",{ascending:false}),supabase.from("invoices").select("id,invoice_number,title,status,issue_date,due_date,total,amount_paid,balance_due").eq("customer_id",cid).order("issue_date",{ascending:false}),supabase.from("jobs").select("id,job_number,title,status,scheduled_start,address_line,city").eq("customer_id",cid).order("scheduled_start",{ascending:true})]);if(c.error){setError(c.error.message);return}setCustomer(c.data as Customer);setEstimates((e.data??[]) as Estimate[]);setInvoices((i.data??[]) as Invoice[]);setJobs((j.data??[]) as Job[])}
+ async function respond(id:string,response:"accepted"|"rejected"){setError("");const {error}=await supabase.rpc("customer_respond_to_estimate",{p_estimate_id:id,p_response:response});if(error)setError(error.message);else await loadPortal()}
+ async function logout(){await supabase.auth.signOut();setCustomer(null);setEstimates([]);setInvoices([]);setJobs([]);setLoggedIn(false)}
+ if(!sessionReady)return <div className="grid min-h-screen place-items-center bg-slate-50">Chargement…</div>
+ if(!loggedIn)return <div className="min-h-screen bg-slate-50"><PortalHeader/><main className="mx-auto max-w-md px-6 py-20"><div className="rounded-2xl border bg-white p-7 shadow-sm"><p className="text-sm font-semibold text-emerald-700">PORTAIL CLIENT · VERSION 0.5</p><h1 className="mt-2 text-3xl font-bold text-slate-950">Accédez à votre dossier</h1><p className="mt-3 text-slate-600">Recevez un lien sécurisé par courriel. Aucun mot de passe n’est nécessaire.</p>{error&&<Alert text={error}/>} {message&&<div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">{message}</div>}<form onSubmit={sendLink} className="mt-6"><label className="text-sm font-semibold">Adresse courriel<input type="email" required value={email} onChange={e=>setEmail(e.target.value)} className="mt-2 w-full rounded-xl border px-4 py-3" placeholder="nom@exemple.ca"/></label><button disabled={sending} className="mt-4 w-full rounded-xl bg-emerald-600 px-4 py-3 font-semibold text-white hover:bg-emerald-700">{sending?"Envoi…":"Recevoir mon lien de connexion"}</button></form><p className="mt-5 text-center text-xs text-slate-500">Utilisez la même adresse courriel que celle fournie lors de votre demande de devis.</p></div></main></div>
+ return <div className="min-h-screen bg-slate-100"><PortalHeader customer={customer} onLogout={logout}/><main className="mx-auto max-w-6xl space-y-8 px-5 py-8">{error&&<Alert text={error}/>}<section><p className="text-sm font-semibold text-emerald-700">ESPACE CLIENT</p><h1 className="mt-1 text-3xl font-bold">Bonjour {customer?.first_name??""}</h1><p className="text-slate-600">Consultez vos devis, factures, paiements et interventions.</p></section><div className="grid gap-4 sm:grid-cols-3"><Stat icon={ReceiptText} label="Devis" value={estimates.length}/><Stat icon={FileText} label="Solde à payer" value={formatCad(invoices.reduce((n,x)=>n+Number(x.balance_due),0))}/><Stat icon={CalendarDays} label="Interventions" value={jobs.length}/></div><Section title="Mes devis"><div className="grid gap-4">{estimates.length===0?<Empty/>:estimates.map(x=><article key={x.id} className="rounded-xl border bg-white p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-bold text-blue-700">{x.estimate_number}</p><h3 className="text-lg font-semibold">{x.title||"Devis de service"}</h3><p className="text-sm text-slate-500">Créé le {formatDate(x.created_at)}{x.valid_until&&` · Valide jusqu’au ${formatDate(x.valid_until)}`}</p></div><div className="text-right"><p className="text-xl font-bold">{formatCad(x.total)}</p><Badge status={x.status}/></div></div>{["sent","viewed","pending_review"].includes(x.status)&&<div className="mt-4 flex gap-3 border-t pt-4"><button onClick={()=>void respond(x.id,"accepted")} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">Accepter</button><button onClick={()=>void respond(x.id,"rejected")} className="rounded-lg border px-4 py-2 text-sm font-semibold">Refuser</button></div>}</article>)}</div></Section><Section title="Mes factures"><div className="overflow-hidden rounded-xl border bg-white"><table className="w-full text-left text-sm"><thead className="bg-slate-50"><tr><th className="p-4">Facture</th><th className="p-4">Date</th><th className="p-4">Statut</th><th className="p-4 text-right">Total</th><th className="p-4 text-right">Solde</th></tr></thead><tbody className="divide-y">{invoices.map(x=><tr key={x.id}><td className="p-4 font-semibold text-blue-700">{x.invoice_number}</td><td className="p-4">{formatDate(x.issue_date)}</td><td className="p-4"><Badge status={x.status}/></td><td className="p-4 text-right">{formatCad(x.total)}</td><td className="p-4 text-right font-bold">{formatCad(x.balance_due)}</td></tr>)}{invoices.length===0&&<tr><td colSpan={5} className="p-6 text-center text-slate-500">Aucune facture.</td></tr>}</tbody></table></div></Section><Section title="Mes interventions"><div className="grid gap-4 md:grid-cols-2">{jobs.length===0?<Empty/>:jobs.map(x=><article key={x.id} className="rounded-xl border bg-white p-5"><div className="flex justify-between gap-3"><div><p className="text-sm font-semibold text-blue-700">{x.job_number}</p><h3 className="font-bold">{x.title}</h3></div><Badge status={x.status}/></div><p className="mt-3 text-sm text-slate-600">{x.scheduled_start?formatDate(x.scheduled_start):"Date à confirmer"}</p>{(x.address_line||x.city)&&<p className="mt-1 text-sm text-slate-500">{[x.address_line,x.city].filter(Boolean).join(", ")}</p>}</article>)}</div></Section></main></div>
 }
-
-function AuthForm({ mode }: { mode: "signin" | "signup" }) {
-  const [pending, setPending] = useState(false);
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        const data = new FormData(e.currentTarget as HTMLFormElement);
-        const email = String(data.get("email") ?? "").trim();
-        if (!/^\S+@\S+\.\S+$/.test(email)) { toast.error("Please enter a valid email."); return; }
-        setPending(true);
-        setTimeout(() => { setPending(false); toast.success(mode === "signin" ? "We'll email you a sign-in link." : "Account request received — we'll be in touch."); (e.currentTarget as HTMLFormElement | null)?.reset?.(); }, 600);
-      }}
-      className="mt-6 grid gap-4"
-    >
-      {mode === "signup" && (
-        <div><Label className="text-sm font-semibold text-navy">Full Name</Label><Input name="name" required maxLength={80} className="mt-2 h-11" /></div>
-      )}
-      <div><Label className="text-sm font-semibold text-navy">Email</Label><Input name="email" type="email" required maxLength={120} className="mt-2 h-11" /></div>
-      <div><Label className="text-sm font-semibold text-navy">Password</Label><Input name="password" type="password" required minLength={8} maxLength={72} className="mt-2 h-11" /></div>
-      <Button type="submit" disabled={pending} className="bg-accent text-accent-foreground hover:brightness-105 h-11 mt-2">
-        {pending ? "Please wait…" : mode === "signin" ? "Sign In" : "Create Account"}
-      </Button>
-    </form>
-  );
-}
+function PortalHeader({customer,onLogout}:{customer?:Customer|null;onLogout?:()=>void}){return <header className="border-b bg-slate-950 text-white"><div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5"><Link to="/" className="font-bold tracking-wide"><span className="text-emerald-400">OTTAWA</span> MULTISERVICES</Link><div className="flex items-center gap-3">{customer&&<span className="hidden text-sm text-slate-300 sm:inline"><UserRound className="mr-1 inline h-4 w-4"/>{customer.email}</span>}{onLogout&&<button onClick={onLogout} className="rounded-lg border border-slate-700 px-3 py-2 text-sm"><LogOut className="mr-1 inline h-4 w-4"/>Déconnexion</button>}</div></div></header>}
+function Section({title,children}:{title:string;children:React.ReactNode}){return <section><h2 className="mb-4 text-xl font-bold">{title}</h2>{children}</section>}
+function Stat({icon:Icon,label,value}:{icon:typeof FileText;label:string;value:string|number}){return <div className="rounded-xl border bg-white p-5"><Icon className="h-6 w-6 text-emerald-600"/><p className="mt-3 text-sm text-slate-500">{label}</p><p className="text-2xl font-bold">{value}</p></div>}
+function Badge({status}:{status:string}){return <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{statusLabel[status]??status}</span>}
+function Alert({text}:{text:string}){return <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{text}</div>}
+function Empty(){return <div className="rounded-xl border border-dashed bg-white p-6 text-center text-slate-500"><CheckCircle2 className="mx-auto mb-2 h-6 w-6"/>Aucun élément pour le moment.</div>}
