@@ -1,2 +1,5 @@
 [functions.send-crm-email]
 verify_jwt = false
+
+[functions.sign-estimate]
+verify_jwt = true
