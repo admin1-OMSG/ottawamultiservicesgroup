@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     const { data: account, error: accountError } = await adminClient
       .from("customer_accounts")
       .select("customer_id")
-      .eq("user_id", userData.user.id)
+      .eq("auth_user_id", userData.user.id)
       .maybeSingle()
     if (accountError || !account) return json({ error: "No customer record is linked to this account." }, 403)
 
