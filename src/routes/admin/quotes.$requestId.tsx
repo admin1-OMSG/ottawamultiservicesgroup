@@ -583,7 +583,7 @@ function AdminQuoteDetailPage() {
             {quote.customer_id ? (
               <Link
                 to="/admin/estimates/new"
-                search={{ customerId: quote.customer_id }}
+                search={{ customerId: quote.customer_id, serviceRequestId: quote.id }}
                 className="block w-full rounded-lg bg-emerald-600 px-4 py-3 text-center font-semibold text-white hover:bg-emerald-700"
               >
                 Créer un devis officiel

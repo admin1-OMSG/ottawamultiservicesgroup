@@ -44,8 +44,10 @@ Deno.serve(async (req) => {
     const signerName = String(body?.signerName ?? "").trim()
     const signatureDataUrl = String(body?.signatureDataUrl ?? "")
     const consentAccepted = body?.consentAccepted === true
+    const bookingStartsAt = String(body?.bookingStartsAt ?? "")
 
     if (!estimateId) return json({ error: "Estimate ID is required." }, 400)
+    if (!bookingStartsAt || Number.isNaN(Date.parse(bookingStartsAt))) return json({ error: "A valid appointment slot is required before signing." }, 400)
     if (signerName.length < 2 || signerName.length > 160) return json({ error: "Enter the signer’s full name." }, 400)
     if (!consentAccepted) return json({ error: "Consent must be accepted." }, 400)
     if (!signatureDataUrl.startsWith("data:image/png;base64,") || signatureDataUrl.length > 500_000) {
@@ -74,35 +76,27 @@ Deno.serve(async (req) => {
     const connecting = req.headers.get("cf-connecting-ip")?.trim()
     const ipAddress = connecting || forwarded || null
     const userAgent = req.headers.get("user-agent")?.slice(0, 500) || null
-    const consentText = "I confirm that I reviewed this estimate and agree to its stated services, prices, notes and terms. I intend this electronic signature to be legally binding."
+    const consentText = "I confirm that I reviewed this estimate, including the estimated service duration, selected the appointment shown before signing, and accept its services, prices, notes and terms. By signing this estimate, I confirm the selected appointment and commit to having the service performed and to paying the invoice according to the accepted estimate and any additional work I expressly authorize."
 
-    const { data: signature, error: insertError } = await adminClient
-      .from("estimate_signatures")
-      .insert({
-        estimate_id: estimate.id,
-        customer_id: account.customer_id,
-        signer_user_id: userData.user.id,
-        signer_name: signerName,
-        signature_data_url: signatureDataUrl,
-        consent_text: consentText,
-        ip_address: ipAddress,
-        user_agent: userAgent,
-      })
-      .select("id,signed_at")
-      .single()
+    const { data: result, error: acceptError } = await userClient.rpc("customer_accept_estimate_with_booking", {
+      p_estimate_id: estimate.id,
+      p_starts_at: bookingStartsAt,
+      p_signer_name: signerName,
+      p_signature_data_url: signatureDataUrl,
+      p_consent_text: consentText,
+      p_ip_address: ipAddress,
+      p_user_agent: userAgent,
+    })
 
-    if (insertError) {
-      if (insertError.code === "23505") return json({ error: "This estimate has already been signed." }, 409)
-      throw insertError
+    if (acceptError) {
+      const message = acceptError.message || "Could not accept estimate and reserve appointment."
+      if (/already been signed/i.test(message)) return json({ error: "This estimate has already been signed." }, 409)
+      if (/no longer available|blocked|outside business hours|not available/i.test(message)) return json({ error: message }, 409)
+      if (/not linked|not found|not available for acceptance/i.test(message)) return json({ error: message }, 403)
+      throw acceptError
     }
 
-    const { error: updateError } = await adminClient
-      .from("estimates")
-      .update({ status: "accepted", updated_at: signature.signed_at })
-      .eq("id", estimate.id)
-    if (updateError) throw updateError
-
-    return json({ ok: true, signatureId: signature.id, signedAt: signature.signed_at })
+    return json({ ok: true, ...(result ?? {}) })
   } catch (error) {
     console.error(error)
     return json({ error: error instanceof Error ? error.message : "Unexpected error." }, 500)

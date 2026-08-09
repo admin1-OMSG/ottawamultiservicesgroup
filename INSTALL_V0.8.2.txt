@@ -1,0 +1,22 @@
+PATCH v0.8.2 - CALENDRIER AVANT SIGNATURE
+
+Ce patch corrige spécifiquement le portail client.
+Le bouton du devis doit afficher : "Choisir un créneau puis signer".
+Le client choisit d'abord une date et un créneau disponible. La fenêtre de signature ne s'ouvre qu'après confirmation du créneau.
+
+1) Copier tout le contenu de ce dossier dans la racine du projet et accepter le remplacement.
+2) Vérifier que src/routes/portal.tsx contient la chaîne : Choisir un créneau puis signer
+3) Exécuter : npx supabase db push
+4) Déployer : npx supabase functions deploy get-available-slots
+5) Déployer : npx supabase functions deploy sign-estimate
+6) Déployer : npx supabase functions deploy send-crm-email --no-verify-jwt
+7) Exécuter : npm run build
+8) Puis git add . && git commit -m "fix: require appointment slot before quote signature" && git push origin main
+
+TEST ATTENDU
+- Devis envoyé : bouton "Choisir un créneau puis signer"
+- Clic : dialogue "ÉTAPE 1 · CHOIX DU RENDEZ-VOUS"
+- Choisir date + heure
+- Continuer vers la signature
+- La signature affiche le créneau sélectionné
+- Signature = acceptation + réservation définitive

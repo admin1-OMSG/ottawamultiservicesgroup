@@ -20,6 +20,7 @@ type EventBody =
   | { type: "estimate_accepted"; estimateId: string }
   | { type: "estimate_ready"; estimateId: string }
   | { type: "appointment_proposed"; jobId: string }
+  | { type: "booking_confirmed"; bookingId: string }
 
 function escapeHtml(value: unknown) {
   return String(value ?? "")
@@ -68,6 +69,28 @@ async function linkedCustomerId(userId: string | undefined) {
   return data?.customer_id ?? null
 }
 
+function formatQuestionnaire(value: unknown) {
+  if (!value || typeof value !== "object") return ""
+  const entries = Object.entries(value as Record<string, unknown>)
+  if (!entries.length) return ""
+  const rows = entries.map(([key, raw]) => {
+    const label = key.replace(/_/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase())
+    const rendered = Array.isArray(raw) ? raw.join(", ") : typeof raw === "object" && raw !== null ? JSON.stringify(raw) : String(raw ?? "")
+    return `<tr><td style="padding:7px 0;color:#64748b;vertical-align:top">${escapeHtml(label)}</td><td style="padding:7px 0">${escapeHtml(rendered)}</td></tr>`
+  }).join("")
+  return `<h3 style="margin-top:24px">Questionnaire</h3><table style="width:100%;border-collapse:collapse">${rows}</table>`
+}
+
+async function createDirectPortalLink(email: string, estimateId: string) {
+  const redirectTo = `${siteUrl}/portal?estimate=${encodeURIComponent(estimateId)}`
+  const magic = await admin.auth.admin.generateLink({ type: "magiclink", email, options: { redirectTo } })
+  if (!magic.error && magic.data?.properties?.action_link) return magic.data.properties.action_link
+  const signup = await admin.auth.admin.generateLink({ type: "signup", email, password: crypto.randomUUID(), options: { redirectTo } })
+  if (!signup.error && signup.data?.properties?.action_link) return signup.data.properties.action_link
+  console.warn("Direct portal link could not be generated", magic.error ?? signup.error)
+  return `${siteUrl}/portal?estimate=${encodeURIComponent(estimateId)}`
+}
+
 async function sendEmail(to: string, subject: string, html: string, replyTo?: string) {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -104,7 +127,7 @@ Deno.serve(async (req) => {
     let replyTo: string | undefined
 
     if (body.type === "quote_requested") {
-      const { data: request } = await admin.from("service_requests").select("id,first_name,last_name,email,phone,address_line,service_name,description,created_at").eq("id", body.requestId).maybeSingle()
+      const { data: request } = await admin.from("service_requests").select("id,first_name,last_name,email,phone,address_line,service_name,description,questionnaire_answers,created_at").eq("id", body.requestId).maybeSingle()
       if (!request) throw new Error("Quote request not found")
       const age = Date.now() - new Date(request.created_at).getTime()
       if (age > 30 * 60 * 1000) throw new Error("Quote request notification expired")
@@ -114,7 +137,7 @@ Deno.serve(async (req) => {
       recipientType = "admin"
       replyTo = request.email
       subject = `Nouvelle demande de devis — ${request.service_name || "Service"}`
-      html = layout("Nouvelle demande de devis", `<p>Une nouvelle demande vient d’être envoyée depuis le site.</p><table style="width:100%;border-collapse:collapse"><tr><td style="padding:7px 0;color:#64748b">Client</td><td style="padding:7px 0;font-weight:700">${escapeHtml(`${request.first_name} ${request.last_name || ""}`)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Service</td><td style="padding:7px 0">${escapeHtml(request.service_name)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Courriel</td><td style="padding:7px 0">${escapeHtml(request.email)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Téléphone</td><td style="padding:7px 0">${escapeHtml(request.phone)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Adresse</td><td style="padding:7px 0">${escapeHtml(request.address_line)}</td></tr></table><p><a href="${siteUrl}/admin/quotes/${request.id}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Ouvrir la demande</a></p>`)
+      html = layout("Nouvelle demande de devis", `<p>Une nouvelle demande vient d’être envoyée depuis le site.</p><table style="width:100%;border-collapse:collapse"><tr><td style="padding:7px 0;color:#64748b">Client</td><td style="padding:7px 0;font-weight:700">${escapeHtml(`${request.first_name} ${request.last_name || ""}`)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Service</td><td style="padding:7px 0">${escapeHtml(request.service_name)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Courriel</td><td style="padding:7px 0">${escapeHtml(request.email)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Téléphone</td><td style="padding:7px 0">${escapeHtml(request.phone)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Adresse</td><td style="padding:7px 0">${escapeHtml(request.address_line)}</td></tr></table>${formatQuestionnaire(request.questionnaire_answers)}<p><a href="${siteUrl}/admin/quotes/${request.id}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Ouvrir la demande</a></p>`)
     } else if (body.type === "estimate_accepted") {
       const customerId = await linkedCustomerId(user?.id)
       const { data: estimate } = await admin.from("estimates").select("id,estimate_number,title,total,status,customer_id,customer:customers(first_name,last_name,email)").eq("id", body.estimateId).maybeSingle()
@@ -129,7 +152,7 @@ Deno.serve(async (req) => {
       html = layout("Un client a accepté son devis", `<p><strong>${escapeHtml(`${customer?.first_name || ""} ${customer?.last_name || ""}`)}</strong> a accepté le devis <strong>${escapeHtml(estimate.estimate_number)}</strong>.</p><p>Montant : <strong>${money(estimate.total)}</strong></p><p><a href="${siteUrl}/admin/estimates/${estimate.id}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Ouvrir le devis</a></p>`)
     } else if (body.type === "estimate_ready") {
       if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
-      const { data: estimate } = await admin.from("estimates").select("id,estimate_number,title,total,status,updated_at,customer:customers(first_name,last_name,email)").eq("id", body.estimateId).maybeSingle()
+      const { data: estimate } = await admin.from("estimates").select("id,estimate_number,title,total,status,updated_at,estimated_duration_minutes,crew_size,customer:customers(first_name,last_name,email)").eq("id", body.estimateId).maybeSingle()
       if (!estimate || !["sent", "viewed"].includes(estimate.status)) throw new Error("Estimate is not ready to send")
       const customer = Array.isArray(estimate.customer) ? estimate.customer[0] : estimate.customer
       if (!customer?.email) throw new Error("Customer email missing")
@@ -137,7 +160,10 @@ Deno.serve(async (req) => {
       recordId = estimate.id
       recipient = customer.email
       subject = `Votre devis ${estimate.estimate_number} est prêt`
-      html = layout("Votre devis est prêt", `<p>Bonjour ${escapeHtml(customer.first_name)},</p><p>Nous avons préparé votre devis <strong>${escapeHtml(estimate.estimate_number)}</strong> pour ${escapeHtml(estimate.title || "le service demandé")}.</p><p>Montant : <strong>${money(estimate.total)}</strong></p><p>Vous pouvez le consulter, l’accepter ou le refuser dans votre espace client.</p><p><a href="${siteUrl}/portal" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Consulter mon devis</a></p>`)
+      const portalLink = await createDirectPortalLink(customer.email, estimate.id)
+      const duration = Number(estimate.estimated_duration_minutes || 0)
+      const durationText = duration ? `${(duration / 60).toFixed(duration % 60 === 0 ? 0 : 1)} heure(s) sur place · équipe de ${estimate.crew_size || 1}` : "Durée à confirmer"
+      html = layout("Votre devis est prêt", `<p>Bonjour ${escapeHtml(customer.first_name)},</p><p>Nous avons préparé votre devis <strong>${escapeHtml(estimate.estimate_number)}</strong> pour ${escapeHtml(estimate.title || "le service demandé")}.</p><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin:18px 0"><p style="margin:0 0 8px">Montant : <strong>${money(estimate.total)}</strong></p><p style="margin:0">Durée estimée : <strong>${escapeHtml(durationText)}</strong></p></div><p>Le bouton ci-dessous vous connecte directement et de façon sécurisée à votre devis. Vous pourrez le lire, le signer et ensuite choisir un créneau disponible.</p><p><a href="${portalLink}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Voir et signer mon devis</a></p>`)
     } else if (body.type === "appointment_proposed") {
       if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
       const { data: job } = await admin.from("jobs").select("id,job_number,title,status,scheduled_start,scheduled_end,address_line,city,customer:customers(first_name,last_name,email)").eq("id", body.jobId).maybeSingle()
@@ -149,6 +175,19 @@ Deno.serve(async (req) => {
       recipient = customer.email
       subject = `Proposition de rendez-vous — ${job.title}`
       html = layout("Proposition de rendez-vous", `<p>Bonjour ${escapeHtml(customer.first_name)},</p><p>Nous vous proposons le rendez-vous suivant pour <strong>${escapeHtml(job.title)}</strong> :</p><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px;margin:18px 0"><div style="font-size:18px;font-weight:700">${escapeHtml(dateTime(job.scheduled_start))}</div>${job.scheduled_end ? `<div style="margin-top:5px;color:#475569">Fin prévue : ${escapeHtml(dateTime(job.scheduled_end))}</div>` : ""}<div style="margin-top:5px;color:#475569">${escapeHtml([job.address_line, job.city].filter(Boolean).join(", "))}</div></div><p>Consultez votre espace client pour retrouver les détails de l’intervention.</p><p><a href="${siteUrl}/portal" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Voir mon rendez-vous</a></p>`)
+    } else if (body.type === "booking_confirmed") {
+      const customerId = await linkedCustomerId(user?.id)
+      const { data: booking } = await admin.from("estimate_bookings").select("id,estimate_id,customer_id,starts_at,ends_at,status,estimate:estimates(estimate_number,title,total),customer:customers(first_name,last_name,email)").eq("id", body.bookingId).maybeSingle()
+      if (!booking || !customerId || booking.customer_id !== customerId) throw new Error("Not authorized")
+      const customer = Array.isArray(booking.customer) ? booking.customer[0] : booking.customer
+      const estimate = Array.isArray(booking.estimate) ? booking.estimate[0] : booking.estimate
+      if (!customer?.email) throw new Error("Customer email missing")
+      key = `booking-confirmed:${booking.id}:${booking.starts_at}`
+      recordId = booking.id
+      recipient = customer.email
+      recipientType = "customer"
+      subject = `Rendez-vous réservé — ${estimate?.estimate_number || "Ottawa Multiservices"}`
+      html = layout("Votre rendez-vous est réservé", `<p>Bonjour ${escapeHtml(customer.first_name)},</p><p>Votre devis a été accepté et votre créneau est maintenant réservé.</p><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px;margin:18px 0"><div style="font-size:18px;font-weight:700">${escapeHtml(dateTime(booking.starts_at))}</div><div style="margin-top:5px;color:#475569">Fin estimée : ${escapeHtml(dateTime(booking.ends_at))}</div><div style="margin-top:8px">${escapeHtml(estimate?.title || "Service")}</div></div><p><strong>Important :</strong> la signature du devis et la réservation du créneau constituent votre engagement à faire exécuter le service et à payer la facture conformément au devis accepté et aux travaux effectivement autorisés.</p><p>Nous vous transmettrons la facture après l’intervention.</p>`)
     } else {
       throw new Error("Unsupported event")
     }

@@ -39,17 +39,18 @@ const COM_SERVICES: { key: ServiceKey; label: string; icon: React.ElementType; b
 
 type UserType = "client" | "partner" | null;
 type ClientKind = "residential" | "commercial" | null;
+type AnswerValue = string | string[];
 
 export function QuoteFunnel({ startWith }: { startWith?: "client" | "partner" }) {
   const [userType, setUserType] = useState<UserType>(startWith ?? null);
   const [clientKind, setClientKind] = useState<ClientKind>(null);
   const [service, setService] = useState<ServiceKey | null>(null);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
   const [showContact, setShowContact] = useState(false);
 
   const services = clientKind === "commercial" ? COM_SERVICES : RES_SERVICES;
   const activeService = useMemo(() => services.find((s) => s.key === service), [services, service]);
-  const setA = (k: string, v: string) => setAnswers((p) => ({ ...p, [k]: v }));
+  const setA = (k: string, v: AnswerValue) => setAnswers((p) => ({ ...p, [k]: v }));
   const reset = () => { setUserType(startWith ?? null); setClientKind(null); setService(null); setAnswers({}); setShowContact(false); };
 
   return (
@@ -181,7 +182,7 @@ function ServiceTile({ icon: Icon, title, blurb, onClick }: { icon: React.Elemen
   );
 }
 
-function ServiceQuestions({ serviceKey, answers, setA }: { serviceKey: ServiceKey; answers: Record<string, string>; setA: (k: string, v: string) => void; }) {
+function ServiceQuestions({ serviceKey, answers, setA }: { serviceKey: ServiceKey; answers: Record<string, AnswerValue>; setA: (k: string, v: AnswerValue) => void; }) {
   const q = questionsFor(serviceKey, answers);
   return (
     <div className="grid gap-6">
@@ -190,26 +191,56 @@ function ServiceQuestions({ serviceKey, answers, setA }: { serviceKey: ServiceKe
   );
 }
 
-type QItem = { id: string; label: string; kind: "radio" | "select"; options: string[] };
+type QItem = { id: string; label: string; kind: "radio" | "select" | "checkbox"; options: string[] };
 
-function QuestionField({ item, value, onChange }: { item: QItem; value: string; onChange: (v: string) => void }) {
+function QuestionField({ item, value, onChange }: { item: QItem; value: AnswerValue; onChange: (v: AnswerValue) => void }) {
   if (item.kind === "select") {
     return (
       <div>
         <Label className="text-sm font-semibold text-navy">{item.label}</Label>
-        <Select value={value} onValueChange={onChange}>
+        <Select value={typeof value === "string" ? value : ""} onValueChange={onChange}>
           <SelectTrigger className="mt-2 h-11"><SelectValue placeholder="Select an option" /></SelectTrigger>
           <SelectContent>{item.options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
         </Select>
       </div>
     );
   }
+  if (item.kind === "checkbox") {
+    const selected = Array.isArray(value) ? value : [];
+    return (
+      <div>
+        <Label className="text-sm font-semibold text-navy">{item.label}</Label>
+        <p className="mt-1 text-xs text-muted-foreground">Select all that apply.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {item.options.map((o) => {
+            const active = selected.includes(o);
+            return (
+              <label key={o} className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${active ? "border-accent bg-accent/5" : "border-border hover:border-accent/60"}`}>
+                <input
+                  type="checkbox"
+                  checked={active}
+                  onChange={(event) => {
+                    const next = event.target.checked ? [...selected, o] : selected.filter((value) => value !== o);
+                    onChange(next);
+                  }}
+                  className="h-4 w-4"
+                />
+                <span className="text-sm">{o}</span>
+                {active && <CheckCircle2 className="ml-auto h-4 w-4 text-accent" />}
+              </label>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+  const selectedValue = typeof value === "string" ? value : "";
   return (
     <div>
       <Label className="text-sm font-semibold text-navy">{item.label}</Label>
-      <RadioGroup value={value} onValueChange={onChange} className="mt-3 grid gap-2 sm:grid-cols-2">
+      <RadioGroup value={selectedValue} onValueChange={onChange} className="mt-3 grid gap-2 sm:grid-cols-2">
         {item.options.map((o) => {
-          const active = value === o;
+          const active = selectedValue === o;
           return (
             <label key={o} className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${active ? "border-accent bg-accent/5" : "border-border hover:border-accent/60"}`}>
               <RadioGroupItem value={o} id={`${item.id}-${o}`} />
@@ -223,7 +254,7 @@ function QuestionField({ item, value, onChange }: { item: QItem; value: string; 
   );
 }
 
-function questionsFor(key: ServiceKey, a: Record<string, string>): QItem[] {
+function questionsFor(key: ServiceKey, a: Record<string, AnswerValue>): QItem[] {
   switch (key) {
     case "cleaning": {
       const base: QItem[] = [
@@ -232,7 +263,7 @@ function questionsFor(key: ServiceKey, a: Record<string, string>): QItem[] {
         { id: "propertyType", label: "What is the property type?", kind: "radio",
           options: ["Apartment","House","Townhouse","Condo","Airbnb/Rental"] },
       ];
-      if (a.propertyType && a.propertyType !== "Apartment") {
+      if (typeof a.propertyType === "string" && a.propertyType !== "Apartment") {
         base.push(
           { id: "bedrooms",   label: "How many bedrooms?",  kind: "select", options: ["1","2","3","4+"] },
           { id: "bathrooms",  label: "How many bathrooms?", kind: "select", options: ["1","2","3","4+"] },
@@ -249,11 +280,11 @@ function questionsFor(key: ServiceKey, a: Record<string, string>): QItem[] {
       return [
         { id: "vehicleType", label: "What is the vehicle type?", kind: "radio", options: ["Sedan","SUV","Truck","Minivan","Luxury Vehicle"] },
         { id: "detailService", label: "What service do you require?", kind: "radio", options: ["Exterior Wash","Interior Detailing","Full Detail (Interior + Exterior)"] },
-        { id: "extras", label: "Do you need any extra services?", kind: "radio", options: ["None","Odor Removal","Pet Hair Removal","Headlight Restoration","Ceramic Coating"] },
+        { id: "extras", label: "Do you need any extra services?", kind: "checkbox", options: ["Odor Removal","Pet Hair Removal","Headlight Restoration","Ceramic Coating"] },
       ];
     case "lawn":
       return [
-        { id: "lawnService", label: "What service do you need?", kind: "radio", options: ["Lawn Mowing","Hedge Trimming","Spring Cleanup","Fall Cleanup","Weed Removal","Garden Maintenance"] },
+        { id: "lawnService", label: "What service do you need?", kind: "checkbox", options: ["Lawn Mowing","Hedge Trimming","Spring Cleanup","Fall Cleanup","Weed Removal","Garden Maintenance"] },
         { id: "lawnSize", label: "What is the size of your lawn?", kind: "radio", options: ["Small (Under 1/4 acre)","Medium (1/4 – 1/2 acre)","Large (1/2 – 1 acre)","Extra Large (1+ acres)"] },
         { id: "lawnFrequency", label: "How often?", kind: "radio", options: ["One-Time","Weekly","Bi-Weekly","Monthly"] },
       ];
@@ -266,7 +297,7 @@ function questionsFor(key: ServiceKey, a: Record<string, string>): QItem[] {
       ];
     case "snow":
       return [
-        { id: "snowArea", label: "What do you need cleared?", kind: "radio", options: ["Driveway","Walkway","Entire Property","Roof Raking"] },
+        { id: "snowArea", label: "What do you need cleared?", kind: "checkbox", options: ["Driveway","Walkway","Entire Property","Roof Raking"] },
         { id: "drivewaySize", label: "What is the size of your driveway?", kind: "radio", options: ["Single Car","Double Car","Triple+ Car"] },
         { id: "snowPlan", label: "What type of service do you prefer?", kind: "radio", options: ["Per Visit (On-Demand)","Seasonal Contract (Unlimited)"] },
       ];
@@ -289,12 +320,12 @@ function questionsFor(key: ServiceKey, a: Record<string, string>): QItem[] {
     case "commercial-snow":
       return [
         { id: "propertyType", label: "Property type", kind: "radio", options: ["Retail plaza","Office building","Industrial lot","Condo / multi-unit"] },
-        { id: "coverage", label: "Coverage needed", kind: "radio", options: ["Parking lot","Walkways","Full property + salting"] },
+        { id: "coverage", label: "Coverage needed", kind: "checkbox", options: ["Parking lot","Walkways","Full property + salting"] },
       ];
     case "commercial-lawn":
       return [
         { id: "propertyType", label: "Property type", kind: "radio", options: ["Retail plaza","Office building","Industrial lot","Condo / multi-unit"] },
-        { id: "scope", label: "Scope of service", kind: "radio", options: ["Mowing only","Full landscape maintenance","Seasonal cleanups"] },
+        { id: "scope", label: "Scope of service", kind: "checkbox", options: ["Mowing only","Full landscape maintenance","Seasonal cleanups"] },
       ];
     case "property":
       return [
@@ -314,7 +345,7 @@ function ContactForm({
   onSubmitted,
 }: {
   service: string;
-  answers: Record<string, string>;
+  answers: Record<string, AnswerValue>;
   onSubmitted: () => void;
 }) {
   const [pending, setPending] = useState(false);
