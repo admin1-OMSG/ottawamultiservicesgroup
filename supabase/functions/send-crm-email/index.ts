@@ -12,6 +12,9 @@ const resendApiKey = Deno.env.get("RESEND_API_KEY")!
 const adminEmail = Deno.env.get("ADMIN_NOTIFICATION_EMAIL")!
 const fromEmail = Deno.env.get("EMAIL_FROM") || "Ottawa Multiservices <notifications@ottawamultiservicesgroup.com>"
 const siteUrl = (Deno.env.get("SITE_URL") || "https://www.ottawamultiservicesgroup.com").replace(/\/$/, "")
+const businessAddress = Deno.env.get("BUSINESS_ADDRESS") || "Ottawa, Ontario, Canada"
+const businessPhone = Deno.env.get("BUSINESS_PHONE") || ""
+const gstHstNumber = Deno.env.get("GST_HST_NUMBER") || ""
 
 const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } })
 
@@ -201,7 +204,7 @@ Deno.serve(async (req) => {
         admin.from("payments").select("amount,payment_date,method,reference").eq("invoice_id", invoice.id).order("payment_date", { ascending: false }),
       ])
       const isPaid = Number(invoice.balance_due || 0) <= 0 || invoice.status === "paid"
-      key = `invoice-ready:${invoice.id}:${invoice.updated_at}:${invoice.status}:${invoice.amount_paid}`
+      key = `invoice-ready-v2:${invoice.id}:${invoice.updated_at}:${invoice.status}:${invoice.amount_paid}`
       recordId = invoice.id
       recipient = customer.email
       recipientType = "customer"
@@ -212,7 +215,66 @@ Deno.serve(async (req) => {
       const itemRows = (items || []).map((item) => `<tr><td style="padding:10px 0;border-bottom:1px solid #e2e8f0">${escapeHtml(item.description)}</td><td style="padding:10px 0;border-bottom:1px solid #e2e8f0;text-align:center">${escapeHtml(item.quantity)}</td><td style="padding:10px 0;border-bottom:1px solid #e2e8f0;text-align:right">${money(item.unit_price)}</td><td style="padding:10px 0;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:700">${money(item.line_total)}</td></tr>`).join("")
       const paymentRows = (payments || []).map((p) => `<tr><td style="padding:8px 0;border-bottom:1px solid #e2e8f0">${escapeHtml(p.payment_date)}</td><td style="padding:8px 0;border-bottom:1px solid #e2e8f0">${escapeHtml(paymentLabels[p.method] || p.method)}</td><td style="padding:8px 0;border-bottom:1px solid #e2e8f0">${escapeHtml(p.reference || "—")}</td><td style="padding:8px 0;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:700">${money(p.amount)}</td></tr>`).join("")
       const customerAddress = [customer.address_line, customer.city, customer.province, customer.postal_code].filter(Boolean).join(", ")
-      html = layout(isPaid ? "Facture acquittée" : "Votre facture", `<p>Bonjour ${escapeHtml(customer.first_name)},</p><p>${isPaid ? "Nous confirmons la réception de votre paiement. Voici votre facture acquittée." : "Votre facture est prête. Vous trouverez ci-dessous son récapitulatif."}</p><div style="border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:18px 0"><div style="display:flex;justify-content:space-between;gap:20px"><div><div style="font-size:12px;color:#64748b;text-transform:uppercase">Facturé à</div><strong>${escapeHtml(`${customer.first_name} ${customer.last_name || ""}`)}</strong><div style="font-size:13px;color:#64748b">${escapeHtml(customerAddress)}</div></div><div style="text-align:right"><div style="font-size:12px;color:#64748b;text-transform:uppercase">Facture</div><strong>${escapeHtml(invoice.invoice_number)}</strong><div style="font-size:13px;color:#64748b">Émise le ${escapeHtml(invoice.issue_date)}</div></div></div></div>${itemRows ? `<table style="width:100%;border-collapse:collapse;margin:18px 0"><thead><tr><th style="text-align:left;padding-bottom:8px">Description</th><th style="text-align:center;padding-bottom:8px">Qté</th><th style="text-align:right;padding-bottom:8px">Prix</th><th style="text-align:right;padding-bottom:8px">Montant</th></tr></thead><tbody>${itemRows}</tbody></table>` : ""}<div style="margin:18px 0 18px auto;max-width:340px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px"><p style="margin:0 0 8px;display:flex;justify-content:space-between"><span>Sous-total avant taxes</span><strong>${money(invoice.subtotal)}</strong></p>${Number(invoice.discount_total || 0) > 0 ? `<p style="margin:0 0 8px;display:flex;justify-content:space-between"><span>Remise</span><strong>-${money(invoice.discount_total)}</strong></p>` : ""}<p style="margin:0 0 8px;display:flex;justify-content:space-between"><span>HST (${taxRate.toFixed(taxRate % 1 === 0 ? 0 : 2)} %)</span><strong>${money(invoice.tax_total)}</strong></p><p style="margin:10px 0 0;padding-top:10px;border-top:1px solid #cbd5e1;display:flex;justify-content:space-between;font-size:18px"><span>Total</span><strong>${money(invoice.total)}</strong></p><p style="margin:8px 0 0;display:flex;justify-content:space-between;color:#047857"><span>Payé</span><strong>${money(invoice.amount_paid)}</strong></p><p style="margin:10px 0 0;padding-top:10px;border-top:1px solid #cbd5e1;display:flex;justify-content:space-between"><span>Solde</span><strong>${money(invoice.balance_due)}</strong></p></div>${paymentRows ? `<h3 style="margin-top:24px">Paiement reçu</h3><table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left">Date</th><th style="text-align:left">Méthode</th><th style="text-align:left">Référence</th><th style="text-align:right">Montant</th></tr></thead><tbody>${paymentRows}</tbody></table>` : ""}<div style="margin-top:22px;font-size:12px;color:#64748b">Ottawa Multiservices Group Inc.<br>${escapeHtml(businessAddress)}${businessPhone ? `<br>${escapeHtml(businessPhone)}` : ""}${gstHstNumber ? `<br>GST/HST No. ${escapeHtml(gstHstNumber)}` : ""}</div><p><a href="${portalLink}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">${isPaid ? "Voir ma facture acquittée" : "Voir ma facture"}</a></p>${isPaid ? "<p>Merci pour votre paiement et votre confiance.</p>" : `<p>Échéance : <strong>${escapeHtml(invoice.due_date || "à confirmer")}</strong></p>`}`)
+      const statusLabel = isPaid ? "ACQUITTÉE" : "À PAYER"
+      const invoiceBody = `
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+          <tr>
+            <td style="padding:0 0 18px 0;font-size:15px;line-height:1.65;color:#334155">
+              Bonjour <strong>${escapeHtml(customer.first_name)}</strong>,<br>
+              ${isPaid ? "Nous confirmons la réception de votre paiement. Votre facture acquittée est disponible ci-dessous et dans votre espace client." : "Votre facture est prête. Vous trouverez ci-dessous son récapitulatif."}
+            </td>
+          </tr>
+        </table>
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:0;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin:0 0 20px 0">
+          <tr>
+            <td width="55%" valign="top" style="padding:18px;border-right:1px solid #e2e8f0">
+              <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:7px">Facturé à</div>
+              <div style="font-size:15px;font-weight:700;color:#0f172a">${escapeHtml(`${customer.first_name} ${customer.last_name || ""}`)}</div>
+              ${customerAddress ? `<div style="margin-top:5px;font-size:13px;line-height:1.5;color:#64748b">${escapeHtml(customerAddress)}</div>` : ""}
+              <div style="margin-top:4px;font-size:13px;color:#64748b">${escapeHtml(customer.email)}</div>
+            </td>
+            <td width="45%" valign="top" align="right" style="padding:18px">
+              <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:7px">Facture</div>
+              <div style="font-size:16px;font-weight:800;color:#0f172a">${escapeHtml(invoice.invoice_number)}</div>
+              <div style="margin-top:5px;font-size:13px;color:#64748b">Émise le ${escapeHtml(invoice.issue_date)}</div>
+              ${invoice.due_date ? `<div style="margin-top:3px;font-size:13px;color:#64748b">Échéance ${escapeHtml(invoice.due_date)}</div>` : ""}
+              <div style="margin-top:9px"><span style="display:inline-block;padding:5px 9px;border-radius:999px;background:${isPaid ? "#d1fae5" : "#fef3c7"};color:${isPaid ? "#065f46" : "#92400e"};font-size:11px;font-weight:800">${statusLabel}</span></div>
+            </td>
+          </tr>
+        </table>
+
+        ${itemRows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 20px 0;font-size:13px"><thead><tr style="background:#f8fafc"><th style="padding:10px;text-align:left;border:1px solid #e2e8f0;color:#475569">Description</th><th style="padding:10px;text-align:center;border:1px solid #e2e8f0;color:#475569">Qté</th><th style="padding:10px;text-align:right;border:1px solid #e2e8f0;color:#475569">Prix</th><th style="padding:10px;text-align:right;border:1px solid #e2e8f0;color:#475569">Montant</th></tr></thead><tbody>${itemRows}</tbody></table>` : ""}
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 22px 0">
+          <tr>
+            <td width="48%" valign="top" style="padding-right:12px">
+              ${paymentRows ? `<div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:9px">Paiement reçu</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px"><thead><tr><th style="padding:7px 4px;text-align:left;color:#64748b;border-bottom:1px solid #e2e8f0">Date</th><th style="padding:7px 4px;text-align:left;color:#64748b;border-bottom:1px solid #e2e8f0">Méthode</th><th style="padding:7px 4px;text-align:right;color:#64748b;border-bottom:1px solid #e2e8f0">Montant</th></tr></thead><tbody>${(payments || []).map((p) => `<tr><td style="padding:7px 4px;border-bottom:1px solid #f1f5f9">${escapeHtml(p.payment_date)}</td><td style="padding:7px 4px;border-bottom:1px solid #f1f5f9">${escapeHtml(paymentLabels[p.method] || p.method)}</td><td style="padding:7px 4px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:700">${money(p.amount)}</td></tr>`).join("")}</tbody></table>` : ""}
+            </td>
+            <td width="52%" valign="top" style="padding-left:12px">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;font-size:13px">
+                <tr><td style="padding:12px 14px 5px;color:#475569">Sous-total avant taxes</td><td align="right" style="padding:12px 14px 5px;font-weight:700">${money(invoice.subtotal)}</td></tr>
+                ${Number(invoice.discount_total || 0) > 0 ? `<tr><td style="padding:5px 14px;color:#475569">Remise</td><td align="right" style="padding:5px 14px;font-weight:700">-${money(invoice.discount_total)}</td></tr>` : ""}
+                <tr><td style="padding:5px 14px;color:#475569">HST (${taxRate.toFixed(taxRate % 1 === 0 ? 0 : 2)} %)</td><td align="right" style="padding:5px 14px;font-weight:700">${money(invoice.tax_total)}</td></tr>
+                <tr><td style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:16px;font-weight:800">Total</td><td align="right" style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:16px;font-weight:800">${money(invoice.total)}</td></tr>
+                <tr><td style="padding:5px 14px;color:#047857">Montant payé</td><td align="right" style="padding:5px 14px;color:#047857;font-weight:800">${money(invoice.amount_paid)}</td></tr>
+                <tr><td style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:15px;font-weight:800">Solde</td><td align="right" style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:15px;font-weight:800">${money(invoice.balance_due)}</td></tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 22px 0">
+          <tr><td align="center"><a href="${portalLink}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:9px;font-weight:800;font-size:14px">Voir la facture et télécharger le PDF</a></td></tr>
+        </table>
+
+        <div style="padding-top:17px;border-top:1px solid #e2e8f0;font-size:12px;line-height:1.6;color:#64748b">
+          Ottawa Multiservices Group Inc.<br>
+          ${escapeHtml(businessAddress)}${businessPhone ? `<br>${escapeHtml(businessPhone)}` : ""}${gstHstNumber ? `<br>GST/HST No. ${escapeHtml(gstHstNumber)}` : ""}
+        </div>
+        ${isPaid ? `<p style="margin:18px 0 0;color:#334155">Merci pour votre paiement et votre confiance.</p>` : ""}
+      `
+      html = layout(isPaid ? "Facture acquittée" : "Votre facture", invoiceBody)
     } else if (body.type === "booking_confirmed") {
       const customerId = await linkedCustomerId(user?.id)
       const { data: booking } = await admin.from("estimate_bookings").select("id,estimate_id,customer_id,starts_at,ends_at,status,estimate:estimates(estimate_number,title,total),customer:customers(first_name,last_name,email)").eq("id", body.bookingId).maybeSingle()
