@@ -38,7 +38,7 @@ function ContactPage() {
         <div className="mx-auto max-w-6xl px-6 grid gap-10 lg:grid-cols-[1fr_1.4fr]">
           <div className="grid gap-4">
             {[
-              { icon: Phone, title: "Phone", body: "(613) 555-0123" },
+              { icon: Phone, title: "Phone", body: "(613) 407-6699" },
               { icon: Mail,  title: "Email", body: "hello@ottawamultiservicesgroup.com" },
               { icon: MapPin, title: "Service Area", body: "Ottawa · Gatineau · Kanata · Orleans · Barrhaven · Nepean · Stittsville" },
               { icon: Clock, title: "Hours", body: "Mon–Sat 7am–8pm · Sun by appointment" },

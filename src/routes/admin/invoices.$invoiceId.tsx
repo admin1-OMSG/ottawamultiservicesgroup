@@ -45,7 +45,7 @@ type Payment = { id: string; amount: number; payment_date: string; method: strin
 
 const BUSINESS_NAME = "Ottawa Multiservices Group Inc."
 const BUSINESS_EMAIL = import.meta.env.VITE_BUSINESS_EMAIL || "admin1@ottawamultiservicesgroup.com"
-const BUSINESS_PHONE = import.meta.env.VITE_BUSINESS_PHONE || ""
+const BUSINESS_PHONE = import.meta.env.VITE_BUSINESS_PHONE || "(613) 407-6699"
 const BUSINESS_ADDRESS = import.meta.env.VITE_BUSINESS_ADDRESS || "Ottawa, Ontario, Canada"
 const GST_HST_NUMBER = import.meta.env.VITE_GST_HST_NUMBER || ""
 const WEBSITE = "www.ottawamultiservicesgroup.com"

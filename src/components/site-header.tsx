@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Menu } from "lucide-react";
+import { Menu, Phone } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -45,6 +45,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <a href="tel:+16134076699" className={`hidden xl:inline-flex items-center gap-1.5 text-sm font-semibold ${isTransparent ? "text-white" : "text-navy"}`}><Phone className="h-4 w-4" />(613) 407-6699</a>
           <Link to="/quote" className="hidden sm:inline-flex">
             <Button className="bg-accent text-accent-foreground hover:brightness-105">Free Quote</Button>
           </Link>

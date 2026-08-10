@@ -1,0 +1,14 @@
+CRM v0.9.3 - Business phone number
+Phone: (613) 407-6699
+
+Copy all files into the project, replacing existing files.
+No SQL migration required.
+
+Then run:
+npm run build
+npx supabase functions deploy send-crm-email --no-verify-jwt
+
+If successful:
+git add .
+git commit -m "feat: add business phone across website and CRM"
+git push origin main

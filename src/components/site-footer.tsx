@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Youtube, Phone } from "lucide-react";
 
 export function SiteFooter() {
   return (
@@ -11,6 +11,7 @@ export function SiteFooter() {
             <span className="font-display font-bold">Ottawa Multi Services Group</span>
           </div>
           <p className="mt-4 text-sm text-white/70">Ottawa-Gatineau's trusted team for cleaning, moving, landscaping, snow removal and mobile services.</p>
+          <a href="tel:+16134076699" className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-accent"><Phone className="h-4 w-4" />(613) 407-6699</a>
           <div className="mt-5 flex gap-3 text-white/70">
             <a href="#" aria-label="Facebook" className="hover:text-accent"><Facebook className="h-4 w-4" /></a>
             <a href="#" aria-label="Instagram" className="hover:text-accent"><Instagram className="h-4 w-4" /></a>

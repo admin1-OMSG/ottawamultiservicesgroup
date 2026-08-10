@@ -1,4 +1,4 @@
-import { Bell, Search } from "lucide-react"
+import { Bell, Search, Phone } from "lucide-react"
 
 export function Topbar() {
   return (
@@ -14,6 +14,7 @@ export function Topbar() {
       </div>
 
       <div className="flex items-center gap-3">
+        <a href="tel:+16134076699" className="hidden lg:inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-emerald-700"><Phone className="h-4 w-4" />(613) 407-6699</a>
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
 

@@ -13,7 +13,7 @@ const adminEmail = Deno.env.get("ADMIN_NOTIFICATION_EMAIL")!
 const fromEmail = Deno.env.get("EMAIL_FROM") || "Ottawa Multiservices <notifications@ottawamultiservicesgroup.com>"
 const siteUrl = (Deno.env.get("SITE_URL") || "https://www.ottawamultiservicesgroup.com").replace(/\/$/, "")
 const businessAddress = Deno.env.get("BUSINESS_ADDRESS") || "Ottawa, Ontario, Canada"
-const businessPhone = Deno.env.get("BUSINESS_PHONE") || ""
+const businessPhone = Deno.env.get("BUSINESS_PHONE") || "(613) 407-6699"
 const gstHstNumber = Deno.env.get("GST_HST_NUMBER") || ""
 
 const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } })
