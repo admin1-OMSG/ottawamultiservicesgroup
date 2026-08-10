@@ -1,0 +1,12 @@
+Ottawa Multiservices CRM v0.9.7 — Calendar Blocking & Rescheduling
+
+1. Copy the src/ and supabase/ folders into the project, replacing files.
+2. Run: npx supabase db push
+3. Run: npm.cmd run build
+4. Run: npm.cmd run dev
+5. Test admin Calendar: create a block, verify it appears, click it to unblock.
+6. Test a signed/accepted estimate: admin can reschedule its reserved appointment.
+7. Test customer portal: a signed estimate with a reserved slot shows "Modifier mon rendez-vous" and reuses the availability picker.
+8. Publish: git add . && git commit -m "feat: calendar blocking and appointment rescheduling" && git push origin main
+
+No Edge Function deployment is required by this patch.

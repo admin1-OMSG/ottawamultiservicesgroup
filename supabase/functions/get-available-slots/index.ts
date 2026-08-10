@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
     const { data: account } = await admin.from("customer_accounts").select("customer_id").eq("auth_user_id", userData.user.id).maybeSingle()
     if (!account) return json({ error: "Customer account not linked" }, 403)
     const { data: estimate } = await admin.from("estimates").select("id,status,estimated_duration_minutes").eq("id", estimateId).eq("customer_id", account.customer_id).maybeSingle()
-    if (!estimate || !["sent", "viewed", "pending_review", "accepted"].includes(estimate.status)) return json({ error: "Estimate is not available for scheduling" }, 403)
+    if (!estimate || !["sent", "viewed", "pending_review", "accepted", "converted_to_job"].includes(estimate.status)) return json({ error: "Estimate is not available for scheduling" }, 403)
     const duration = Number(estimate.estimated_duration_minutes || 0)
     if (!duration) return json({ error: "Estimated duration is missing" }, 409)
 
@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     const dayEnd = localDateTimeToUtc(nextDateStr, "00:00")
 
     const [jobs, blocks, bookings] = await Promise.all([
-      admin.from("jobs").select("scheduled_start,scheduled_end").neq("status", "cancelled").lt("scheduled_start", dayEnd.toISOString()).gt("scheduled_end", dayStart.toISOString()),
+      admin.from("jobs").select("estimate_id,scheduled_start,scheduled_end").neq("status", "cancelled").neq("estimate_id", estimateId).lt("scheduled_start", dayEnd.toISOString()).gt("scheduled_end", dayStart.toISOString()),
       admin.from("schedule_blocks").select("starts_at,ends_at").lt("starts_at", dayEnd.toISOString()).gt("ends_at", dayStart.toISOString()),
       admin.from("estimate_bookings").select("estimate_id,starts_at,ends_at").eq("status", "reserved").neq("estimate_id", estimateId).lt("starts_at", dayEnd.toISOString()).gt("ends_at", dayStart.toISOString()),
     ])

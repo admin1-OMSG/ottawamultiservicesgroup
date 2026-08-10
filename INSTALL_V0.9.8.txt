@@ -1,0 +1,9 @@
+v0.9.8 - Appointment rescheduling after acceptance
+
+1. Copy patch into project.
+2. npx supabase db push
+3. npx supabase functions deploy get-available-slots
+4. npm.cmd run build
+5. npm.cmd run dev
+
+Test customer and admin rescheduling after acceptance and after conversion to job.
