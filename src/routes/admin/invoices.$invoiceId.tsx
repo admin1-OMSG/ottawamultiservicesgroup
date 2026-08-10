@@ -10,6 +10,9 @@ export const Route = createFileRoute("/admin/invoices/$invoiceId")({ component: 
 
 type Invoice = {
   id: string
+  customer_id: string
+  estimate_id: string | null
+  job_id: string | null
   invoice_number: string
   title: string | null
   status: string
@@ -79,6 +82,11 @@ function InvoiceDetail() {
   const [notice, setNotice] = useState("")
   const [saving, setSaving] = useState(false)
   const [sending, setSending] = useState(false)
+  const [photoFiles, setPhotoFiles] = useState<File[]>([])
+  const [invoicePhotos, setInvoicePhotos] = useState<{id:string;url:string;caption:string|null}[]>([])
+  const [uploadingPhotos, setUploadingPhotos] = useState(false)
+  const [customerJobs, setCustomerJobs] = useState<{id:string;job_number:string;title:string;status:string}[]>([])
+  const [selectedJobId, setSelectedJobId] = useState("")
 
   useEffect(() => { void load() }, [invoiceId])
 
@@ -86,17 +94,69 @@ function InvoiceDetail() {
     try {
       if (!(await requireActiveAdmin())) { await nav({ to: "/admin/login" }); return }
       const [a, b, c] = await Promise.all([
-        supabase.from("invoices").select("id,invoice_number,title,status,issue_date,due_date,subtotal,discount_total,tax_rate,tax_total,total,amount_paid,balance_due,currency,notes,terms,customer:customers(first_name,last_name,email,phone,address_line,city,province,postal_code)").eq("id", invoiceId).single(),
+        supabase.from("invoices").select("id,customer_id,estimate_id,job_id,invoice_number,title,status,issue_date,due_date,subtotal,discount_total,tax_rate,tax_total,total,amount_paid,balance_due,currency,notes,terms,customer:customers(first_name,last_name,email,phone,address_line,city,province,postal_code)").eq("id", invoiceId).single(),
         supabase.from("invoice_items").select("id,description,quantity,unit_price,line_total").eq("invoice_id", invoiceId).order("position"),
         supabase.from("payments").select("id,amount,payment_date,method,reference").eq("invoice_id", invoiceId).order("payment_date", { ascending: false }),
       ])
       if (a.error) throw a.error
       if (b.error) throw b.error
       if (c.error) throw c.error
-      setInv(a.data as unknown as Invoice)
+      let invoice = a.data as unknown as Invoice
+      if (!invoice.job_id && invoice.estimate_id) {
+        const { data: linkedJob } = await supabase.from("jobs").select("id").eq("estimate_id", invoice.estimate_id).maybeSingle()
+        if (linkedJob?.id) {
+          await supabase.from("invoices").update({ job_id: linkedJob.id }).eq("id", invoice.id)
+          invoice = { ...invoice, job_id: linkedJob.id }
+        }
+      }
+      setInv(invoice)
+      setSelectedJobId(invoice.job_id || "")
       setItems((b.data ?? []) as Item[])
       setPayments((c.data ?? []) as Payment[])
+      const { data: jobs } = await supabase.from("jobs").select("id,job_number,title,status").eq("customer_id", invoice.customer_id).order("created_at", { ascending: false })
+      setCustomerJobs((jobs ?? []) as {id:string;job_number:string;title:string;status:string}[])
+      if (invoice.job_id) {
+        const { data: photoRows } = await supabase.from("job_photos").select("id,storage_path,caption").eq("job_id", invoice.job_id).eq("kind","after").order("created_at")
+        const signed = await Promise.all((photoRows ?? []).map(async (photo) => {
+          const { data } = await supabase.storage.from("service-photos").createSignedUrl(photo.storage_path, 3600)
+          return data?.signedUrl ? { id: photo.id, url: data.signedUrl, caption: photo.caption } : null
+        }))
+        setInvoicePhotos(signed.filter(Boolean) as {id:string;url:string;caption:string|null}[])
+      } else {
+        setInvoicePhotos([])
+      }
     } catch (e) { setError(e instanceof Error ? e.message : "Chargement impossible") }
+  }
+
+  async function linkJob() {
+    if (!inv || !selectedJobId) return
+    setError(""); setNotice("")
+    const { error } = await supabase.from("invoices").update({ job_id: selectedJobId }).eq("id", inv.id)
+    if (error) { setError(error.message); return }
+    setNotice("Intervention liée à la facture.")
+    await load()
+  }
+
+  async function uploadInvoicePhotos() {
+    if (!inv?.job_id || photoFiles.length === 0) return
+    setUploadingPhotos(true); setError(""); setNotice("")
+    try {
+      const user = await requireActiveAdmin(); if (!user) return
+      for (const file of photoFiles.slice(0,10)) {
+        if (file.size > 8 * 1024 * 1024) throw new Error(`${file.name} dépasse 8 Mo.`)
+        if (!["image/jpeg","image/png","image/webp","image/heic","image/heif"].includes(file.type)) throw new Error(`${file.name}: format non supporté.`)
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-")
+        const storagePath = `jobs/${inv.job_id}/after/${crypto.randomUUID()}-${safeName}`
+        const { error: uploadError } = await supabase.storage.from("service-photos").upload(storagePath, file, { contentType: file.type, upsert: false })
+        if (uploadError) throw uploadError
+        const { error: rowError } = await supabase.from("job_photos").insert({ job_id: inv.job_id, kind: "after", storage_path: storagePath, caption: "Photo jointe à la facture", created_by: user.id })
+        if (rowError) throw rowError
+      }
+      setPhotoFiles([])
+      setNotice("Photos ajoutées. Elles seront visibles par le client avec la facture.")
+      await load()
+    } catch (e) { setError(e instanceof Error ? e.message : "Téléversement impossible") }
+    finally { setUploadingPhotos(false) }
   }
 
   async function sendInvoice() {
@@ -214,6 +274,25 @@ function InvoiceDetail() {
             <p className="mt-2 flex justify-between text-emerald-700"><span>Montant payé</span><strong>{formatCad(inv.amount_paid)}</strong></p>
             <p className="mt-3 flex justify-between border-t pt-3 text-xl"><span>Solde à payer</span><strong>{formatCad(inv.balance_due)}</strong></p>
           </div>
+        </div>
+
+        <div className="mt-7 rounded-xl border p-5 print:hidden">
+          <h3 className="font-bold">Photos du travail terminé</h3>
+          <p className="mt-1 text-sm text-slate-500">Ajoutez ici les photos après l’intervention. Elles apparaîtront dans le portail client avec cette facture.</p>
+          {!inv.job_id ? <div className="mt-4 rounded-lg bg-amber-50 p-4 text-sm text-amber-900">
+            <p className="font-semibold">Cette facture n’est pas encore liée à une intervention.</p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <select value={selectedJobId} onChange={(e)=>setSelectedJobId(e.target.value)} className="flex-1 rounded-lg border bg-white px-3 py-2">
+                <option value="">Choisir une intervention</option>
+                {customerJobs.map((j)=><option key={j.id} value={j.id}>{j.job_number} — {j.title}</option>)}
+              </select>
+              <button type="button" onClick={()=>void linkJob()} disabled={!selectedJobId} className="rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white disabled:opacity-50">Lier</button>
+            </div>
+          </div> : <>
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple onChange={(e)=>setPhotoFiles(Array.from(e.target.files ?? []).slice(0,10))} className="mt-4 block w-full text-sm" />
+            <button type="button" onClick={()=>void uploadInvoicePhotos()} disabled={uploadingPhotos || photoFiles.length===0} className="mt-3 rounded-lg bg-emerald-600 px-4 py-2.5 font-semibold text-white disabled:opacity-50">{uploadingPhotos ? "Ajout…" : `Ajouter ${photoFiles.length || ""} photo(s)`}</button>
+            {invoicePhotos.length > 0 && <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">{invoicePhotos.map((photo)=><a key={photo.id} href={photo.url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border"><img src={photo.url} alt={photo.caption ?? "Travail terminé"} className="h-40 w-full object-cover"/><div className="p-2 text-xs font-medium">Après travaux</div></a>)}</div>}
+          </>}
         </div>
 
         {(inv.notes || inv.terms) && <div className="mt-7 grid gap-5 md:grid-cols-2">{inv.notes && <div className="rounded-xl border p-4"><h3 className="font-bold">Notes</h3><p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">{inv.notes}</p></div>}{inv.terms && <div className="rounded-xl border p-4"><h3 className="font-bold">Conditions de paiement</h3><p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">{inv.terms}</p></div>}</div>}

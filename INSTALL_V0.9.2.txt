@@ -1,0 +1,18 @@
+CRM v0.9.2 - Photos sur la facture
+
+Ce patch ajoute l'upload de photos de fin de travail directement depuis la fiche facture.
+Les photos sont stockées dans le bucket privé service-photos et enregistrées dans job_photos.
+Elles sont donc automatiquement visibles dans le portail client avec la facture grâce au code v0.9 déjà installé.
+
+Pour les nouvelles factures créées depuis un devis, le job_id est désormais lié automatiquement à l'intervention correspondante.
+Pour une ancienne facture sans intervention liée, la fiche facture propose un sélecteur pour choisir l'intervention du client avant d'ajouter des photos.
+
+Installation:
+1. Copier le contenu du patch à la racine du projet et remplacer les fichiers existants.
+2. npm run build
+3. npm run dev pour tester localement
+4. git add .
+5. git commit -m "feat: add invoice work photos"
+6. git push origin main
+
+Aucune nouvelle migration Supabase n'est nécessaire si v0.9/v0.9.1 est déjà appliquée.
