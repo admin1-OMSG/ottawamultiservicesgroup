@@ -349,6 +349,7 @@ function ContactForm({
   onSubmitted: () => void;
 }) {
   const [pending, setPending] = useState(false);
+  const [photos, setPhotos] = useState<File[]>([]);
 
   return (
     <form
@@ -414,6 +415,15 @@ function ContactForm({
             return;
           }
 
+          for (const [index, photo] of photos.entries()) {
+            const safeName = photo.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+            const storagePath = `requests/${requestId}/${crypto.randomUUID()}-${safeName}`;
+            const { error: uploadError } = await supabase.storage.from("service-photos").upload(storagePath, photo, { contentType: photo.type, upsert: false });
+            if (uploadError) throw uploadError;
+            const { error: photoRowError } = await supabase.from("service_request_photos").insert({ service_request_id: requestId, storage_path: storagePath, caption: `Photo ${index + 1}` });
+            if (photoRowError) throw photoRowError;
+          }
+
           const notification = await sendCrmEmail({
             type: "quote_requested",
             requestId,
@@ -470,7 +480,7 @@ function ContactForm({
           <Input
             name="phone"
             type="tel"
-            placeholder="(613) 407-6699"
+            placeholder="(613) 555-0123"
             required
             maxLength={30}
           />
@@ -523,6 +533,13 @@ function ContactForm({
         />
       </Field>
 
+      <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
+        <Label htmlFor="quotePhotos">Photos du travail (facultatif)</Label>
+        <p className="mt-1 text-xs text-muted-foreground">Ajoutez jusqu’à 8 photos pour nous aider à préparer un devis plus précis. 8 Mo maximum par photo.</p>
+        <Input id="quotePhotos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple className="mt-3 bg-white" onChange={(e) => { const selected = Array.from(e.target.files ?? []).filter((f) => f.size <= 8 * 1024 * 1024).slice(0, 8); setPhotos(selected); if ((e.target.files?.length ?? 0) > 8) toast.error("Maximum 8 photos."); }} />
+        {photos.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{photos.map((file) => <div key={`${file.name}-${file.lastModified}`} className="rounded-lg border bg-white p-2 text-xs"><div className="truncate font-medium">{file.name}</div><div className="text-muted-foreground">{(file.size/1024/1024).toFixed(1)} Mo</div></div>)}</div>}
+      </div>
+
       <div className="flex justify-end">
         <Button
           type="submit"
@@ -539,6 +556,7 @@ function ContactForm({
 
 function PartnerForm({ onSubmitted }: { onSubmitted: () => void }) {
   const [pending, setPending] = useState(false);
+  const [photos, setPhotos] = useState<File[]>([]);
 
   return (
     <form
