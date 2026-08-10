@@ -21,6 +21,7 @@ type EventBody =
   | { type: "estimate_ready"; estimateId: string }
   | { type: "appointment_proposed"; jobId: string }
   | { type: "booking_confirmed"; bookingId: string }
+  | { type: "invoice_ready"; invoiceId: string }
 
 function escapeHtml(value: unknown) {
   return String(value ?? "")
@@ -89,6 +90,16 @@ async function createDirectPortalLink(email: string, estimateId: string) {
   if (!signup.error && signup.data?.properties?.action_link) return signup.data.properties.action_link
   console.warn("Direct portal link could not be generated", magic.error ?? signup.error)
   return `${siteUrl}/portal?estimate=${encodeURIComponent(estimateId)}`
+}
+
+async function createDirectInvoiceLink(email: string, invoiceId: string) {
+  const redirectTo = `${siteUrl}/portal?invoice=${encodeURIComponent(invoiceId)}`
+  const magic = await admin.auth.admin.generateLink({ type: "magiclink", email, options: { redirectTo } })
+  if (!magic.error && magic.data?.properties?.action_link) return magic.data.properties.action_link
+  const signup = await admin.auth.admin.generateLink({ type: "signup", email, password: crypto.randomUUID(), options: { redirectTo } })
+  if (!signup.error && signup.data?.properties?.action_link) return signup.data.properties.action_link
+  console.warn("Direct invoice portal link could not be generated", magic.error ?? signup.error)
+  return `${siteUrl}/portal?invoice=${encodeURIComponent(invoiceId)}`
 }
 
 async function sendEmail(to: string, subject: string, html: string, replyTo?: string) {
@@ -175,6 +186,30 @@ Deno.serve(async (req) => {
       recipient = customer.email
       subject = `Proposition de rendez-vous — ${job.title}`
       html = layout("Proposition de rendez-vous", `<p>Bonjour ${escapeHtml(customer.first_name)},</p><p>Nous vous proposons le rendez-vous suivant pour <strong>${escapeHtml(job.title)}</strong> :</p><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px;margin:18px 0"><div style="font-size:18px;font-weight:700">${escapeHtml(dateTime(job.scheduled_start))}</div>${job.scheduled_end ? `<div style="margin-top:5px;color:#475569">Fin prévue : ${escapeHtml(dateTime(job.scheduled_end))}</div>` : ""}<div style="margin-top:5px;color:#475569">${escapeHtml([job.address_line, job.city].filter(Boolean).join(", "))}</div></div><p>Consultez votre espace client pour retrouver les détails de l’intervention.</p><p><a href="${siteUrl}/portal" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Voir mon rendez-vous</a></p>`)
+    } else if (body.type === "invoice_ready") {
+      if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
+      const { data: invoice } = await admin
+        .from("invoices")
+        .select("id,invoice_number,title,status,issue_date,due_date,total,amount_paid,balance_due,updated_at,customer:customers(first_name,last_name,email)")
+        .eq("id", body.invoiceId)
+        .maybeSingle()
+      if (!invoice) throw new Error("Invoice not found")
+      const customer = Array.isArray(invoice.customer) ? invoice.customer[0] : invoice.customer
+      if (!customer?.email) throw new Error("Customer email missing")
+      const { data: items } = await admin
+        .from("invoice_items")
+        .select("description,quantity,unit_price,line_total")
+        .eq("invoice_id", invoice.id)
+        .order("position")
+      const isPaid = Number(invoice.balance_due || 0) <= 0 || invoice.status === "paid"
+      key = `invoice-ready:${invoice.id}:${invoice.updated_at}:${invoice.status}:${invoice.amount_paid}`
+      recordId = invoice.id
+      recipient = customer.email
+      recipientType = "customer"
+      subject = isPaid ? `Facture acquittée — ${invoice.invoice_number}` : `Votre facture ${invoice.invoice_number}`
+      const portalLink = await createDirectInvoiceLink(customer.email, invoice.id)
+      const itemRows = (items || []).map((item) => `<tr><td style="padding:8px 0;border-bottom:1px solid #e2e8f0">${escapeHtml(item.description)}</td><td style="padding:8px 0;border-bottom:1px solid #e2e8f0;text-align:center">${escapeHtml(item.quantity)}</td><td style="padding:8px 0;border-bottom:1px solid #e2e8f0;text-align:right">${money(item.line_total)}</td></tr>`).join("")
+      html = layout(isPaid ? "Votre facture est acquittée" : "Votre facture est prête", `<p>Bonjour ${escapeHtml(customer.first_name)},</p><p>${isPaid ? "Nous confirmons la réception de votre paiement. Voici le récapitulatif de votre facture." : "Votre facture est maintenant disponible dans votre espace client."}</p><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin:18px 0"><p style="margin:0 0 8px">Facture : <strong>${escapeHtml(invoice.invoice_number)}</strong></p><p style="margin:0 0 8px">Total : <strong>${money(invoice.total)}</strong></p><p style="margin:0 0 8px;color:#047857">Payé : <strong>${money(invoice.amount_paid)}</strong></p><p style="margin:0">Solde : <strong>${money(invoice.balance_due)}</strong></p></div>${itemRows ? `<table style="width:100%;border-collapse:collapse;margin:18px 0"><thead><tr><th style="text-align:left;padding-bottom:8px">Description</th><th style="text-align:center;padding-bottom:8px">Qté</th><th style="text-align:right;padding-bottom:8px">Total</th></tr></thead><tbody>${itemRows}</tbody></table>` : ""}<p><a href="${portalLink}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">${isPaid ? "Voir ma facture acquittée" : "Voir ma facture"}</a></p>${isPaid ? "<p>Merci pour votre paiement et votre confiance.</p>" : `<p>Échéance : <strong>${escapeHtml(invoice.due_date || "à confirmer")}</strong></p>`}`)
     } else if (body.type === "booking_confirmed") {
       const customerId = await linkedCustomerId(user?.id)
       const { data: booking } = await admin.from("estimate_bookings").select("id,estimate_id,customer_id,starts_at,ends_at,status,estimate:estimates(estimate_number,title,total),customer:customers(first_name,last_name,email)").eq("id", body.bookingId).maybeSingle()
