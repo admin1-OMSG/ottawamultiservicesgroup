@@ -39,7 +39,7 @@ function ContactPage() {
           <div className="grid gap-4">
             {[
               { icon: Phone, title: "Phone", body: "(613) 407-6699" },
-              { icon: Mail,  title: "Email", body: "hello@ottawamultiservicesgroup.com" },
+              { icon: Mail,  title: "Email", body: "info@ottawamultiservicesgroup.com" },
               { icon: MapPin, title: "Service Area", body: "Ottawa · Gatineau · Kanata · Orleans · Barrhaven · Nepean · Stittsville" },
               { icon: Clock, title: "Hours", body: "Mon–Sat 7am–8pm · Sun by appointment" },
             ].map((c) => (
@@ -89,3 +89,4 @@ function ContactPage() {
     </div>
   );
 }
+
