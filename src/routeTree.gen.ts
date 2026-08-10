@@ -25,6 +25,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminScheduleRouteImport } from './routes/admin/schedule'
+import { Route as AdminContractsIndexRouteImport } from './routes/admin/contracts.index'
 import { Route as AdminCustomersIndexRouteImport } from './routes/admin/customers.index'
 import { Route as AdminCustomersCustomerIdRouteImport } from './routes/admin/customers.$customerId'
 import { Route as AdminCustomersNewRouteImport } from './routes/admin/customers.new'
@@ -120,6 +121,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 const AdminScheduleRoute = AdminScheduleRouteImport.update({
   id: '/schedule',
   path: '/schedule',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminContractsIndexRoute = AdminContractsIndexRouteImport.update({
+  id: '/contracts/',
+  path: '/contracts/',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCustomersIndexRoute = AdminCustomersIndexRouteImport.update({
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/admin/jobs/$jobId': typeof AdminJobsJobIdRoute
   '/admin/jobs/new': typeof AdminJobsNewRoute
   '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
+  '/admin/contracts/': typeof AdminContractsIndexRoute
   '/admin/customers/': typeof AdminCustomersIndexRoute
   '/admin/employees/': typeof AdminEmployeesIndexRoute
   '/admin/estimates/': typeof AdminEstimatesIndexRoute
@@ -264,6 +271,7 @@ export interface FileRoutesByTo {
   '/admin/jobs/$jobId': typeof AdminJobsJobIdRoute
   '/admin/jobs/new': typeof AdminJobsNewRoute
   '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
+  '/admin/contracts': typeof AdminContractsIndexRoute
   '/admin/customers': typeof AdminCustomersIndexRoute
   '/admin/employees': typeof AdminEmployeesIndexRoute
   '/admin/estimates': typeof AdminEstimatesIndexRoute
@@ -299,6 +307,7 @@ export interface FileRoutesById {
   '/admin/jobs/$jobId': typeof AdminJobsJobIdRoute
   '/admin/jobs/new': typeof AdminJobsNewRoute
   '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
+  '/admin/contracts/': typeof AdminContractsIndexRoute
   '/admin/customers/': typeof AdminCustomersIndexRoute
   '/admin/employees/': typeof AdminEmployeesIndexRoute
   '/admin/estimates/': typeof AdminEstimatesIndexRoute
@@ -335,6 +344,7 @@ export interface FileRouteTypes {
     | '/admin/jobs/$jobId'
     | '/admin/jobs/new'
     | '/admin/quotes/$requestId'
+    | '/admin/contracts/'
     | '/admin/customers/'
     | '/admin/employees/'
     | '/admin/estimates/'
@@ -368,6 +378,7 @@ export interface FileRouteTypes {
     | '/admin/jobs/$jobId'
     | '/admin/jobs/new'
     | '/admin/quotes/$requestId'
+    | '/admin/contracts'
     | '/admin/customers'
     | '/admin/employees'
     | '/admin/estimates'
@@ -402,6 +413,7 @@ export interface FileRouteTypes {
     | '/admin/jobs/$jobId'
     | '/admin/jobs/new'
     | '/admin/quotes/$requestId'
+    | '/admin/contracts/'
     | '/admin/customers/'
     | '/admin/employees/'
     | '/admin/estimates/'
@@ -541,6 +553,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminScheduleRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/contracts/': {
+      id: '/admin/contracts/'
+      path: '/contracts'
+      fullPath: '/admin/contracts/'
+      preLoaderRoute: typeof AdminContractsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/customers/': {
       id: '/admin/customers/'
       path: '/customers'
@@ -669,6 +688,7 @@ interface AdminRouteChildren {
   AdminJobsJobIdRoute: typeof AdminJobsJobIdRoute
   AdminJobsNewRoute: typeof AdminJobsNewRoute
   AdminQuotesRequestIdRoute: typeof AdminQuotesRequestIdRoute
+  AdminContractsIndexRoute: typeof AdminContractsIndexRoute
   AdminCustomersIndexRoute: typeof AdminCustomersIndexRoute
   AdminEmployeesIndexRoute: typeof AdminEmployeesIndexRoute
   AdminEstimatesIndexRoute: typeof AdminEstimatesIndexRoute
@@ -691,6 +711,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminJobsJobIdRoute: AdminJobsJobIdRoute,
   AdminJobsNewRoute: AdminJobsNewRoute,
   AdminQuotesRequestIdRoute: AdminQuotesRequestIdRoute,
+  AdminContractsIndexRoute: AdminContractsIndexRoute,
   AdminCustomersIndexRoute: AdminCustomersIndexRoute,
   AdminEmployeesIndexRoute: AdminEmployeesIndexRoute,
   AdminEstimatesIndexRoute: AdminEstimatesIndexRoute,

@@ -102,6 +102,7 @@ function AdminQuoteDetailPage() {
 
   const [quote, setQuote] = useState<ServiceRequest | null>(null)
   const [history, setHistory] = useState<QuoteHistoryEntry[]>([])
+  const [photoUrls, setPhotoUrls] = useState<{ id: string; url: string; caption: string | null }[]>([])
 
   const [selectedStatus, setSelectedStatus] =
     useState<QuoteStatus>("new")
@@ -235,6 +236,10 @@ function AdminQuoteDetailPage() {
       setHistory(
         (historyData ?? []) as unknown as QuoteHistoryEntry[],
       )
+
+      const { data: photoRows } = await supabase.from("service_request_photos").select("id,storage_path,caption").eq("service_request_id", requestId).order("created_at")
+      const signed = await Promise.all((photoRows ?? []).map(async (photo) => { const { data } = await supabase.storage.from("service-photos").createSignedUrl(photo.storage_path, 3600); return data?.signedUrl ? { id: photo.id, url: data.signedUrl, caption: photo.caption } : null }))
+      setPhotoUrls(signed.filter(Boolean) as { id: string; url: string; caption: string | null }[])
     } catch (error) {
       console.error("Unable to load quote details:", error)
 
@@ -546,6 +551,12 @@ function AdminQuoteDetailPage() {
             <QuestionnaireSection
               answers={quote.questionnaire_answers}
             />
+
+            <section className="rounded-xl border bg-white p-5 shadow-sm">
+              <h2 className="text-xl font-bold text-slate-900">Photos du client</h2>
+              <p className="mt-1 text-sm text-slate-500">Photos jointes à la demande pour faciliter l’estimation.</p>
+              {photoUrls.length === 0 ? <p className="mt-4 text-sm text-slate-500">Aucune photo jointe.</p> : <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{photoUrls.map((photo) => <a key={photo.id} href={photo.url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border bg-slate-50"><img src={photo.url} alt={photo.caption ?? "Photo du client"} className="h-40 w-full object-cover" /><p className="p-2 text-xs text-slate-600">{photo.caption ?? "Photo"}</p></a>)}</div>}
+            </section>
 
             <section className="rounded-xl border bg-white p-5 shadow-sm">
               <h2 className="text-xl font-bold text-slate-900">

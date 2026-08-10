@@ -8,7 +8,7 @@ import { sendCrmEmail } from "@/lib/email-notifications"
 export const Route = createFileRoute("/admin/estimates/$estimateId")({ component: EstimateDetailPage })
 
 type Customer = { id: string; first_name: string; last_name: string | null; email: string; phone: string | null; address_line: string | null; city: string | null; province: string | null; postal_code: string | null }
-type Estimate = { id: string; estimate_number: string; title: string | null; status: string; valid_until: string | null; subtotal: number; discount_total: number; tax_rate: number; tax_total: number; total: number; currency: string; notes: string | null; terms: string | null; created_at: string; service_request_id: string | null; estimated_duration_minutes: number | null; crew_size: number; sent_at: string | null; customer: Customer | null }
+type Estimate = { id: string; estimate_number: string; title: string | null; status: string; valid_until: string | null; subtotal: number; discount_total: number; tax_rate: number; tax_total: number; total: number; currency: string; notes: string | null; terms: string | null; created_at: string; service_request_id: string | null; estimated_duration_minutes: number | null; crew_size: number; sent_at: string | null; service_type: string; recurrence_frequency: string | null; contract_months: number | null; contract_discount_percent: number; deposit_type: string; deposit_value: number; customer: Customer | null }
 type Item = { id: string; position: number; description: string; quantity: number; unit_price: number; line_total: number }
 type Signature = { signer_name: string; signed_at: string; ip_address: string | null; user_agent: string | null; signature_data_url: string; consent_text: string }
 type Booking = { starts_at: string; ends_at: string; status: string }
@@ -25,6 +25,12 @@ function EstimateDetailPage() {
   const [status, setStatus] = useState("draft")
   const [durationHours, setDurationHours] = useState(2)
   const [crewSize, setCrewSize] = useState(1)
+  const [serviceType, setServiceType] = useState("one_time")
+  const [frequency, setFrequency] = useState("biweekly")
+  const [contractMonths, setContractMonths] = useState(12)
+  const [contractDiscount, setContractDiscount] = useState(0)
+  const [depositType, setDepositType] = useState("none")
+  const [depositValue, setDepositValue] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
@@ -37,7 +43,7 @@ function EstimateDetailPage() {
     try {
       if (!(await requireActiveAdmin())) { await navigate({ to: "/admin/login" }); return }
       const [estimateResult, itemsResult, signatureResult, bookingResult] = await Promise.all([
-        supabase.from("estimates").select("id,estimate_number,title,status,valid_until,subtotal,discount_total,tax_rate,tax_total,total,currency,notes,terms,created_at,service_request_id,estimated_duration_minutes,crew_size,sent_at,customer:customers(id,first_name,last_name,email,phone,address_line,city,province,postal_code)").eq("id", estimateId).maybeSingle(),
+        supabase.from("estimates").select("id,estimate_number,title,status,valid_until,subtotal,discount_total,tax_rate,tax_total,total,currency,notes,terms,created_at,service_request_id,estimated_duration_minutes,crew_size,sent_at,service_type,recurrence_frequency,contract_months,contract_discount_percent,deposit_type,deposit_value,customer:customers(id,first_name,last_name,email,phone,address_line,city,province,postal_code)").eq("id", estimateId).maybeSingle(),
         supabase.from("estimate_items").select("id,position,description,quantity,unit_price,line_total").eq("estimate_id", estimateId).order("position"),
         supabase.from("estimate_signatures").select("signer_name,signed_at,ip_address,user_agent,signature_data_url,consent_text").eq("estimate_id", estimateId).maybeSingle(),
         supabase.from("estimate_bookings").select("starts_at,ends_at,status").eq("estimate_id", estimateId).neq("status", "cancelled").maybeSingle(),
@@ -50,6 +56,12 @@ function EstimateDetailPage() {
       setStatus(typed.status)
       setDurationHours(Math.max(0.5, Number(typed.estimated_duration_minutes || 120) / 60))
       setCrewSize(Number(typed.crew_size || 1))
+      setServiceType(typed.service_type || "one_time")
+      setFrequency(typed.recurrence_frequency || "biweekly")
+      setContractMonths(Number(typed.contract_months || 12))
+      setContractDiscount(Number(typed.contract_discount_percent || 0))
+      setDepositType(typed.deposit_type || "none")
+      setDepositValue(Number(typed.deposit_value || 0))
       setItems((itemsResult.data ?? []) as Item[])
       setSignature((signatureResult.data ?? null) as Signature | null)
       setBooking((bookingResult.data ?? null) as Booking | null)
@@ -62,7 +74,7 @@ function EstimateDetailPage() {
     setSaving(true); setError(""); setSuccess("")
     try {
       const user = await requireActiveAdmin(); if (!user) return
-      const { error: updateError } = await supabase.from("estimates").update({ estimated_duration_minutes: Math.round(durationHours * 60), crew_size: crewSize, updated_by: user.id, updated_at: new Date().toISOString() }).eq("id", estimate.id)
+      const { error: updateError } = await supabase.from("estimates").update({ estimated_duration_minutes: Math.round(durationHours * 60), crew_size: crewSize, service_type: serviceType, recurrence_frequency: serviceType === "recurring" ? frequency : null, contract_months: serviceType === "recurring" ? contractMonths : null, contract_discount_percent: serviceType === "recurring" ? contractDiscount : 0, deposit_type: depositType, deposit_value: depositType === "none" ? 0 : depositValue, updated_by: user.id, updated_at: new Date().toISOString() }).eq("id", estimate.id)
       if (updateError) throw updateError
       setSuccess("La durée estimée et la taille de l’équipe ont été enregistrées.")
       await load()
@@ -77,7 +89,7 @@ function EstimateDetailPage() {
     try {
       const user = await requireActiveAdmin(); if (!user) return
       const now = new Date().toISOString()
-      const { error: updateError } = await supabase.from("estimates").update({ status: "sent", estimated_duration_minutes: Math.round(durationHours * 60), crew_size: crewSize, sent_at: now, updated_by: user.id, updated_at: now }).eq("id", estimate.id)
+      const { error: updateError } = await supabase.from("estimates").update({ status: "sent", estimated_duration_minutes: Math.round(durationHours * 60), crew_size: crewSize, service_type: serviceType, recurrence_frequency: serviceType === "recurring" ? frequency : null, contract_months: serviceType === "recurring" ? contractMonths : null, contract_discount_percent: serviceType === "recurring" ? contractDiscount : 0, deposit_type: depositType, deposit_value: depositType === "none" ? 0 : depositValue, sent_at: now, updated_by: user.id, updated_at: now }).eq("id", estimate.id)
       if (updateError) throw updateError
       if (estimate.service_request_id) await supabase.from("service_requests").update({ status: "quote_sent", updated_at: now }).eq("id", estimate.service_request_id)
       const notification = await sendCrmEmail({ type: "estimate_ready", estimateId: estimate.id })
@@ -118,6 +130,7 @@ function EstimateDetailPage() {
       </div>
       <aside className="space-y-6">
         <section className="rounded-xl border bg-white p-5 shadow-sm"><h2 className="text-lg font-bold">Durée et équipe</h2><div className="mt-4 grid gap-3"><label className="text-sm font-medium">Durée estimée sur place (h)<input type="number" min="0.5" max="24" step="0.5" value={durationHours} onChange={(e)=>setDurationHours(Number(e.target.value))} className="mt-1 w-full rounded-lg border px-3 py-2"/></label><label className="text-sm font-medium">Nombre d’employés<input type="number" min="1" max="20" step="1" value={crewSize} onChange={(e)=>setCrewSize(Number(e.target.value))} className="mt-1 w-full rounded-lg border px-3 py-2"/></label><p className="rounded-lg bg-slate-50 p-3 text-sm"><strong>{labourHours.toFixed(1)} heures-personnes</strong> estimées.</p><button onClick={()=>void savePlanning()} disabled={saving} className="rounded-lg border px-4 py-2 font-semibold">Enregistrer</button></div></section>
+        <section className="rounded-xl border bg-white p-5 shadow-sm"><h2 className="text-lg font-bold">Type de service et paiement</h2><div className="mt-4 space-y-3 text-sm"><label className="block font-medium">Service<select value={serviceType} onChange={(e)=>setServiceType(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2"><option value="one_time">Intervention ponctuelle</option><option value="recurring">Contrat récurrent</option></select></label>{serviceType === "recurring" && <><label className="block font-medium">Fréquence<select value={frequency} onChange={(e)=>setFrequency(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2"><option value="weekly">Chaque semaine</option><option value="biweekly">Toutes les 2 semaines</option><option value="monthly">Chaque mois</option><option value="custom">Personnalisée</option></select></label><label className="block font-medium">Durée du contrat (mois)<input type="number" min="1" max="36" value={contractMonths} onChange={(e)=>setContractMonths(Number(e.target.value))} className="mt-1 w-full rounded-lg border px-3 py-2"/></label><label className="block font-medium">Rabais contractuel (%)<input type="number" min="0" max="100" step="0.5" value={contractDiscount} onChange={(e)=>setContractDiscount(Number(e.target.value))} className="mt-1 w-full rounded-lg border px-3 py-2"/></label></>}<label className="block font-medium">Acompte<select value={depositType} onChange={(e)=>setDepositType(e.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2"><option value="none">Aucun acompte</option><option value="percent">Pourcentage</option><option value="fixed">Montant fixe</option></select></label>{depositType !== "none" && <label className="block font-medium">{depositType === "percent" ? "Acompte (%)" : "Acompte (CAD)"}<input type="number" min="0" step="0.01" value={depositValue} onChange={(e)=>setDepositValue(Number(e.target.value))} className="mt-1 w-full rounded-lg border px-3 py-2"/></label>}<button onClick={()=>void savePlanning()} disabled={saving} className="w-full rounded-lg border px-4 py-2 font-semibold">Enregistrer les conditions</button></div></section>
         <section className="rounded-xl border bg-white p-5 shadow-sm"><h2 className="text-lg font-bold">Total</h2><dl className="mt-4 space-y-3 text-sm"><Row label="Sous-total" value={formatCad(estimate.subtotal)} /><Row label="Remise" value={formatCad(estimate.discount_total)} /><Row label={`HST (${Math.round(Number(estimate.tax_rate)*100)} %)`} value={formatCad(estimate.tax_total)} /><div className="border-t pt-3"><Row label="Total" value={formatCad(estimate.total)} strong /></div></dl><p className="mt-4 text-xs text-slate-500">Créé le {formatDate(estimate.created_at)} · Valide jusqu’au {formatDate(estimate.valid_until)}</p></section>
         {estimate.status === "draft" || estimate.status === "pending_review" ? <section className="rounded-xl border border-emerald-200 bg-emerald-50 p-5"><h2 className="text-lg font-bold text-emerald-900">Prêt à envoyer ?</h2><p className="mt-2 text-sm text-emerald-800">Vérifiez le prix, la durée estimée, la taille de l’équipe et les conditions.</p><button onClick={()=>void sendEstimate()} disabled={saving} className="mt-4 w-full rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white disabled:opacity-50">{saving?"Envoi…":"Envoyer le devis"}</button></section> : null}
         {booking && <section className="rounded-xl border border-blue-200 bg-blue-50 p-5"><h2 className="text-lg font-bold text-blue-900">Créneau réservé</h2><p className="mt-3 font-semibold">{formatBookingDate(booking.starts_at)}</p><p className="mt-1 text-base font-bold text-blue-950">{formatBookingTimeRange(booking.starts_at, booking.ends_at)}</p><p className="mt-1 text-xs text-blue-700">Heure locale d’Ottawa</p></section>}

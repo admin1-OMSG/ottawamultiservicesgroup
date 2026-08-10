@@ -54,6 +54,9 @@ function JobDetailPage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [saving, setSaving] = useState(false)
+  const [jobPhotos, setJobPhotos] = useState<{id:string;url:string;kind:string;caption:string|null}[]>([])
+  const [photoFiles, setPhotoFiles] = useState<File[]>([])
+  const [uploadingPhotos, setUploadingPhotos] = useState(false)
 
   useEffect(() => { void load() }, [jobId])
 
@@ -77,6 +80,9 @@ function JobDetailPage() {
       setEnd(toLocalInput(typed.scheduled_end))
       setNotes(typed.internal_notes || "")
       setEmployees((employeeResult.data ?? []) as Employee[])
+      const { data: photoRows } = await supabase.from("job_photos").select("id,storage_path,kind,caption").eq("job_id", jobId).order("created_at")
+      const signed = await Promise.all((photoRows ?? []).map(async (photo) => { const { data } = await supabase.storage.from("service-photos").createSignedUrl(photo.storage_path, 3600); return data?.signedUrl ? { id: photo.id, url: data.signedUrl, kind: photo.kind, caption: photo.caption } : null }))
+      setJobPhotos(signed.filter(Boolean) as {id:string;url:string;kind:string;caption:string|null}[])
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Chargement impossible.")
     }
@@ -122,6 +128,22 @@ function JobDetailPage() {
     }
   }
 
+  async function uploadAfterPhotos() {
+    if (!job || photoFiles.length === 0) return
+    setUploadingPhotos(true); setError(""); setSuccess("")
+    try {
+      const user = await requireActiveAdmin(); if (!user) return
+      for (const file of photoFiles.slice(0, 10)) {
+        if (file.size > 8 * 1024 * 1024) throw new Error(`${file.name} dépasse 8 Mo.`)
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-")
+        const storagePath = `jobs/${job.id}/after/${crypto.randomUUID()}-${safeName}`
+        const { error: uploadError } = await supabase.storage.from("service-photos").upload(storagePath, file, { contentType: file.type, upsert: false }); if (uploadError) throw uploadError
+        const { error: rowError } = await supabase.from("job_photos").insert({ job_id: job.id, kind: "after", storage_path: storagePath, caption: "Travail terminé", created_by: user.id }); if (rowError) throw rowError
+      }
+      setPhotoFiles([]); setSuccess("Photos de fin de travail ajoutées."); await load()
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "Téléversement impossible.") } finally { setUploadingPhotos(false) }
+  }
+
   if (!job) return <p>{error || "Chargement…"}</p>
 
   return <div className="space-y-6">
@@ -146,6 +168,13 @@ function JobDetailPage() {
         <section className="rounded-xl border bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold">Travail</h2>
           <p className="mt-3 whitespace-pre-wrap text-slate-700">{job.description || "Aucune description."}</p>
+        </section>
+        <section className="rounded-xl border bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-bold">Photos de l’intervention</h2>
+          <p className="mt-1 text-sm text-slate-500">Ajoutez les photos après travaux. Elles pourront être présentées au client avec la facture.</p>
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple onChange={(e)=>setPhotoFiles(Array.from(e.target.files ?? []).slice(0,10))} className="mt-4 block w-full text-sm" />
+          <button type="button" onClick={()=>void uploadAfterPhotos()} disabled={uploadingPhotos || photoFiles.length===0} className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white disabled:opacity-50">{uploadingPhotos ? "Ajout…" : `Ajouter ${photoFiles.length || ""} photo(s)`}</button>
+          {jobPhotos.length > 0 && <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">{jobPhotos.map((photo)=><a key={photo.id} href={photo.url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border"><img src={photo.url} alt={photo.caption ?? "Photo intervention"} className="h-40 w-full object-cover"/><div className="p-2 text-xs font-medium">{photo.kind === "after" ? "Après travaux" : "Avant travaux"}</div></a>)}</div>}
         </section>
       </div>
       <aside className="space-y-6">

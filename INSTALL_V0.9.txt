@@ -1,0 +1,26 @@
+OTTAWA MULTISERVICES GROUP CRM v0.9
+Photos + contrats récurrents + conditions de paiement
+
+1) Copiez tous les fichiers de ce patch dans le projet en remplaçant les fichiers existants.
+2) Exécutez : npx supabase db push
+3) Exécutez : npm run build
+4) Si le build réussit :
+   git add .
+   git commit -m "feat: photos recurring contracts and payment terms"
+   git push origin main
+
+Aucune nouvelle Edge Function n'est nécessaire pour cette version.
+
+Nouveautés :
+- Jusqu'à 8 photos dans une demande de devis.
+- Bucket Supabase privé service-photos (8 Mo/photo).
+- Galerie des photos côté admin.
+- Photos après intervention côté admin.
+- Photos après travaux visibles avec la facture dans le portail client.
+- Type de devis ponctuel ou contrat récurrent.
+- Fréquence, durée et rabais contractuel.
+- Acompte : aucun, pourcentage ou montant fixe.
+- Nouvelle section CRM Contrats.
+- Les paiements multiples Cash / Interac / cartes / chèque / virement restent pris en charge par le module Factures.
+
+Important : la génération automatique de toutes les interventions futures d'un contrat sera activée dans l'étape suivante, après validation du premier contrat réel, afin d'éviter de créer des dizaines de rendez-vous erronés dans le calendrier.
