@@ -193,7 +193,7 @@ Deno.serve(async (req) => {
       if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
       const { data: invoice } = await admin
         .from("invoices")
-        .select("id,invoice_number,title,status,issue_date,due_date,subtotal,discount_total,tax_rate,tax_total,total,amount_paid,balance_due,currency,updated_at,customer:customers(first_name,last_name,email,phone,address_line,city,province,postal_code)")
+        .select("id,invoice_number,title,status,issue_date,due_date,subtotal,discount_total,tax_rate,tax_total,total,amount_paid,balance_due,currency,updated_at,job_id,customer:customers(first_name,last_name,email,phone,address_line,city,province,postal_code)")
         .eq("id", body.invoiceId)
         .maybeSingle()
       if (!invoice) throw new Error("Invoice not found")
@@ -210,6 +210,18 @@ Deno.serve(async (req) => {
       recipientType = "customer"
       subject = isPaid ? `Facture acquittée — ${invoice.invoice_number}` : `Votre facture ${invoice.invoice_number}`
       const portalLink = await createDirectInvoiceLink(customer.email, invoice.id)
+      let invoicePhotoHtml = ""
+      if (invoice.job_id) {
+        const { data: photoRows } = await admin.from("job_photos").select("id,storage_path,caption").eq("job_id", invoice.job_id).eq("kind", "after").order("created_at")
+        const signedPhotos = await Promise.all((photoRows ?? []).slice(0, 6).map(async (photo) => {
+          const { data } = await admin.storage.from("service-photos").createSignedUrl(photo.storage_path, 7 * 24 * 60 * 60)
+          return data?.signedUrl ? { url: data.signedUrl, caption: photo.caption } : null
+        }))
+        const visiblePhotos = signedPhotos.filter(Boolean) as { url: string; caption: string | null }[]
+        if (visiblePhotos.length) {
+          invoicePhotoHtml = `<div style="margin:0 0 22px 0"><div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:10px">Photos du travail terminé</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>${visiblePhotos.map((photo, index) => `<td width="${Math.floor(100 / Math.min(visiblePhotos.length, 3))}%" valign="top" style="padding:4px"><a href="${photo.url}" style="text-decoration:none"><img src="${photo.url}" alt="${escapeHtml(photo.caption || `Photo ${index + 1}`)}" width="170" style="display:block;width:100%;max-width:170px;height:120px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0"><div style="margin-top:5px;font-size:11px;color:#64748b">${escapeHtml(photo.caption || `Photo ${index + 1}`)}</div></a></td>${(index + 1) % 3 === 0 && index + 1 < visiblePhotos.length ? `</tr><tr>` : ""}`).join("")}</tr></table><div style="margin-top:8px;font-size:11px;color:#64748b">Ces liens photo sont sécurisés et temporaires. La galerie complète reste disponible dans votre portail client.</div></div>`
+        }
+      }
       const taxRate = Number(invoice.tax_rate || 0) * 100
       const paymentLabels: Record<string, string> = { etransfer: "Interac e-Transfer", credit_card: "Carte de crédit", debit_card: "Carte de débit", cash: "Comptant", cheque: "Chèque", bank_transfer: "Virement bancaire", other: "Autre" }
       const itemRows = (items || []).map((item) => `<tr><td style="padding:10px 0;border-bottom:1px solid #e2e8f0">${escapeHtml(item.description)}</td><td style="padding:10px 0;border-bottom:1px solid #e2e8f0;text-align:center">${escapeHtml(item.quantity)}</td><td style="padding:10px 0;border-bottom:1px solid #e2e8f0;text-align:right">${money(item.unit_price)}</td><td style="padding:10px 0;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:700">${money(item.line_total)}</td></tr>`).join("")
@@ -263,6 +275,8 @@ Deno.serve(async (req) => {
             </td>
           </tr>
         </table>
+
+        ${invoicePhotoHtml}
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 22px 0">
           <tr><td align="center"><a href="${portalLink}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:9px;font-weight:800;font-size:14px">Voir la facture et télécharger le PDF</a></td></tr>

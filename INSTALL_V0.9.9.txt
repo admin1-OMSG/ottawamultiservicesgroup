@@ -1,0 +1,19 @@
+CRM v0.9.9 - Photos de facture restaurées
+
+Corrige l’affichage et l’envoi des photos après travaux :
+- galerie dans la facture du portail client
+- photos incluses dans le PDF téléchargé
+- miniatures sécurisées dans le courriel de facture
+- liens signés valides 7 jours dans le courriel
+
+Installation :
+1. Copier le contenu du patch dans le projet.
+2. npx supabase functions deploy send-crm-email --no-verify-jwt
+3. npm.cmd run build
+4. npm.cmd run dev
+5. Tester une facture ayant un job_id et des lignes job_photos kind=after.
+6. git add .
+7. git commit -m "fix: restore invoice work photos"
+8. git push origin main
+
+Aucune migration SQL n’est nécessaire.
