@@ -1,18 +1,26 @@
 import { Link } from "@tanstack/react-router";
-import { Facebook, Instagram, Linkedin, Youtube, Phone } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Youtube } from "lucide-react";
+import { BrandMark } from "@/components/site-header";
 
 export function SiteFooter() {
   return (
-    <footer className="bg-navy text-navy-foreground pt-16 pb-8">
-      <div className="mx-auto max-w-7xl px-6 grid gap-10 md:grid-cols-4">
+    <footer className="bg-navy text-navy-foreground pt-14 sm:pt-16 pb-8">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr] lg:px-8">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-lg bg-accent grid place-items-center text-accent-foreground font-black">O</div>
-            <span className="font-display font-bold">Ottawa Multi Services Group</span>
+          <div className="flex items-center gap-3">
+            <BrandMark light />
+            <div>
+              <div className="font-display font-bold">Ottawa Multiservices Group Inc.</div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-white/55">One company. Multiple solutions.</div>
+            </div>
           </div>
-          <p className="mt-4 text-sm text-white/70">Ottawa-Gatineau's trusted team for cleaning, moving, landscaping, snow removal and mobile services.</p>
-          <a href="tel:+16134076699" className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-accent"><Phone className="h-4 w-4" />(613) 407-6699</a>
-          <div className="mt-5 flex gap-3 text-white/70">
+          <p className="mt-5 max-w-sm text-sm leading-relaxed text-white/70">Home and property services across Ottawa and Gatineau, with clear quotes, online scheduling and a client portal that keeps everything in one place.</p>
+          <div className="mt-5 space-y-2 text-sm">
+            <a href="tel:+16134076699" className="flex items-center gap-2 font-semibold text-white hover:text-accent"><Phone className="h-4 w-4" />(613) 407-6699</a>
+            <a href="mailto:info@ottawamultiservicesgroup.com" className="flex items-center gap-2 text-white/75 hover:text-accent"><Mail className="h-4 w-4" />info@ottawamultiservicesgroup.com</a>
+            <div className="flex items-center gap-2 text-white/65"><MapPin className="h-4 w-4" />Ottawa · Gatineau</div>
+          </div>
+          <div className="mt-5 flex gap-4 text-white/65">
             <a href="#" aria-label="Facebook" className="hover:text-accent"><Facebook className="h-4 w-4" /></a>
             <a href="#" aria-label="Instagram" className="hover:text-accent"><Instagram className="h-4 w-4" /></a>
             <a href="#" aria-label="LinkedIn" className="hover:text-accent"><Linkedin className="h-4 w-4" /></a>
@@ -26,7 +34,7 @@ export function SiteFooter() {
           { label: "Blog", to: "/blog" },
           { label: "Contact", to: "/contact" },
         ]} />
-        <FooterCol title="For You" links={[
+        <FooterCol title="For Clients" links={[
           { label: "Get a Quote", to: "/quote" },
           { label: "Client Portal", to: "/portal" },
           { label: "Become a Partner", to: "/partners" },
@@ -36,9 +44,9 @@ export function SiteFooter() {
           { label: "Terms & Conditions", to: "/terms" },
         ]} />
       </div>
-      <div className="mx-auto max-w-7xl px-6 mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-white/60">
-        <div>© {new Date().getFullYear()} Ottawa Multi Services Group. All rights reserved.</div>
-        <div>Ottawa · Gatineau · Kanata · Orleans · Barrhaven · Nepean · Stittsville</div>
+      <div className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-3 border-t border-white/10 px-4 pt-6 text-center text-xs text-white/55 sm:px-6 md:flex-row md:text-left lg:px-8">
+        <div>© {new Date().getFullYear()} Ottawa Multiservices Group Inc. All rights reserved.</div>
+        <div>Ottawa · Gatineau · Kanata · Orléans · Barrhaven · Nepean · Stittsville</div>
       </div>
     </footer>
   );
@@ -48,11 +56,9 @@ function FooterCol({ title, links }: { title: string; links: { label: string; to
   return (
     <div>
       <div className="text-sm font-semibold text-white">{title}</div>
-      <ul className="mt-4 space-y-2 text-sm text-white/70">
+      <ul className="mt-4 space-y-2.5 text-sm text-white/68">
         {links.map((l) => (
-          <li key={l.to + l.label}>
-            <Link to={l.to} className="hover:text-accent">{l.label}</Link>
-          </li>
+          <li key={l.to + l.label}><Link to={l.to} className="hover:text-accent">{l.label}</Link></li>
         ))}
       </ul>
     </div>

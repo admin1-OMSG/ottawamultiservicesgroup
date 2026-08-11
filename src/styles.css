@@ -100,3 +100,13 @@
 @utility bg-navy { background-color: var(--navy); }
 @utility text-navy { color: var(--navy); }
 @utility bg-hero-overlay { background-image: var(--gradient-hero); }
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  img { max-width: 100%; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+}
+
+@media (max-width: 640px) {
+  body { overflow-x: hidden; }
+}

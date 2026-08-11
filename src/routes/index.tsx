@@ -1,5 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ShieldCheck, Award, MapPin, Users, Star, ArrowRight, LogIn, UserPlus } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarCheck2,
+  Camera,
+  Car,
+  Check,
+  FileCheck2,
+  Hammer,
+  Leaf,
+  Mail,
+  MapPin,
+  Phone,
+  ShieldCheck,
+  Snowflake,
+  Sparkles,
+  Truck,
+  UserRoundCheck,
+} from "lucide-react";
 import heroImg from "@/assets/hero.jpg";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,10 +29,10 @@ import { QuoteFunnel } from "@/components/quote-funnel";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Ottawa Multi Services Group | Cleaning, Moving, Snow & More" },
-      { name: "description", content: "Get a free quote in minutes from Ottawa's trusted multi-service team: cleaning, moving, landscaping, snow removal, mobile detailing and maintenance." },
-      { property: "og:title", content: "Ottawa Multi Services Group | Cleaning, Moving, Snow & More" },
-      { property: "og:description", content: "Get a free quote in minutes from Ottawa's trusted multi-service team: cleaning, moving, landscaping, snow removal, mobile detailing and maintenance." },
+      { title: "Ottawa Multiservices Group Inc. | Home & Property Services" },
+      { name: "description", content: "Request a clear quote for cleaning, moving, landscaping, snow removal, mobile detailing and property services across Ottawa and Gatineau." },
+      { property: "og:title", content: "Ottawa Multiservices Group Inc. | Home & Property Services" },
+      { property: "og:description", content: "One trusted team for home and property services across Ottawa and Gatineau." },
       { property: "og:url", content: "/" },
     ],
     links: [{ rel: "canonical", href: "/" }],
@@ -24,134 +41,197 @@ export const Route = createFileRoute("/")({
       children: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "LocalBusiness",
-        name: "Ottawa Multi Services Group",
+        name: "Ottawa Multiservices Group Inc.",
         url: "https://ottawamultiservicesgroup.com",
-        areaServed: ["Ottawa","Kanata","Orleans","Barrhaven","Nepean","Stittsville","Gatineau"],
+        telephone: "+1-613-407-6699",
+        email: "info@ottawamultiservicesgroup.com",
+        areaServed: ["Ottawa", "Kanata", "Orleans", "Barrhaven", "Nepean", "Stittsville", "Gatineau"],
         address: { "@type": "PostalAddress", addressLocality: "Ottawa", addressRegion: "ON", addressCountry: "CA" },
-        priceRange: "$$",
       }),
     }],
   }),
   component: HomePage,
 });
 
+const services = [
+  { title: "House Cleaning", body: "Regular, deep, move-in and move-out cleaning.", icon: Sparkles, pos: "20% center" },
+  { title: "Lawn & Landscaping", body: "Mowing, trimming, cleanups and garden care.", icon: Leaf, pos: "48% center" },
+  { title: "Snow Removal", body: "Residential and commercial seasonal service.", icon: Snowflake, pos: "90% center" },
+  { title: "Moving Services", body: "Local moving, loading and packing support.", icon: Truck, pos: "58% center" },
+  { title: "Mobile Car Care", body: "Convenient detailing at your home or workplace.", icon: Car, pos: "74% center" },
+  { title: "Small Repairs", body: "Practical handyman and property maintenance help.", icon: Hammer, pos: "35% center" },
+];
+
 function HomePage() {
   const scrollToFunnel = () => document.getElementById("funnel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <Toaster richColors position="top-center" />
       <SiteHeader variant="transparent" />
 
-      <section className="relative isolate overflow-hidden">
-        <img src={heroImg} alt="Ottawa Multi Services Group crew — cleaning, landscaping and snow removal" width={1920} height={1080}
-          className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-hero-overlay" />
-        <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-36 lg:py-44">
-          <Badge className="bg-accent text-accent-foreground hover:bg-accent border-0 mb-6 uppercase tracking-wider text-[11px] font-semibold px-3 py-1">Serving Ottawa–Gatineau</Badge>
-          <h1 className="max-w-3xl font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.05]">
-            Ottawa's trusted multi-service team: cleaning, moving, maintenance &amp; more.
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg text-white/85">
-            Get a free quote in minutes — or join our network of professional partners across the National Capital Region.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button size="lg" onClick={scrollToFunnel} className="bg-accent text-accent-foreground hover:brightness-105 shadow-lift h-12 px-6 text-base font-semibold">
-              Get a Free Quote <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Link to="/partners">
-              <Button size="lg" variant="outline" className="h-12 px-6 text-base font-semibold border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                Become a Partner
+      <section className="relative isolate min-h-[720px] overflow-hidden sm:min-h-[760px] lg:min-h-[780px]">
+        <img
+          src={heroImg}
+          alt="Ottawa home and property services in summer and winter"
+          width={1920}
+          height={1080}
+          fetchPriority="high"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,22,52,.94)_0%,rgba(7,22,52,.88)_38%,rgba(7,22,52,.50)_68%,rgba(7,22,52,.22)_100%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-background/20 to-transparent" />
+
+        <div className="relative mx-auto flex min-h-[720px] max-w-7xl items-center px-4 pb-20 pt-28 sm:min-h-[760px] sm:px-6 sm:pt-32 lg:min-h-[780px] lg:px-8">
+          <div className="max-w-3xl">
+            <Badge className="mb-5 border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white backdrop-blur-sm hover:bg-white/10 sm:text-[11px]">
+              Serving Ottawa & Gatineau
+            </Badge>
+            <h1 className="font-display text-4xl font-extrabold leading-[1.02] text-white sm:text-5xl md:text-6xl lg:text-[68px]">
+              Your home. Our team. <span className="text-accent">One call.</span>
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/82 sm:text-lg md:text-xl">
+              Cleaning, moving, landscaping, snow removal, mobile car care and property services — all managed through one simple, professional experience.
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Button size="lg" onClick={scrollToFunnel} className="h-13 rounded-xl bg-accent px-6 text-base font-bold text-accent-foreground shadow-xl hover:brightness-105 sm:w-auto">
+                Get My Free Quote <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-            </Link>
-          </div>
-          <div className="mt-10 flex flex-wrap gap-6 text-sm text-white/80">
-            <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-accent" /> Fully insured &amp; bonded</span>
-            <span className="inline-flex items-center gap-2"><Award className="h-4 w-4 text-accent" /> Satisfaction guaranteed</span>
-            <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-accent" /> Local Ottawa experts</span>
-          </div>
-        </div>
-      </section>
-
-      <section id="funnel" className="relative -mt-10 md:-mt-16 pb-16">
-        <div className="mx-auto max-w-6xl px-4"><QuoteFunnel /></div>
-      </section>
-
-      <section className="py-20 bg-secondary/40">
-        <div className="mx-auto max-w-6xl px-6">
-          <SectionHeader eyebrow="Why choose us" title="Reliable service, one partner for every job" />
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              { icon: ShieldCheck, title: "Insured & Bonded",       body: "Full coverage on every job for total peace of mind." },
-              { icon: Users,       title: "Professional Team",      body: "Background-checked, trained and uniformed crews." },
-              { icon: Award,       title: "Satisfaction Guaranteed",body: "Not happy? We come back and make it right." },
-              { icon: MapPin,      title: "Local Ottawa Experts",   body: "Rooted in the community from Kanata to Orleans." },
-            ].map((f) => (
-              <Card key={f.title} className="p-6 border-border/60 hover:shadow-soft transition-shadow">
-                <div className="h-11 w-11 rounded-lg bg-accent/15 text-accent grid place-items-center"><f.icon className="h-5 w-5" /></div>
-                <h3 className="mt-5 text-lg font-semibold text-navy">{f.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.body}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20">
-        <div className="mx-auto max-w-6xl px-6">
-          <SectionHeader eyebrow="Testimonials" title="What Ottawa homeowners & businesses say" />
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {[
-              { name: "Sarah M.",   area: "Kanata",   body: "Best cleaning team we've had. On time, thorough, and genuinely friendly." },
-              { name: "David R.",   area: "Orleans",  body: "Seasonal snow contract has been a game changer. Driveway is always clear before work." },
-              { name: "Maple Café", area: "Downtown", body: "Reliable janitorial team — our storefront has never looked better." },
-            ].map((t) => (
-              <Card key={t.name} className="p-6 border-border/60">
-                <div className="flex gap-1 text-accent">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}</div>
-                <p className="mt-4 text-sm leading-relaxed text-foreground/90">"{t.body}"</p>
-                <div className="mt-5 text-sm">
-                  <div className="font-semibold text-navy">{t.name}</div>
-                  <div className="text-muted-foreground">{t.area}</div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 bg-navy text-navy-foreground">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="grid gap-10 md:grid-cols-[1fr_2fr] items-center">
-            <div>
-              <p className="text-accent text-xs font-semibold uppercase tracking-widest">Service Areas</p>
-              <h2 className="mt-2 text-3xl font-bold">Proudly serving the National Capital Region</h2>
-              <p className="mt-3 text-white/75 text-sm">From Kanata to Orleans, and across the river to Gatineau — we've got the region covered.</p>
+              <a href="tel:+16134076699" className="inline-flex h-13 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 text-base font-semibold text-white backdrop-blur-sm transition hover:bg-white/18">
+                <Phone className="h-4 w-4" /> (613) 407-6699
+              </a>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {["Kanata","Orleans","Barrhaven","Nepean","Stittsville","Gatineau","Downtown Ottawa","Rockcliffe","Manotick"].map((a) => (
-                <div key={a} className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm">
-                  <MapPin className="h-4 w-4 text-accent" /> {a}
+
+            <div className="mt-9 grid max-w-2xl gap-3 text-sm text-white/82 sm:grid-cols-3">
+              <TrustPill icon={FileCheck2} text="Clear written quotes" />
+              <TrustPill icon={CalendarCheck2} text="Online scheduling" />
+              <TrustPill icon={Camera} text="Before & after photos" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative z-10 -mt-10 pb-8 sm:-mt-14 sm:pb-12">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid overflow-hidden rounded-2xl border border-border bg-white shadow-lift sm:grid-cols-3">
+            {[
+              ["One company", "Multiple home & property services"],
+              ["One portal", "Quotes, appointments & invoices"],
+              ["One local team", "Ottawa & Gatineau service area"],
+            ].map(([title, body], i) => (
+              <div key={title} className={`p-5 sm:p-6 ${i > 0 ? "border-t border-border sm:border-l sm:border-t-0" : ""}`}>
+                <div className="font-display font-bold text-navy">{title}</div>
+                <div className="mt-1 text-sm text-muted-foreground">{body}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-14 sm:py-18 lg:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <SectionHeader eyebrow="Our services" title="Practical help for your home, property and vehicle" align="left" />
+            <Link to="/services" className="inline-flex items-center text-sm font-semibold text-navy hover:text-accent">View all services <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
+          </div>
+          <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {services.map((service) => (
+              <Link key={service.title} to="/quote" className="group relative min-h-[255px] overflow-hidden rounded-2xl border border-white/20 bg-navy shadow-soft">
+                <img src={heroImg} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-105 object-cover transition duration-500 group-hover:scale-110" style={{ objectPosition: service.pos }} />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/65 to-navy/15" />
+                <div className="relative flex h-full min-h-[255px] flex-col justify-end p-6 text-white">
+                  <div className="mb-auto grid h-11 w-11 place-items-center rounded-xl border border-white/20 bg-white/12 backdrop-blur-sm"><service.icon className="h-5 w-5 text-accent" /></div>
+                  <h3 className="font-display text-xl font-bold">{service.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-white/75">{service.body}</p>
+                  <span className="mt-4 inline-flex items-center text-sm font-semibold text-accent">Get a quote <ArrowRight className="ml-1.5 h-4 w-4" /></span>
                 </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-sand/55 py-14 sm:py-18 lg:py-20">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-8">
+          <div>
+            <SectionHeader eyebrow="Why clients choose this process" title="Professional service without the usual back-and-forth" align="left" />
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">From the first request to the final invoice, your information stays organized. You can send photos, review the quote, choose a time, sign electronically and keep your documents in one place.</p>
+            <div className="mt-7 grid gap-3 sm:grid-cols-2">
+              {[
+                "Free quote requests",
+                "Upload photos with your request",
+                "Estimated duration before approval",
+                "Choose an available appointment",
+                "Electronic quote acceptance",
+                "Invoices and service history in your portal",
+              ].map((item) => (
+                <div key={item} className="flex items-start gap-3 rounded-xl bg-white p-3.5 shadow-sm"><span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-accent/15 text-accent"><Check className="h-3.5 w-3.5" /></span><span className="text-sm font-medium text-navy">{item}</span></div>
+              ))}
+            </div>
+          </div>
+
+          <Card className="overflow-hidden rounded-3xl border-border/60 bg-navy p-0 text-white shadow-lift">
+            <div className="grid gap-px bg-white/10 sm:grid-cols-2">
+              {[
+                { icon: Camera, number: "01", title: "Tell us what you need", body: "Choose your service, answer a few questions and add useful photos." },
+                { icon: FileCheck2, number: "02", title: "Review your quote", body: "See the price, estimated duration and service details before accepting." },
+                { icon: CalendarCheck2, number: "03", title: "Choose your appointment", body: "Select an available time that works for you." },
+                { icon: UserRoundCheck, number: "04", title: "Follow everything online", body: "Access signed quotes, interventions, photos and invoices in your portal." },
+              ].map((step) => (
+                <div key={step.number} className="bg-navy p-6 sm:p-7">
+                  <div className="flex items-center justify-between"><div className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-accent"><step.icon className="h-5 w-5" /></div><span className="font-display text-3xl font-extrabold text-white/12">{step.number}</span></div>
+                  <h3 className="mt-6 font-display text-lg font-bold">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-white/65">{step.body}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </section>
+
+      <section id="funnel" className="scroll-mt-24 py-14 sm:py-18 lg:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mb-8 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Start here</p>
+            <h2 className="mt-2 font-display text-3xl font-bold text-navy sm:text-4xl">Tell us what you need</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">Answer a few questions so we can prepare a more accurate quote. You can also add photos to help us understand the job.</p>
+          </div>
+          <QuoteFunnel />
+        </div>
+      </section>
+
+      <section className="bg-secondary/55 py-14 sm:py-18">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-8 rounded-3xl border border-border bg-white p-6 shadow-soft sm:p-8 lg:grid-cols-[1.15fr_.85fr] lg:p-10">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">Local service</p>
+              <h2 className="mt-2 font-display text-3xl font-bold text-navy">Serving Ottawa, Gatineau and surrounding communities</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">Need to confirm that we serve your neighbourhood? Call or email us and we’ll let you know before you request a quote.</p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <a href="tel:+16134076699" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-navy px-5 text-sm font-semibold text-white hover:brightness-110"><Phone className="h-4 w-4" />(613) 407-6699</a>
+                <a href="mailto:info@ottawamultiservicesgroup.com" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border px-5 text-sm font-semibold text-navy hover:bg-secondary"><Mail className="h-4 w-4" />Email us</a>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+              {["Ottawa", "Kanata", "Orléans", "Barrhaven", "Nepean", "Stittsville", "Gatineau", "Manotick", "Rockcliffe"].map((area) => (
+                <div key={area} className="flex items-center gap-2 rounded-xl bg-secondary/75 px-3 py-3 text-sm font-medium text-navy"><MapPin className="h-4 w-4 shrink-0 text-accent" />{area}</div>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-20">
-        <div className="mx-auto max-w-5xl px-6">
-          <Card className="p-8 md:p-12 border-border/60 bg-gradient-to-br from-secondary/60 to-background">
-            <div className="grid gap-8 md:grid-cols-[2fr_1fr] items-center">
-              <div>
-                <Badge className="bg-navy text-navy-foreground border-0">Client Portal</Badge>
-                <h2 className="mt-4 text-3xl font-bold text-navy">Manage bookings, invoices and faster quotes</h2>
-                <p className="mt-3 text-muted-foreground">Create an account to track your services, download invoices and re-book in one click.</p>
-              </div>
-              <div className="flex flex-col gap-3">
-                <Link to="/portal"><Button size="lg" className="w-full bg-accent text-accent-foreground hover:brightness-105 h-12"><UserPlus className="mr-2 h-4 w-4" /> Create Account</Button></Link>
-                <Link to="/portal"><Button size="lg" variant="outline" className="w-full h-12"><LogIn className="mr-2 h-4 w-4" /> Sign In</Button></Link>
-              </div>
+      <section className="py-14 sm:py-18 lg:py-20">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <div className="overflow-hidden rounded-3xl bg-navy p-7 text-white shadow-lift sm:p-10 md:flex md:items-center md:justify-between md:gap-10">
+            <div className="max-w-2xl">
+              <Badge className="border border-white/15 bg-white/10 text-white hover:bg-white/10">Client Portal</Badge>
+              <h2 className="mt-4 font-display text-3xl font-bold">Your quotes, appointments and invoices — in one place</h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/70 sm:text-base">Return anytime to review signed quotes, scheduled services, work photos and invoices.</p>
             </div>
-          </Card>
+            <Link to="/portal" className="mt-6 block shrink-0 md:mt-0"><Button size="lg" className="h-12 w-full rounded-xl bg-accent px-6 font-bold text-accent-foreground md:w-auto">Open Client Portal <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
+          </div>
         </div>
       </section>
 
@@ -160,11 +240,15 @@ function HomePage() {
   );
 }
 
-function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
+function TrustPill({ icon: Icon, text }: { icon: React.ElementType; text: string }) {
+  return <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/8 px-3.5 py-3 backdrop-blur-sm"><Icon className="h-4 w-4 shrink-0 text-accent" /><span>{text}</span></div>;
+}
+
+function SectionHeader({ eyebrow, title, align = "center" }: { eyebrow: string; title: string; align?: "left" | "center" }) {
   return (
-    <div className="text-center max-w-2xl mx-auto">
-      <p className="text-accent text-xs font-semibold uppercase tracking-widest">{eyebrow}</p>
-      <h2 className="mt-2 text-3xl md:text-4xl font-bold text-navy">{title}</h2>
+    <div className={align === "center" ? "mx-auto max-w-2xl text-center" : "max-w-2xl"}>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{eyebrow}</p>
+      <h2 className="mt-2 font-display text-3xl font-bold leading-tight text-navy sm:text-4xl">{title}</h2>
     </div>
   );
 }
