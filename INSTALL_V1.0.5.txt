@@ -1,0 +1,15 @@
+Ottawa Multiservices Group v1.0.5 — Service card images
+
+Changes only:
+- Lawn & Landscaping -> 1landscap.png
+- Snow Removal -> 1snow.png
+- Moving Services -> 1moving.png
+- Small Repairs -> 1repai.png
+
+Existing cleaning and tire images are unchanged.
+No database migration or Supabase function deployment is required.
+
+Copy the contents of this patch into the project root and replace matching files.
+Then run:
+  npm.cmd run build
+  npm.cmd run dev

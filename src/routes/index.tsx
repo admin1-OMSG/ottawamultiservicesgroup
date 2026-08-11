@@ -21,6 +21,10 @@ import heroCleaning from "@/assets/omsg-hero-cleaning.jpg";
 import homeBanner from "@/assets/omsg-home-banner.png";
 import tireServiceImg from "@/assets/omsg-tire-service.png";
 import servicesBanner from "@/assets/omsg-services-banner.png";
+import snowServiceImg from "@/assets/omsg-snow-service.png";
+import repairsServiceImg from "@/assets/omsg-repairs-service.png";
+import movingServiceImg from "@/assets/omsg-moving-service.png";
+import landscapingServiceImg from "@/assets/omsg-landscaping-service.png";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -58,11 +62,11 @@ export const Route = createFileRoute("/")({
 
 const services = [
   { title: "House Cleaning", body: "Regular, deep, move-in and move-out cleaning.", icon: Sparkles, image: heroCleaning },
-  { title: "Lawn & Landscaping", body: "Mowing, trimming, cleanups and garden care.", icon: Leaf },
-  { title: "Snow Removal", body: "Residential and commercial seasonal service.", icon: Snowflake },
-  { title: "Moving Services", body: "Local moving, loading and packing support.", icon: Truck },
+  { title: "Lawn & Landscaping", body: "Mowing, trimming, cleanups and garden care.", icon: Leaf, image: landscapingServiceImg },
+  { title: "Snow Removal", body: "Residential and commercial seasonal service.", icon: Snowflake, image: snowServiceImg },
+  { title: "Moving Services", body: "Local moving, loading and packing support.", icon: Truck, image: movingServiceImg },
   { title: "Mobile Tire Change", body: "Seasonal tire changes conveniently at your location.", icon: Car, image: tireServiceImg },
-  { title: "Small Repairs", body: "Practical handyman and property maintenance help.", icon: Hammer },
+  { title: "Small Repairs", body: "Practical handyman and property maintenance help.", icon: Hammer, image: repairsServiceImg },
 ];
 
 function HomePage() {
