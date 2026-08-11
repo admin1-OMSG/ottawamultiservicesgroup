@@ -1,0 +1,13 @@
+Ottawa Multiservices Group — v1.0.2 brighter images fix
+
+Changes:
+- Lighter hero overlay so the main photo is more visible.
+- Lighter service-card overlays and slightly brighter photo rendering.
+- Large services banner now uses object-contain/object-left so the full left-side text stays visible instead of being cropped.
+- No database, Supabase migration, or Edge Function changes.
+
+Install:
+1. Copy the contents of this patch into the project root and replace the existing file.
+2. Run: npm.cmd run build
+3. Run: npm.cmd run dev
+4. If approved: git add . && git commit -m "fix: brighten homepage images and preserve banner text" && git push origin main

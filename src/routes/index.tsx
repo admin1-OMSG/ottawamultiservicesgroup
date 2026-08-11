@@ -17,7 +17,10 @@ import {
   Truck,
   UserRoundCheck,
 } from "lucide-react";
-import heroImg from "@/assets/hero.jpg";
+import heroCleaning from "@/assets/omsg-hero-cleaning.jpg";
+import homeBanner from "@/assets/omsg-home-banner.png";
+import tireServiceImg from "@/assets/omsg-tire-service.png";
+import servicesBanner from "@/assets/omsg-services-banner.png";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,12 +57,12 @@ export const Route = createFileRoute("/")({
 });
 
 const services = [
-  { title: "House Cleaning", body: "Regular, deep, move-in and move-out cleaning.", icon: Sparkles, pos: "20% center" },
-  { title: "Lawn & Landscaping", body: "Mowing, trimming, cleanups and garden care.", icon: Leaf, pos: "48% center" },
-  { title: "Snow Removal", body: "Residential and commercial seasonal service.", icon: Snowflake, pos: "90% center" },
-  { title: "Moving Services", body: "Local moving, loading and packing support.", icon: Truck, pos: "58% center" },
-  { title: "Mobile Car Care", body: "Convenient detailing at your home or workplace.", icon: Car, pos: "74% center" },
-  { title: "Small Repairs", body: "Practical handyman and property maintenance help.", icon: Hammer, pos: "35% center" },
+  { title: "House Cleaning", body: "Regular, deep, move-in and move-out cleaning.", icon: Sparkles, image: heroCleaning },
+  { title: "Lawn & Landscaping", body: "Mowing, trimming, cleanups and garden care.", icon: Leaf },
+  { title: "Snow Removal", body: "Residential and commercial seasonal service.", icon: Snowflake },
+  { title: "Moving Services", body: "Local moving, loading and packing support.", icon: Truck },
+  { title: "Mobile Tire Change", body: "Seasonal tire changes conveniently at your location.", icon: Car, image: tireServiceImg },
+  { title: "Small Repairs", body: "Practical handyman and property maintenance help.", icon: Hammer },
 ];
 
 function HomePage() {
@@ -72,14 +75,14 @@ function HomePage() {
 
       <section className="relative isolate min-h-[720px] overflow-hidden sm:min-h-[760px] lg:min-h-[780px]">
         <img
-          src={heroImg}
-          alt="Ottawa home and property services in summer and winter"
+          src={homeBanner}
+          alt="Ottawa Multiservices Group services: cleaning, post-construction cleaning, car wash, garden maintenance, tire change, moving, snow removal and small renovations"
           width={1920}
           height={1080}
           fetchPriority="high"
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,22,52,.94)_0%,rgba(7,22,52,.88)_38%,rgba(7,22,52,.50)_68%,rgba(7,22,52,.22)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,22,52,.78)_0%,rgba(7,22,52,.68)_38%,rgba(7,22,52,.30)_68%,rgba(7,22,52,.08)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-background/20 to-transparent" />
 
         <div className="relative mx-auto flex min-h-[720px] max-w-7xl items-center px-4 pb-20 pt-28 sm:min-h-[760px] sm:px-6 sm:pt-32 lg:min-h-[780px] lg:px-8">
@@ -135,11 +138,22 @@ function HomePage() {
             <SectionHeader eyebrow="Our services" title="Practical help for your home, property and vehicle" align="left" />
             <Link to="/services" className="inline-flex items-center text-sm font-semibold text-navy hover:text-accent">View all services <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
           </div>
-          <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 rounded-2xl border border-border bg-white p-1.5 shadow-soft sm:p-2">
+            <img
+              src={servicesBanner}
+              alt="Ottawa Multiservices Group service overview"
+              className="block h-auto w-full object-contain object-left"
+            />
+          </div>
+          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {services.map((service) => (
               <Link key={service.title} to="/quote" className="group relative min-h-[255px] overflow-hidden rounded-2xl border border-white/20 bg-navy shadow-soft">
-                <img src={heroImg} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-105 object-cover transition duration-500 group-hover:scale-110" style={{ objectPosition: service.pos }} />
-                <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/65 to-navy/15" />
+                {service.image ? (
+                  <img src={service.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover brightness-[1.12] saturate-[1.05] transition duration-500 group-hover:scale-[1.03]" />
+                ) : (
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.20),transparent_42%),linear-gradient(145deg,#163c70,#2f6ca8)]" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-navy/85 via-navy/35 to-transparent" />
                 <div className="relative flex h-full min-h-[255px] flex-col justify-end p-6 text-white">
                   <div className="mb-auto grid h-11 w-11 place-items-center rounded-xl border border-white/20 bg-white/12 backdrop-blur-sm"><service.icon className="h-5 w-5 text-accent" /></div>
                   <h3 className="font-display text-xl font-bold">{service.title}</h3>

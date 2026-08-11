@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { House, Menu, Phone, Sparkles, X } from "lucide-react";
+import { Menu, Phone, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import brandLogo from "@/assets/omsg-logo.png";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -14,10 +15,8 @@ const NAV = [
 
 export function BrandMark({ light = false }: { light?: boolean }) {
   return (
-    <div className="relative grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-accent text-accent-foreground shadow-sm">
-      <House className="h-5 w-5" strokeWidth={2.4} />
-      <Sparkles className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-white p-0.5 text-accent" />
-      <span className={`absolute -bottom-1 h-1.5 w-5 rounded-full ${light ? "bg-white/80" : "bg-navy"}`} />
+    <div className={`grid h-16 w-16 shrink-0 sm:h-20 sm:w-20 place-items-center overflow-hidden rounded-full border shadow-sm ${light ? "border-white/30 bg-white" : "border-border bg-white"}`}>
+      <img src={brandLogo} alt="Ottawa Multiservices Group logo" className="h-full w-full object-contain p-0.5" />
     </div>
   );
 }
@@ -34,7 +33,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
 
   return (
     <header className={wrapper}>
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
         <Link to="/" className={`flex min-w-0 items-center gap-3 ${brandColor}`} aria-label="Ottawa Multiservices Group home">
           <BrandMark light={isTransparent} />
           <div className="min-w-0 leading-tight">
