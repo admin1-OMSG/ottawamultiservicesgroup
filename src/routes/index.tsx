@@ -88,13 +88,13 @@ function HomePage() {
         <div className="relative mx-auto flex min-h-[720px] max-w-7xl items-center px-4 pb-20 pt-28 sm:min-h-[760px] sm:px-6 sm:pt-32 lg:min-h-[780px] lg:px-8">
           <div className="max-w-3xl">
             <Badge className="mb-5 border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white backdrop-blur-sm hover:bg-white/10 sm:text-[11px]">
-              Serving Ottawa & Gatineau
+              One Company. Multiple Solutions. All Seasons.
             </Badge>
             <h1 className="font-display text-4xl font-extrabold leading-[1.02] text-white sm:text-5xl md:text-6xl lg:text-[68px]">
-              Your home. Our team. <span className="text-accent">One call.</span>
+              Everything You Need. <span className="text-accent">One Trusted Team.</span>
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/82 sm:text-lg md:text-xl">
-              Cleaning, moving, landscaping, snow removal, mobile car care and property services — all managed through one simple, professional experience.
+              Professional services for homes, businesses and vehicles across Ottawa & Gatineau.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
