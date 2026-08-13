@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Youtube } from "lucide-react";
-import { BrandTuek } from "@/components/site-header";
+import { BrandMark } from "@/components/site-header";
 
 export function SiteFooter() {
   return (
@@ -8,7 +8,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr] lg:px-8">
         <div>
           <div className="flex items-center gap-3">
-            <BrandTuek light />
+            <BrandMark light />
             <div>
               <div className="font-display font-bold">Ottawa Multiservices Group Inc.</div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-white/55">One company. Multiple solutions.</div>
@@ -41,7 +41,7 @@ export function SiteFooter() {
         ]} />
         <FooterCol title="Legal" links={[
           { label: "Privacy Policy", to: "/privacy" },
-          { label: "Terms & Terms", to: "/terms" },
+          { label: "Terms & Conditions", to: "/terms" },
         ]} />
       </div>
       <div className="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-3 border-t border-white/10 px-4 pt-6 text-center text-xs text-white/55 sm:px-6 md:flex-row md:text-left lg:px-8">

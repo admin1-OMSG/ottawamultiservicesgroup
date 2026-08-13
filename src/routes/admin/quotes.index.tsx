@@ -251,7 +251,7 @@ function AdminQuotesPage() {
 
           <article className="rounded-xl border bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">
-              Acceptedes ou en cours
+              Accepted or in progress
             </p>
 
             <p className="mt-2 text-3xl font-bold text-slate-900">

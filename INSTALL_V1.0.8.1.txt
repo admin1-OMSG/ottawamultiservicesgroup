@@ -1,0 +1,10 @@
+Ottawa CRM v1.0.8.1 Runtime Hotfix
+
+Fixes accidental translation/corruption of technical identifiers introduced by v1.0.8:
+- Number.isEndite -> Number.isFinite (page crash)
+- BrandTuek -> BrandMark
+- Stripe httpCustomer/createFetchHttpCustomer -> httpClient/createFetchHttpClient
+- a few visible wording typos and remaining French labels
+
+Install: copy this patch over the project, then run npm.cmd run build and npm.cmd run dev.
+If Stripe webhook is used, redeploy: npx supabase functions deploy stripe-webhook --no-verify-jwt
