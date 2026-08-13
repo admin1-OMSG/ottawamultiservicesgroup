@@ -23,7 +23,7 @@ type EventBody =
   | { type: "estimate_accepted"; estimateId: string }
   | { type: "estimate_ready"; estimateId: string }
   | { type: "appointment_proposed"; jobId: string }
-  | { type: "booking_confirmed"; bookingId: string }
+  | { type: "booking_confirmed"; bookingId: string; language?: "en" | "fr" }
   | { type: "invoice_ready"; invoiceId: string }
 
 function escapeHtml(value: unknown) {
@@ -39,13 +39,60 @@ function money(value: unknown) {
   return new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" }).format(Number(value || 0))
 }
 
-function dateTime(value: string | null) {
-  if (!value) return "Date to be confirmed"
-  return new Intl.DateTimeFormat("en-CA", {
+function dateTime(value: string | null, language: CustomerLanguage = "en") {
+  if (!value) return language === "fr" ? "Date à confirmer" : "Date to be confirmed"
+  return new Intl.DateTimeFormat(language === "fr" ? "fr-CA" : "en-CA", {
     timeZone: "America/Toronto",
     dateStyle: "full",
     timeStyle: "short",
   }).format(new Date(value))
+}
+
+type CustomerLanguage = "en" | "fr"
+
+async function preferredLanguage(customerId?: string | null, serviceRequestId?: string | null): Promise<CustomerLanguage> {
+  if (customerId) {
+    const { data } = await admin.from("customers").select("preferred_language").eq("id", customerId).maybeSingle()
+    if (data?.preferred_language === "fr") return "fr"
+  }
+  if (serviceRequestId) {
+    const { data } = await admin.from("service_requests").select("preferred_language,questionnaire_answers").eq("id", serviceRequestId).maybeSingle()
+    if (data?.preferred_language === "fr" || data?.questionnaire_answers?.preferredLanguage === "fr") return "fr"
+  }
+  return "en"
+}
+
+function frenchCustomerEmail(subject: string, html: string) {
+  const subjectMap: Array<[string, string]> = [
+    ["Your quote ", "Votre devis "], [" is ready", " est prêt"],
+    ["Appointment proposal — ", "Proposition de rendez-vous — "],
+    ["Paid invoice — ", "Facture payée — "], ["Your invoice ", "Votre facture "],
+    ["Appointment booked — ", "Rendez-vous réservé — "],
+  ]
+  for (const [en, fr] of subjectMap) subject = subject.replace(en, fr)
+  const replacements: Array<[string, string]> = [
+    ["Your quote is ready", "Votre devis est prêt"], ["Appointment proposal", "Proposition de rendez-vous"],
+    ["Paid invoice", "Facture payée"], ["Your invoice", "Votre facture"], ["Your appointment is booked", "Votre rendez-vous est réservé"],
+    ["Hello ", "Bonjour "], ["We prepared your quote", "Nous avons préparé votre devis"],
+    ["for the requested service", "pour le service demandé"], ["Amount:", "Montant :"], ["Estimated duration:", "Durée estimée :"],
+    ["Duration to be confirmed", "Durée à confirmer"], ["on-site hour(s)", "heure(s) sur place"], ["crew of", "équipe de"],
+    ["The button below signs you in directly and securely to your quote. You can review it, choose an available appointment, and sign it.", "Le bouton ci-dessous vous connecte directement et de façon sécurisée à votre devis. Vous pouvez le consulter, choisir un rendez-vous disponible et le signer."],
+    ["View & Sign My Quote", "Voir et signer mon devis"], ["We propose the following appointment for", "Nous vous proposons le rendez-vous suivant pour"],
+    ["Estimated end:", "Fin estimée :"], ["View your client portal for the job details.", "Consultez votre portail client pour les détails de l’intervention."],
+    ["View my appointment", "Voir mon rendez-vous"], ["We confirm receipt of your payment. Your paid invoice is available below and in your client portal.", "Nous confirmons la réception de votre paiement. Votre facture acquittée est disponible ci-dessous et dans votre portail client."],
+    ["Your invoice is ready. A summary is provided below.", "Votre facture est prête. Un résumé est présenté ci-dessous."],
+    ["Billed to", "Facturé à"], ["Invoice", "Facture"], ["Issued ", "Émise le "], ["Due ", "Échéance "], ["PAID", "PAYÉE"], ["AMOUNT DUE", "MONTANT DÛ"],
+    ["Qty", "Qté"], ["Price", "Prix"], ["Payment received", "Paiement reçu"], ["Method", "Mode"],
+    ["Subtotal before tax", "Sous-total avant taxes"], ["Discount", "Rabais"], ["Amount paid", "Montant payé"], ["Balance", "Solde"],
+    ["Completed work photos", "Photos du travail terminé"], ["These photo links are secure and temporary. The full gallery remains available in your client portal.", "Ces liens photo sont sécurisés et temporaires. La galerie complète reste disponible dans votre portail client."],
+    ["View Invoice & Download PDF", "Voir la facture et télécharger le PDF"], ["GST/HST No.", "No TPS/TVH"],
+    ["Thank you for your payment and your business.", "Merci pour votre paiement et votre confiance."],
+    ["Your quote was accepted and your appointment is now booked.", "Votre devis a été accepté et votre rendez-vous est maintenant réservé."],
+    ["Important:", "Important :"], ["signing the quote and booking the appointment confirms your commitment to have the service performed and to pay the invoice according to the accepted quote and any additional work you authorize.", "la signature du devis et la réservation du rendez-vous confirment votre engagement à faire effectuer le service et à payer la facture conformément au devis accepté ainsi que tout travail supplémentaire que vous autorisez."],
+    ["We will send you the invoice after the service is completed.", "Nous vous enverrons la facture une fois le service terminé."],
+  ]
+  for (const [en, fr] of replacements) html = html.split(en).join(fr)
+  return { subject, html }
 }
 
 function layout(title: string, content: string) {
@@ -135,6 +182,7 @@ Deno.serve(async (req) => {
     let recipient = ""
     let subject = ""
     let html = ""
+    let recipientLanguage: CustomerLanguage = "en"
     let key = ""
     let recordId = ""
     let recipientType = "customer"
@@ -166,13 +214,14 @@ Deno.serve(async (req) => {
       html = layout("A customer accepted a quote", `<p><strong>${escapeHtml(`${customer?.first_name || ""} ${customer?.last_name || ""}`)}</strong> accepted quote <strong>${escapeHtml(estimate.estimate_number)}</strong>.</p><p>Amount: <strong>${money(estimate.total)}</strong></p><p><a href="${siteUrl}/admin/estimates/${estimate.id}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Open Quote</a></p>`)
     } else if (body.type === "estimate_ready") {
       if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
-      const { data: estimate } = await admin.from("estimates").select("id,estimate_number,title,total,status,updated_at,estimated_duration_minutes,crew_size,customer:customers(first_name,last_name,email)").eq("id", body.estimateId).maybeSingle()
+      const { data: estimate } = await admin.from("estimates").select("id,estimate_number,title,total,status,updated_at,estimated_duration_minutes,crew_size,customer_id,service_request_id,customer:customers(first_name,last_name,email,preferred_language)").eq("id", body.estimateId).maybeSingle()
       if (!estimate || !["sent", "viewed"].includes(estimate.status)) throw new Error("Estimate is not ready to send")
       const customer = Array.isArray(estimate.customer) ? estimate.customer[0] : estimate.customer
       if (!customer?.email) throw new Error("Customer email missing")
       key = `estimate-ready:${estimate.id}:${estimate.updated_at}`
       recordId = estimate.id
       recipient = customer.email
+      recipientLanguage = customer.preferred_language === "fr" ? "fr" : await preferredLanguage(estimate.customer_id, estimate.service_request_id)
       subject = `Your quote ${estimate.estimate_number} is ready`
       const portalLink = await createDirectPortalLink(customer.email, estimate.id)
       const duration = Number(estimate.estimated_duration_minutes || 0)
@@ -180,20 +229,21 @@ Deno.serve(async (req) => {
       html = layout("Your quote is ready", `<p>Hello ${escapeHtml(customer.first_name)},</p><p>We prepared your quote <strong>${escapeHtml(estimate.estimate_number)}</strong> for ${escapeHtml(estimate.title || "the requested service")}.</p><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin:18px 0"><p style="margin:0 0 8px">Amount: <strong>${money(estimate.total)}</strong></p><p style="margin:0">Estimated duration: <strong>${escapeHtml(durationText)}</strong></p></div><p>The button below signs you in directly and securely to your quote. You can review it, choose an available appointment, and sign it.</p><p><a href="${portalLink}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">View & Sign My Quote</a></p>`)
     } else if (body.type === "appointment_proposed") {
       if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
-      const { data: job } = await admin.from("jobs").select("id,job_number,title,status,scheduled_start,scheduled_end,address_line,city,customer:customers(first_name,last_name,email)").eq("id", body.jobId).maybeSingle()
+      const { data: job } = await admin.from("jobs").select("id,job_number,title,status,scheduled_start,scheduled_end,address_line,city,customer_id,estimate_id,customer:customers(first_name,last_name,email,preferred_language)").eq("id", body.jobId).maybeSingle()
       if (!job || !job.scheduled_start) throw new Error("Appointment date missing")
       const customer = Array.isArray(job.customer) ? job.customer[0] : job.customer
       if (!customer?.email) throw new Error("Customer email missing")
       key = `appointment:${job.id}:${job.scheduled_start}`
       recordId = job.id
       recipient = customer.email
+      recipientLanguage = customer.preferred_language === "fr" ? "fr" : await preferredLanguage(job.customer_id)
       subject = `Appointment proposal — ${job.title}`
-      html = layout("Appointment proposal", `<p>Hello ${escapeHtml(customer.first_name)},</p><p>We propose the following appointment for <strong>${escapeHtml(job.title)}</strong> :</p><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px;margin:18px 0"><div style="font-size:18px;font-weight:700">${escapeHtml(dateTime(job.scheduled_start))}</div>${job.scheduled_end ? `<div style="margin-top:5px;color:#475569">Estimated end: ${escapeHtml(dateTime(job.scheduled_end))}</div>` : ""}<div style="margin-top:5px;color:#475569">${escapeHtml([job.address_line, job.city].filter(Boolean).join(", "))}</div></div><p>View your client portal for the job details.</p><p><a href="${siteUrl}/portal" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">View my appointment</a></p>`)
+      html = layout("Appointment proposal", `<p>Hello ${escapeHtml(customer.first_name)},</p><p>We propose the following appointment for <strong>${escapeHtml(job.title)}</strong> :</p><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px;margin:18px 0"><div style="font-size:18px;font-weight:700">${escapeHtml(dateTime(job.scheduled_start, recipientLanguage))}</div>${job.scheduled_end ? `<div style="margin-top:5px;color:#475569">Estimated end: ${escapeHtml(dateTime(job.scheduled_end, recipientLanguage))}</div>` : ""}<div style="margin-top:5px;color:#475569">${escapeHtml([job.address_line, job.city].filter(Boolean).join(", "))}</div></div><p>View your client portal for the job details.</p><p><a href="${siteUrl}/portal" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">View my appointment</a></p>`)
     } else if (body.type === "invoice_ready") {
       if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
       const { data: invoice } = await admin
         .from("invoices")
-        .select("id,invoice_number,title,status,issue_date,due_date,subtotal,discount_total,tax_rate,tax_total,total,amount_paid,balance_due,currency,updated_at,job_id,customer:customers(first_name,last_name,email,phone,address_line,city,province,postal_code)")
+        .select("id,invoice_number,title,status,issue_date,due_date,subtotal,discount_total,tax_rate,tax_total,total,amount_paid,balance_due,currency,updated_at,job_id,estimate_id,customer_id,customer:customers(first_name,last_name,email,phone,address_line,city,province,postal_code,preferred_language)")
         .eq("id", body.invoiceId)
         .maybeSingle()
       if (!invoice) throw new Error("Invoice not found")
@@ -208,6 +258,7 @@ Deno.serve(async (req) => {
       recordId = invoice.id
       recipient = customer.email
       recipientType = "customer"
+      recipientLanguage = customer.preferred_language === "fr" ? "fr" : await preferredLanguage(invoice.customer_id)
       subject = isPaid ? `Paid invoice — ${invoice.invoice_number}` : `Your invoice ${invoice.invoice_number}`
       const portalLink = await createDirectInvoiceLink(customer.email, invoice.id)
       let invoicePhotoHtml = ""
@@ -291,7 +342,7 @@ Deno.serve(async (req) => {
       html = layout(isPaid ? "Paid invoice" : "Your invoice", invoiceBody)
     } else if (body.type === "booking_confirmed") {
       const customerId = await linkedCustomerId(user?.id)
-      const { data: booking } = await admin.from("estimate_bookings").select("id,estimate_id,customer_id,starts_at,ends_at,status,estimate:estimates(estimate_number,title,total),customer:customers(first_name,last_name,email)").eq("id", body.bookingId).maybeSingle()
+      const { data: booking } = await admin.from("estimate_bookings").select("id,estimate_id,customer_id,starts_at,ends_at,status,estimate:estimates(estimate_number,title,total),customer:customers(first_name,last_name,email,preferred_language)").eq("id", body.bookingId).maybeSingle()
       if (!booking || !customerId || booking.customer_id !== customerId) throw new Error("Not authorized")
       const customer = Array.isArray(booking.customer) ? booking.customer[0] : booking.customer
       const estimate = Array.isArray(booking.estimate) ? booking.estimate[0] : booking.estimate
@@ -300,11 +351,14 @@ Deno.serve(async (req) => {
       recordId = booking.id
       recipient = customer.email
       recipientType = "customer"
+      recipientLanguage = body.language === "fr" || customer.preferred_language === "fr" ? "fr" : "en"
       subject = `Appointment booked — ${estimate?.estimate_number || "Ottawa Multiservices"}`
-      html = layout("Your appointment is booked", `<p>Hello ${escapeHtml(customer.first_name)},</p><p>Your quote was accepted and your appointment is now booked.</p><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px;margin:18px 0"><div style="font-size:18px;font-weight:700">${escapeHtml(dateTime(booking.starts_at))}</div><div style="margin-top:5px;color:#475569">Estimated end: ${escapeHtml(dateTime(booking.ends_at))}</div><div style="margin-top:8px">${escapeHtml(estimate?.title || "Service")}</div></div><p><strong>Important:</strong> signing the quote and booking the appointment confirms your commitment to have the service performed and to pay the invoice according to the accepted quote and any additional work you authorize.</p><p>We will send you the invoice after the service is completed.</p>`)
+      html = layout("Your appointment is booked", `<p>Hello ${escapeHtml(customer.first_name)},</p><p>Your quote was accepted and your appointment is now booked.</p><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px;margin:18px 0"><div style="font-size:18px;font-weight:700">${escapeHtml(dateTime(booking.starts_at, recipientLanguage))}</div><div style="margin-top:5px;color:#475569">Estimated end: ${escapeHtml(dateTime(booking.ends_at, recipientLanguage))}</div><div style="margin-top:8px">${escapeHtml(estimate?.title || "Service")}</div></div><p><strong>Important:</strong> signing the quote and booking the appointment confirms your commitment to have the service performed and to pay the invoice according to the accepted quote and any additional work you authorize.</p><p>We will send you the invoice after the service is completed.</p>`)
     } else {
       throw new Error("Unsupported event")
     }
+
+    if (recipientType === "customer" && recipientLanguage === "fr") ({ subject, html } = frenchCustomerEmail(subject, html))
 
     if (await alreadySent(key)) return new Response(JSON.stringify({ ok: true, duplicate: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } })
 

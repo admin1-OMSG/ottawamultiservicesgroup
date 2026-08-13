@@ -5,7 +5,7 @@ export type CrmEmailEvent =
   | { type: "estimate_accepted"; estimateId: string }
   | { type: "estimate_ready"; estimateId: string }
   | { type: "appointment_proposed"; jobId: string }
-  | { type: "booking_confirmed"; bookingId: string }
+  | { type: "booking_confirmed"; bookingId: string; language?: "en" | "fr" }
   | { type: "invoice_ready"; invoiceId: string }
 
 export async function sendCrmEmail(event: CrmEmailEvent) {

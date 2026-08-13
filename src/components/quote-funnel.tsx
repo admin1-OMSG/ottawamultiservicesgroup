@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { sendCrmEmail } from "@/lib/email-notifications";
+import { useLanguage } from "@/lib/language";
 
 
 type ServiceKey =
@@ -42,6 +43,7 @@ type ClientKind = "residential" | "commercial" | null;
 type AnswerValue = string | string[];
 
 export function QuoteFunnel({ startWith }: { startWith?: "client" | "partner" }) {
+  const { language } = useLanguage();
   const [userType, setUserType] = useState<UserType>(startWith ?? null);
   const [clientKind, setClientKind] = useState<ClientKind>(null);
   const [service, setService] = useState<ServiceKey | null>(null);
@@ -400,7 +402,9 @@ function ContactForm({
               questionnaire_answers: {
                 ...answers,
                 preferredContactMethod: contactMethod,
+                preferredLanguage: language,
               },
+              preferred_language: language,
               status: "new",
               source: "website",
             });

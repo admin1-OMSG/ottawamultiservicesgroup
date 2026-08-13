@@ -1,0 +1,20 @@
+Ottawa Multiservices Group v1.1.1 - Bilingual Client Communications
+
+Adds:
+- Complete French translation coverage for quote-request form questions/options.
+- Saves preferred language (EN/FR) on quote requests and customer profiles.
+- Customer portal language choice is persisted to Supabase after sign-in.
+- Quote, appointment and invoice customer emails use the customer's preferred language.
+- Email buttons are translated for French customers.
+- Invoice PDF labels and dates follow the selected portal language.
+
+INSTALL ORDER
+1. Copy patch files into project (replace existing files).
+2. Run: npx supabase db push
+3. Run: npx supabase functions deploy send-crm-email --no-verify-jwt
+4. Run: npm.cmd run build
+5. Run: npm.cmd run dev
+6. Test EN and FR before Git push.
+7. Publish: git add . && git commit -m "feat: bilingual client communications" && git push origin main
+
+Important: run the database migration BEFORE testing/submitting a new quote request.
