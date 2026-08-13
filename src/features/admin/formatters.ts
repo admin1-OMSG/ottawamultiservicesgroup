@@ -3,12 +3,12 @@ export function formatCad(value: number | string | null | undefined) {
   return new Intl.NumberFormat("en-CA", {
     style: "currency",
     currency: "CAD",
-  }).format(Number.isFinite(amount) ? amount : 0)
+  }).format(Number.isEndite(amount) ? amount : 0)
 }
 
 export function formatDate(value: string | null | undefined) {
   if (!value) return "—"
-  return new Intl.DateTimeFormat("fr-CA", {
+  return new Intl.DateTimeFormat("en-CA", {
     year: "numeric",
     month: "short",
     day: "numeric",

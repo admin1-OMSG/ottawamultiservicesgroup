@@ -1,0 +1,20 @@
+Ottawa Multiservices Group - v1.0.6 English-only patch
+
+Purpose:
+- Public/customer-facing quote flow in English
+- Client portal in English
+- Estimates and invoices in English
+- Invoice PDF/customer invoice view labels in English
+- Customer/admin email templates in English
+- Payment and appointment messages in English
+- Admin CRM interface translated to English where applicable
+
+After copying this patch into the project root:
+1. npm.cmd run build
+2. npm.cmd run dev
+3. npx supabase functions deploy send-crm-email --no-verify-jwt
+4. npx supabase functions deploy create-checkout-session --no-verify-jwt
+5. npx supabase functions deploy get-available-slots
+
+Test locally before Git push.
+No database migration is required.

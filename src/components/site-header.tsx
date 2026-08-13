@@ -9,11 +9,11 @@ const NAV = [
   { to: "/services", label: "Services" },
   { to: "/about", label: "About" },
   { to: "/partners", label: "Partners" },
-  { to: "/portal", label: "Client Portal" },
+  { to: "/portal", label: "Customer Portal" },
   { to: "/contact", label: "Contact" },
 ] as const;
 
-export function BrandMark({ light = false }: { light?: boolean }) {
+export function BrandTuek({ light = false }: { light?: boolean }) {
   return (
     <div className={`grid h-16 w-16 shrink-0 sm:h-20 sm:w-20 place-items-center overflow-hidden rounded-full border shadow-sm ${light ? "border-white/30 bg-white" : "border-border bg-white"}`}>
       <img src={brandLogo} alt="Ottawa Multiservices Group logo" className="h-full w-full object-contain p-0.5" />
@@ -35,7 +35,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
     <header className={wrapper}>
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
         <Link to="/" className={`flex min-w-0 items-center gap-3 ${brandColor}`} aria-label="Ottawa Multiservices Group home">
-          <BrandMark light={isTransparent} />
+          <BrandTuek light={isTransparent} />
           <div className="min-w-0 leading-tight">
             <div className="truncate font-display text-[15px] font-extrabold sm:text-base">Ottawa Multiservices</div>
             <div className={`truncate text-[9px] font-semibold uppercase tracking-[0.2em] sm:text-[10px] ${subColor}`}>Group Inc.</div>

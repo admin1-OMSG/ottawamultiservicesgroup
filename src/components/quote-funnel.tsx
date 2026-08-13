@@ -58,9 +58,9 @@ export function QuoteFunnel({ startWith }: { startWith?: "client" | "partner" })
       <Stepper userType={userType} clientKind={clientKind} service={service} showContact={showContact} />
 
       {!userType && (
-        <StepBlock title="Are you a Client or a Partner?" subtitle="Tell us who you are so we can point you to the right form.">
+        <StepBlock title="Are you a Customer or a Partner?" subtitle="Tell us who you are so we can point you to the right form.">
           <div className="grid gap-4 sm:grid-cols-2">
-            <ChoiceTile icon={Home}  title="I'm a Client"  desc="I need a service for my home or business." onClick={() => setUserType("client")} />
+            <ChoiceTile icon={Home}  title="I'm a Customer"  desc="I need a service for my home or business." onClick={() => setUserType("client")} />
             <ChoiceTile icon={Users} title="I'm a Partner" desc="I want to offer subcontracting services." onClick={() => setUserType("partner")} />
           </div>
         </StepBlock>
@@ -534,8 +534,8 @@ function ContactForm({
       </Field>
 
       <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
-        <Label htmlFor="quotePhotos">Photos du travail (facultatif)</Label>
-        <p className="mt-1 text-xs text-muted-foreground">Ajoutez jusqu’à 8 photos pour nous aider à préparer un devis plus précis. 8 Mo maximum par photo.</p>
+        <Label htmlFor="quotePhotos">Job photos (optional)</Label>
+        <p className="mt-1 text-xs text-muted-foreground">Add up to 8 photos to help us prepare a more accurate quote. Maximum 8 MB per photo.</p>
         <Input id="quotePhotos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple className="mt-3 bg-white" onChange={(e) => { const selected = Array.from(e.target.files ?? []).filter((f) => f.size <= 8 * 1024 * 1024).slice(0, 8); setPhotos(selected); if ((e.target.files?.length ?? 0) > 8) toast.error("Maximum 8 photos."); }} />
         {photos.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{photos.map((file) => <div key={`${file.name}-${file.lastModified}`} className="rounded-lg border bg-white p-2 text-xs"><div className="truncate font-medium">{file.name}</div><div className="text-muted-foreground">{(file.size/1024/1024).toFixed(1)} Mo</div></div>)}</div>}
       </div>

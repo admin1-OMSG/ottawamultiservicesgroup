@@ -20,7 +20,7 @@ export async function sendCrmEmail(event: CrmEmailEvent) {
 
   if (!data?.ok) {
     console.error("CRM email notification rejected:", data)
-    return { ok: false, error: data?.error ?? "Notification non envoyée." }
+    return { ok: false, error: data?.error ?? "Notification was not sent." }
   }
 
   return { ok: true as const }

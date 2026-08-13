@@ -45,15 +45,15 @@ type ServiceRequest = {
 }
 
 const STATUS_LABELS: Record<QuoteStatus, string> = {
-  new: "Nouvelle",
-  contacted: "Client contacté",
-  estimate_scheduled: "Estimation planifiée",
-  quote_sent: "Devis envoyé",
-  accepted: "Accepté",
-  declined: "Refusé",
-  in_progress: "En cours",
-  completed: "Terminé",
-  cancelled: "Annulé",
+  new: "New",
+  contacted: "Customer contacted",
+  estimate_scheduled: "Estimate scheduled",
+  quote_sent: "Quote sent",
+  accepted: "Accepted",
+  declined: "Rejected",
+  in_progress: "In progress",
+  completed: "Completed",
+  cancelled: "Cancelled",
 }
 
 function AdminQuotesPage() {
@@ -142,7 +142,7 @@ function AdminQuotesPage() {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Impossible de charger les demandes de devis.",
+          : "Unable to load quote requests.",
       )
     } finally {
       setLoading(false)
@@ -191,7 +191,7 @@ function AdminQuotesPage() {
       <main className="min-h-screen bg-slate-50 p-6">
         <div className="mx-auto max-w-7xl">
           <p className="text-slate-600">
-            Chargement des demandes de devis…
+            Loading quote requests…
           </p>
         </div>
       </main>
@@ -207,15 +207,15 @@ function AdminQuotesPage() {
               to="/admin"
               className="mb-2 inline-block text-sm font-medium text-blue-700 hover:underline"
             >
-              ← Retour au tableau de bord
+              ← Back to dashboard
             </Link>
 
             <h1 className="text-3xl font-bold text-slate-900">
-              Demandes de devis
+              Quote Requests
             </h1>
 
             <p className="mt-1 text-slate-600">
-              Consultez et gérez les demandes reçues depuis le site.
+              Review and manage requests received from the website.
             </p>
           </div>
 
@@ -231,7 +231,7 @@ function AdminQuotesPage() {
         <section className="mb-6 grid gap-4 md:grid-cols-3">
           <article className="rounded-xl border bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">
-              Total des demandes
+              Total des requests
             </p>
 
             <p className="mt-2 text-3xl font-bold text-slate-900">
@@ -241,7 +241,7 @@ function AdminQuotesPage() {
 
           <article className="rounded-xl border bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">
-              Nouvelles
+              News
             </p>
 
             <p className="mt-2 text-3xl font-bold text-slate-900">
@@ -251,7 +251,7 @@ function AdminQuotesPage() {
 
           <article className="rounded-xl border bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">
-              Acceptées ou en cours
+              Acceptedes ou en cours
             </p>
 
             <p className="mt-2 text-3xl font-bold text-slate-900">
@@ -271,7 +271,7 @@ function AdminQuotesPage() {
                 htmlFor="quote-search"
                 className="mb-1 block text-sm font-medium text-slate-700"
               >
-                Rechercher
+                Search
               </label>
 
               <input
@@ -279,7 +279,7 @@ function AdminQuotesPage() {
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Numéro, client, courriel, ville ou service"
+                placeholder="Number, customer, email, city, or service"
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               />
             </div>
@@ -289,7 +289,7 @@ function AdminQuotesPage() {
                 htmlFor="status-filter"
                 className="mb-1 block text-sm font-medium text-slate-700"
               >
-                Statut
+                Status
               </label>
 
               <select
@@ -302,7 +302,7 @@ function AdminQuotesPage() {
                 }
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               >
-                <option value="all">Tous les statuts</option>
+                <option value="all">All statuses</option>
 
                 {QUOTE_STATUSES.map((status) => (
                   <option key={status} value={status}>
@@ -317,7 +317,7 @@ function AdminQuotesPage() {
         {errorMessage ? (
           <div className="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
             <p className="font-semibold">
-              Erreur de chargement
+              Loading error
             </p>
 
             <p className="mt-1 text-sm">
@@ -330,7 +330,7 @@ function AdminQuotesPage() {
           {filteredQuotes.length === 0 ? (
             <div className="p-10 text-center">
               <p className="font-medium text-slate-800">
-                Aucune demande trouvée
+                No requests found
               </p>
 
               <p className="mt-1 text-sm text-slate-500">
@@ -343,11 +343,11 @@ function AdminQuotesPage() {
                 <thead className="bg-slate-100 text-sm text-slate-700">
                   <tr>
                     <th className="px-4 py-3 font-semibold">
-                      Numéro
+                      Number
                     </th>
 
                     <th className="px-4 py-3 font-semibold">
-                      Client
+                      Customer
                     </th>
 
                     <th className="px-4 py-3 font-semibold">
@@ -355,11 +355,11 @@ function AdminQuotesPage() {
                     </th>
 
                     <th className="px-4 py-3 font-semibold">
-                      Ville
+                      City
                     </th>
 
                     <th className="px-4 py-3 font-semibold">
-                      Statut
+                      Status
                     </th>
 
                     <th className="px-4 py-3 font-semibold">
@@ -404,7 +404,7 @@ function AdminQuotesPage() {
                         </td>
 
                         <td className="px-4 py-4 text-slate-700">
-                          {quote.service_name ?? "Non précisé"}
+                          {quote.service_name ?? "Not specified"}
                         </td>
 
                         <td className="px-4 py-4 text-slate-700">
@@ -446,8 +446,8 @@ function AdminQuotesPage() {
         </section>
 
         <p className="mt-4 text-sm text-slate-500">
-          {filteredQuotes.length} demande
-          {filteredQuotes.length !== 1 ? "s" : ""} affichée
+          {filteredQuotes.length} request
+          {filteredQuotes.length !== 1 ? "s" : ""} displayed
           {filteredQuotes.length !== 1 ? "s" : ""}.
         </p>
       </div>

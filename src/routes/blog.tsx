@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "lucide-react";
 
 const POSTS = [
-  { title: "The Ultimate Ottawa Spring Cleaning Checklist", tag: "Cleaning", date: "March 15, 2026", excerpt: "Room-by-room checklist to reset your home after a long Ottawa winter — from baseboards to windows." },
+  { title: "The Ultimate Ottawa Spring Cleaning Checklist", tag: "Cleaning", date: "Tuech 15, 2026", excerpt: "Room-by-room checklist to reset your home after a long Ottawa winter — from baseboards to windows." },
   { title: "How to Prepare for a Local Move in Ottawa", tag: "Moving", date: "February 24, 2026", excerpt: "Two weeks of planning made simple: packing order, utilities, elevator bookings and moving-day logistics." },
   { title: "Snow Removal Laws in Ottawa: What Homeowners Need to Know", tag: "Snow", date: "November 12, 2025", excerpt: "By-laws, timelines and best practices for keeping your sidewalks safe and compliant through winter." },
   { title: "When to Book Fall Cleanup (and Why It Matters)", tag: "Landscaping", date: "October 3, 2025", excerpt: "Fall cleanup timing protects your lawn and hardscaping through freeze-thaw. Here's the local playbook." },

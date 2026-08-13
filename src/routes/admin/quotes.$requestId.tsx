@@ -25,15 +25,15 @@ const QUOTE_STATUSES = [
 type QuoteStatus = (typeof QUOTE_STATUSES)[number]
 
 const STATUS_LABELS: Record<QuoteStatus, string> = {
-  new: "Nouvelle",
-  contacted: "Client contacté",
-  estimate_scheduled: "Estimation planifiée",
-  quote_sent: "Devis envoyé",
-  accepted: "Accepté",
-  declined: "Refusé",
-  in_progress: "En cours",
-  completed: "Terminé",
-  cancelled: "Annulé",
+  new: "New",
+  contacted: "Customer contacted",
+  estimate_scheduled: "Estimate scheduled",
+  quote_sent: "Quote sent",
+  accepted: "Accepted",
+  declined: "Rejected",
+  in_progress: "In progress",
+  completed: "Completed",
+  cancelled: "Cancelled",
 }
 
 type Customer = {
@@ -200,7 +200,7 @@ function AdminQuoteDetailPage() {
 
       if (!quoteData) {
         setQuote(null)
-        setErrorMessage("Cette demande de devis est introuvable.")
+        setErrorMessage("This quote request could not be found.")
         return
       }
 
@@ -246,7 +246,7 @@ function AdminQuoteDetailPage() {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Impossible de charger cette demande.",
+          : "Unable to load this request.",
       )
     } finally {
       setLoading(false)
@@ -279,7 +279,7 @@ function AdminQuoteDetailPage() {
         throw error
       }
 
-      setSuccessMessage("Le statut a été mis à jour.")
+      setSuccessMessage("Status updated.")
       await loadQuote()
     } catch (error) {
       console.error("Unable to update quote status:", error)
@@ -287,7 +287,7 @@ function AdminQuoteDetailPage() {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Impossible de modifier le statut.",
+          : "Unable to update status.",
       )
     } finally {
       setSavingStatus(false)
@@ -328,14 +328,14 @@ function AdminQuoteDetailPage() {
           : null,
       )
 
-      setSuccessMessage("Les notes internes ont été enregistrées.")
+      setSuccessMessage("Internal notes saved.")
     } catch (error) {
       console.error("Unable to save internal notes:", error)
 
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Impossible d’enregistrer les notes.",
+          : "Unable to save notes.",
       )
     } finally {
       setSavingNotes(false)
@@ -347,7 +347,7 @@ function AdminQuoteDetailPage() {
       <main className="min-h-screen bg-slate-50 p-6">
         <div className="mx-auto max-w-7xl">
           <p className="text-slate-600">
-            Chargement de la demande…
+            Loading request…
           </p>
         </div>
       </main>
@@ -362,17 +362,17 @@ function AdminQuoteDetailPage() {
             to="/admin/quotes"
             className="font-medium text-blue-700 hover:underline"
           >
-            ← Retour aux demandes
+            ← Back to requests
           </Link>
 
           <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-6">
             <h1 className="text-xl font-bold text-red-900">
-              Demande introuvable
+              Request not found
             </h1>
 
             <p className="mt-2 text-red-800">
               {errorMessage ||
-                "La demande demandée n’existe pas ou n’est plus disponible."}
+                "The requested quote request does not exist or is no longer available."}
             </p>
           </div>
         </div>
@@ -414,13 +414,13 @@ function AdminQuoteDetailPage() {
             to="/admin/quotes"
             className="mb-3 inline-block text-sm font-medium text-blue-700 hover:underline"
           >
-            ← Retour aux demandes
+            ← Back to requests
           </Link>
 
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div>
               <p className="text-sm font-medium uppercase tracking-wide text-slate-500">
-                Demande de devis
+                Quote Request
               </p>
 
               <h1 className="mt-1 text-3xl font-bold text-slate-900">
@@ -428,7 +428,7 @@ function AdminQuoteDetailPage() {
               </h1>
 
               <p className="mt-2 text-slate-600">
-                Reçue le {formatDateTime(quote.created_at)}
+                Received {formatDateTime(quote.created_at)}
               </p>
             </div>
 
@@ -454,35 +454,35 @@ function AdminQuoteDetailPage() {
           <div className="space-y-6">
             <section className="rounded-xl border bg-white p-5 shadow-sm">
               <h2 className="text-xl font-bold text-slate-900">
-                Client
+                Customer
               </h2>
 
               <dl className="mt-5 grid gap-5 sm:grid-cols-2">
                 <DetailItem
-                  label="Nom"
+                  label="Last name"
                   value={customerName}
                 />
 
                 <DetailItem
-                  label="Courriel"
+                  label="Email"
                   value={customerEmail}
                   type="email"
                 />
 
                 <DetailItem
-                  label="Téléphone"
+                  label="Phone"
                   value={customerPhone}
                   type="phone"
                 />
 
                 <DetailItem
-                  label="Ville"
+                  label="City"
                   value={city}
                 />
 
                 <div className="sm:col-span-2">
                   <DetailItem
-                    label="Adresse"
+                    label="Address"
                     value={[
                       addressLine,
                       city,
@@ -498,7 +498,7 @@ function AdminQuoteDetailPage() {
 
             <section className="rounded-xl border bg-white p-5 shadow-sm">
               <h2 className="text-xl font-bold text-slate-900">
-                Service demandé
+                Requested service
               </h2>
 
               <dl className="mt-5 grid gap-5 sm:grid-cols-2">
@@ -513,7 +513,7 @@ function AdminQuoteDetailPage() {
                 />
 
                 <DetailItem
-                  label="Date souhaitée"
+                  label="Preferred date"
                   value={
                     quote.preferred_date
                       ? formatDate(quote.preferred_date)
@@ -522,7 +522,7 @@ function AdminQuoteDetailPage() {
                 />
 
                 <DetailItem
-                  label="Heure souhaitée"
+                  label="Preferred time"
                   value={quote.preferred_time}
                 />
 
@@ -532,7 +532,7 @@ function AdminQuoteDetailPage() {
                 />
 
                 <DetailItem
-                  label="Dernière modification"
+                  label="Last updated"
                   value={formatDateTime(quote.updated_at)}
                 />
               </dl>
@@ -543,7 +543,7 @@ function AdminQuoteDetailPage() {
                 </h3>
 
                 <p className="mt-2 whitespace-pre-wrap text-slate-700">
-                  {quote.description || "Aucune description fournie."}
+                  {quote.description || "No description provided."}
                 </p>
               </div>
             </section>
@@ -553,18 +553,18 @@ function AdminQuoteDetailPage() {
             />
 
             <section className="rounded-xl border bg-white p-5 shadow-sm">
-              <h2 className="text-xl font-bold text-slate-900">Photos du client</h2>
-              <p className="mt-1 text-sm text-slate-500">Photos jointes à la demande pour faciliter l’estimation.</p>
-              {photoUrls.length === 0 ? <p className="mt-4 text-sm text-slate-500">Aucune photo jointe.</p> : <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{photoUrls.map((photo) => <a key={photo.id} href={photo.url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border bg-slate-50"><img src={photo.url} alt={photo.caption ?? "Photo du client"} className="h-40 w-full object-cover" /><p className="p-2 text-xs text-slate-600">{photo.caption ?? "Photo"}</p></a>)}</div>}
+              <h2 className="text-xl font-bold text-slate-900">Customer photos</h2>
+              <p className="mt-1 text-sm text-slate-500">Photos attached to the request to help with the estimate.</p>
+              {photoUrls.length === 0 ? <p className="mt-4 text-sm text-slate-500">No photos attached.</p> : <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{photoUrls.map((photo) => <a key={photo.id} href={photo.url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border bg-slate-50"><img src={photo.url} alt={photo.caption ?? "Customer photo"} className="h-40 w-full object-cover" /><p className="p-2 text-xs text-slate-600">{photo.caption ?? "Photo"}</p></a>)}</div>}
             </section>
 
             <section className="rounded-xl border bg-white p-5 shadow-sm">
               <h2 className="text-xl font-bold text-slate-900">
-                Notes internes
+                Internal Notes
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Ces notes ne sont pas visibles par le client.
+                These notes are not visible to the customer.
               </p>
 
               <textarea
@@ -573,7 +573,7 @@ function AdminQuoteDetailPage() {
                   setInternalNotes(event.target.value)
                 }
                 rows={7}
-                placeholder="Ajoutez des observations, détails d’appel ou instructions…"
+                placeholder="Add notes, call details, or instructions…"
                 className="mt-4 w-full rounded-lg border border-slate-300 px-3 py-3 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
               />
 
@@ -584,8 +584,8 @@ function AdminQuoteDetailPage() {
                 className="mt-3 rounded-lg bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {savingNotes
-                  ? "Enregistrement…"
-                  : "Enregistrer les notes"}
+                  ? "Saving…"
+                  : "Save notes"}
               </button>
             </section>
           </div>
@@ -597,23 +597,23 @@ function AdminQuoteDetailPage() {
                 search={{ customerId: quote.customer_id, serviceRequestId: quote.id }}
                 className="block w-full rounded-lg bg-emerald-600 px-4 py-3 text-center font-semibold text-white hover:bg-emerald-700"
               >
-                Créer un devis officiel
+                Create Quote officiel
               </Link>
             ) : (
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                Synchronisez cette demande avec un client avant de créer un devis officiel.
+                Link this request to a customer before creating an official quote.
               </div>
             )}
             <section className="rounded-xl border bg-white p-5 shadow-sm">
               <h2 className="text-lg font-bold text-slate-900">
-                Modifier le statut
+                Change status
               </h2>
 
               <label
                 htmlFor="quote-status"
                 className="mt-4 block text-sm font-medium text-slate-700"
               >
-                Nouveau statut
+                New status
               </label>
 
               <select
@@ -643,8 +643,8 @@ function AdminQuoteDetailPage() {
                 className="mt-4 w-full rounded-lg bg-blue-700 px-4 py-2 font-medium text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {savingStatus
-                  ? "Mise à jour…"
-                  : "Mettre à jour"}
+                  ? "Updating…"
+                  : "Update"}
               </button>
             </section>
 
@@ -658,7 +658,7 @@ function AdminQuoteDetailPage() {
                   href={`mailto:${customerEmail}`}
                   className="block rounded-lg border border-slate-300 px-4 py-2 text-center font-medium text-slate-800 hover:bg-slate-50"
                 >
-                  Envoyer un courriel
+                  Send email
                 </a>
 
                 {customerPhone ? (
@@ -666,7 +666,7 @@ function AdminQuoteDetailPage() {
                     href={`tel:${customerPhone}`}
                     className="block rounded-lg border border-slate-300 px-4 py-2 text-center font-medium text-slate-800 hover:bg-slate-50"
                   >
-                    Appeler le client
+                    Call customer
                   </a>
                 ) : null}
               </div>
@@ -679,7 +679,7 @@ function AdminQuoteDetailPage() {
 
               {history.length === 0 ? (
                 <p className="mt-4 text-sm text-slate-500">
-                  Aucun événement enregistré.
+                  No activity recorded.
                 </p>
               ) : (
                 <ol className="mt-5 space-y-5">
@@ -725,7 +725,7 @@ function DetailItem({
   type?: "email" | "phone"
 }) {
   const displayedValue =
-    value && value.trim() !== "" ? value : "Non précisé"
+    value && value.trim() !== "" ? value : "Not specified"
 
   return (
     <div>
@@ -768,12 +768,12 @@ function QuestionnaireSection({
   return (
     <section className="rounded-xl border bg-white p-5 shadow-sm">
       <h2 className="text-xl font-bold text-slate-900">
-        Réponses au questionnaire
+        Questionnaire responses
       </h2>
 
       {entries.length === 0 ? (
         <p className="mt-4 text-slate-500">
-          Aucune réponse supplémentaire.
+          No additional responses.
         </p>
       ) : (
         <dl className="mt-5 grid gap-5 sm:grid-cols-2">
@@ -792,7 +792,7 @@ function QuestionnaireSection({
 
 function formatAnswer(value: unknown): string {
   if (value === null || value === undefined || value === "") {
-    return "Non précisé"
+    return "Not specified"
   }
 
   if (typeof value === "boolean") {
@@ -844,7 +844,7 @@ function formatUrgency(urgency: string | null): string {
   }
 
   if (!urgency) {
-    return "Non précisé"
+    return "Not specified"
   }
 
   return urgencyLabels[urgency] ?? urgency
@@ -855,11 +855,11 @@ function historyTitle(entry: QuoteHistoryEntry): string {
     entry.action_type === "status_changed" &&
     entry.new_status
   ) {
-    return `Statut : ${STATUS_LABELS[entry.new_status]}`
+    return `Status : ${STATUS_LABELS[entry.new_status]}`
   }
 
   if (entry.action_type === "request_created") {
-    return "Demande créée"
+    return "Request created"
   }
 
   return formatFieldName(entry.action_type)

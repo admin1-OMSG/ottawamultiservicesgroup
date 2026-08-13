@@ -1,0 +1,17 @@
+Ottawa Multiservices Group — v1.0.7 English-only
+
+1. Copy this patch into the root of your current project and replace existing files.
+2. Run: npm.cmd run build
+3. Run: npm.cmd run dev
+4. Test: public website, client portal, quote/signature/appointment flow, invoice/PDF, payments and job pages.
+5. Redeploy Edge Functions:
+   npx supabase functions deploy send-crm-email --no-verify-jwt
+   npx supabase functions deploy create-checkout-session --no-verify-jwt
+   npx supabase functions deploy get-available-slots
+   npx supabase functions deploy sign-estimate
+6. If tests pass:
+   git add .
+   git commit -m "feat: complete English-only customer experience"
+   git push origin main
+
+No database migration is required. Existing customer-entered data is not translated; only application UI/templates/status labels are changed.

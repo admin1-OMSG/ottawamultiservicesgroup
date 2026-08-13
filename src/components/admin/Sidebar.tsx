@@ -17,14 +17,14 @@ import { supabase } from "@/lib/supabase"
 
 const mainNavigation = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard, exact: true },
-  { label: "Demandes de devis", to: "/admin/quotes", icon: ClipboardList },
-  { label: "Devis officiels", to: "/admin/estimates", icon: ReceiptText },
-  { label: "Clients", to: "/admin/customers", icon: Users },
-  { label: "Interventions", to: "/admin/jobs", icon: FileText },
-  { label: "Calendrier", to: "/admin/schedule", icon: CalendarDays },
-  { label: "Employés", to: "/admin/employees", icon: UserRound },
-  { label: "Factures", to: "/admin/invoices", icon: FileText },
-  { label: "Paiements", to: "/admin/payments", icon: ReceiptText },
+  { label: "Quote Requests", to: "/admin/quotes", icon: ClipboardList },
+  { label: "Quotes", to: "/admin/estimates", icon: ReceiptText },
+  { label: "Customers", to: "/admin/customers", icon: Users },
+  { label: "Jobs", to: "/admin/jobs", icon: FileText },
+  { label: "Schedule", to: "/admin/schedule", icon: CalendarDays },
+  { label: "Employees", to: "/admin/employees", icon: UserRound },
+  { label: "Invoices", to: "/admin/invoices", icon: FileText },
+  { label: "Payments", to: "/admin/payments", icon: ReceiptText },
 ]
 
 const futureNavigation = [

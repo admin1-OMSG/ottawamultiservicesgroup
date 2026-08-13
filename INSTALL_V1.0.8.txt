@@ -1,0 +1,24 @@
+v1.0.8 — Complete English + image asset repair
+
+This patch was built from the latest project ZIP.
+
+Audited areas:
+- public website and quote funnel
+- client portal, all buttons, statuses, appointment and signature dialogs
+- admin portal pages, buttons, statuses and forms
+- quote and invoice views / PDF text
+- Supabase customer/admin email templates and email CTA buttons
+- Stripe checkout descriptions
+- client/admin date formatting changed to en-CA where applicable
+- technical identifiers accidentally translated in prior versions restored (twMerge, isSameDay/isSameMonth, createClient, QueryClient)
+- all current brand/service image assets included to restore missing images
+
+After copying the patch:
+1. npm.cmd run build
+2. npm.cmd run dev
+3. npx supabase functions deploy send-crm-email --no-verify-jwt
+4. npx supabase functions deploy create-checkout-session --no-verify-jwt
+5. npx supabase functions deploy get-available-slots
+6. npx supabase functions deploy sign-estimate
+
+No database migration is required.

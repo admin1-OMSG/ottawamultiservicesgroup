@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
       const end = start + durationMs
       if (start < now) continue
       if (busy.some(([bStart,bEnd]) => start < bEnd && end > bStart)) continue
-      const label = new Intl.DateTimeFormat("fr-CA", { timeZone: TZ, hour:"numeric", minute:"2-digit", hour12:true }).format(new Date(start))
+      const label = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, hour:"numeric", minute:"2-digit", hour12:true }).format(new Date(start))
       slots.push({ startsAt: new Date(start).toISOString(), endsAt: new Date(end).toISOString(), label })
     }
     return json({ slots })

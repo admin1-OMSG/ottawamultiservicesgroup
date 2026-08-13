@@ -89,8 +89,8 @@ Deno.serve(async (req) => {
     if (checkoutInsertError) throw checkoutInsertError
 
     const description = paymentType === "deposit"
-      ? `Acompte de 30 % — facture ${invoice.invoice_number}`
-      : `Paiement de la facture ${invoice.invoice_number}`
+      ? `30% deposit — invoice ${invoice.invoice_number}`
+      : `Invoice payment ${invoice.invoice_number}`
 
     const form = new URLSearchParams()
     form.set("mode", "payment")

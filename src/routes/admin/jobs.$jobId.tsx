@@ -27,11 +27,11 @@ type Job = {
 type Employee = { id: string; first_name: string; last_name: string | null }
 
 const statuses = {
-  unscheduled: "À planifier",
-  scheduled: "Planifié",
-  in_progress: "En cours",
-  completed: "Terminé",
-  cancelled: "Annulé",
+  unscheduled: "Unscheduled",
+  scheduled: "Scheduled",
+  in_progress: "In progress",
+  completed: "Completed",
+  cancelled: "Cancelled",
 }
 
 function toLocalInput(value: string | null) {
@@ -71,7 +71,7 @@ function JobDetailPage() {
         supabase.from("employees").select("id,first_name,last_name").eq("status", "active").order("first_name"),
       ])
       if (jobResult.error) throw jobResult.error
-      if (!jobResult.data) throw new Error("Intervention introuvable.")
+      if (!jobResult.data) throw new Error("Job not found.")
       const typed = jobResult.data as unknown as Job
       setJob(typed)
       setStatus(typed.status)
@@ -84,7 +84,7 @@ function JobDetailPage() {
       const signed = await Promise.all((photoRows ?? []).map(async (photo) => { const { data } = await supabase.storage.from("service-photos").createSignedUrl(photo.storage_path, 3600); return data?.signedUrl ? { id: photo.id, url: data.signedUrl, kind: photo.kind, caption: photo.caption } : null }))
       setJobPhotos(signed.filter(Boolean) as {id:string;url:string;kind:string;caption:string|null}[])
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Chargement impossible.")
+      setError(caught instanceof Error ? caught.message : "Unable to load.")
     }
   }
 
@@ -112,17 +112,17 @@ function JobDetailPage() {
       }).eq("id", job.id)
       if (updateError) throw updateError
 
-      let message = "Intervention mise à jour."
+      let message = "Job updated."
       if (newStart && scheduleChanged) {
         const notification = await sendCrmEmail({ type: "appointment_proposed", jobId: job.id })
         message = notification.ok
-          ? "Intervention mise à jour et proposition de rendez-vous envoyée au client."
-          : "Intervention mise à jour, mais le courriel de rendez-vous n’a pas pu être envoyé."
+          ? "Job updated and appointment proposal sent to the customer."
+          : "Job updated, but the appointment email could not be sent."
       }
       setSuccess(message)
       await load()
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Mise à jour impossible.")
+      setError(caught instanceof Error ? caught.message : "Unable to update.")
     } finally {
       setSaving(false)
     }
@@ -134,21 +134,21 @@ function JobDetailPage() {
     try {
       const user = await requireActiveAdmin(); if (!user) return
       for (const file of photoFiles.slice(0, 10)) {
-        if (file.size > 8 * 1024 * 1024) throw new Error(`${file.name} dépasse 8 Mo.`)
+        if (file.size > 8 * 1024 * 1024) throw new Error(`${file.name} exceeds 8 MB.`)
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-")
         const storagePath = `jobs/${job.id}/after/${crypto.randomUUID()}-${safeName}`
         const { error: uploadError } = await supabase.storage.from("service-photos").upload(storagePath, file, { contentType: file.type, upsert: false }); if (uploadError) throw uploadError
-        const { error: rowError } = await supabase.from("job_photos").insert({ job_id: job.id, kind: "after", storage_path: storagePath, caption: "Travail terminé", created_by: user.id }); if (rowError) throw rowError
+        const { error: rowError } = await supabase.from("job_photos").insert({ job_id: job.id, kind: "after", storage_path: storagePath, caption: "Work completed", created_by: user.id }); if (rowError) throw rowError
       }
-      setPhotoFiles([]); setSuccess("Photos de fin de travail ajoutées."); await load()
-    } catch (caught) { setError(caught instanceof Error ? caught.message : "Téléversement impossible.") } finally { setUploadingPhotos(false) }
+      setPhotoFiles([]); setSuccess("Completed work photos added."); await load()
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "Upload failed.") } finally { setUploadingPhotos(false) }
   }
 
-  if (!job) return <p>{error || "Chargement…"}</p>
+  if (!job) return <p>{error || "Loading…"}</p>
 
   return <div className="space-y-6">
     <header>
-      <Link to="/admin/jobs" className="text-sm font-semibold text-blue-700">← Retour aux interventions</Link>
+      <Link to="/admin/jobs" className="text-sm font-semibold text-blue-700">← Back to jobs</Link>
       <h1 className="mt-2 text-3xl font-bold">{job.job_number}</h1>
       <p className="text-slate-600">{job.title}</p>
     </header>
@@ -157,55 +157,55 @@ function JobDetailPage() {
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <div className="space-y-6">
         <section className="rounded-xl border bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-bold">Client et lieu</h2>
+          <h2 className="text-lg font-bold">Customer et lieu</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Info label="Client" value={job.customer ? `${job.customer.first_name} ${job.customer.last_name ?? ""}` : null} />
-            <Info label="Téléphone" value={job.customer?.phone || null} />
-            <Info label="Courriel" value={job.customer?.email || null} />
-            <Info label="Adresse" value={[job.address_line, job.city, job.province, job.postal_code].filter(Boolean).join(", ")} />
+            <Info label="Customer" value={job.customer ? `${job.customer.first_name} ${job.customer.last_name ?? ""}` : null} />
+            <Info label="Phone" value={job.customer?.phone || null} />
+            <Info label="Email" value={job.customer?.email || null} />
+            <Info label="Address" value={[job.address_line, job.city, job.province, job.postal_code].filter(Boolean).join(", ")} />
           </div>
         </section>
         <section className="rounded-xl border bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-bold">Travail</h2>
-          <p className="mt-3 whitespace-pre-wrap text-slate-700">{job.description || "Aucune description."}</p>
+          <h2 className="text-lg font-bold">Job</h2>
+          <p className="mt-3 whitespace-pre-wrap text-slate-700">{job.description || "No description."}</p>
         </section>
         <section className="rounded-xl border bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-bold">Photos de l’intervention</h2>
-          <p className="mt-1 text-sm text-slate-500">Ajoutez les photos après travaux. Elles pourront être présentées au client avec la facture.</p>
+          <h2 className="text-lg font-bold">Job photos</h2>
+          <p className="mt-1 text-sm text-slate-500">Add after-work photos. They can be shown to the customer with the invoice.</p>
           <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple onChange={(e)=>setPhotoFiles(Array.from(e.target.files ?? []).slice(0,10))} className="mt-4 block w-full text-sm" />
-          <button type="button" onClick={()=>void uploadAfterPhotos()} disabled={uploadingPhotos || photoFiles.length===0} className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white disabled:opacity-50">{uploadingPhotos ? "Ajout…" : `Ajouter ${photoFiles.length || ""} photo(s)`}</button>
-          {jobPhotos.length > 0 && <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">{jobPhotos.map((photo)=><a key={photo.id} href={photo.url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border"><img src={photo.url} alt={photo.caption ?? "Photo intervention"} className="h-40 w-full object-cover"/><div className="p-2 text-xs font-medium">{photo.kind === "after" ? "Après travaux" : "Avant travaux"}</div></a>)}</div>}
+          <button type="button" onClick={()=>void uploadAfterPhotos()} disabled={uploadingPhotos || photoFiles.length===0} className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white disabled:opacity-50">{uploadingPhotos ? "Ajout…" : `Add ${photoFiles.length || ""} photo(s)`}</button>
+          {jobPhotos.length > 0 && <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">{jobPhotos.map((photo)=><a key={photo.id} href={photo.url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border"><img src={photo.url} alt={photo.caption ?? "Job photo"} className="h-40 w-full object-cover"/><div className="p-2 text-xs font-medium">{photo.kind === "after" ? "After work" : "Before work"}</div></a>)}</div>}
         </section>
       </div>
       <aside className="space-y-6">
         <section className="space-y-4 rounded-xl border bg-white p-5 shadow-sm">
-          <h2 className="font-bold">Planification</h2>
-          <label className="block text-sm font-medium">Début proposé
+          <h2 className="font-bold">Scheduling</h2>
+          <label className="block text-sm font-medium">Proposed start
             <input type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2" />
           </label>
-          <label className="block text-sm font-medium">Fin prévue
+          <label className="block text-sm font-medium">Estimated end
             <input type="datetime-local" value={end} onChange={(event) => setEnd(event.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2" />
           </label>
-          {job.scheduled_start && <p className="text-xs text-slate-500">Rendez-vous actuel : {formatDate(job.scheduled_start)}</p>}
-          <p className="rounded-lg bg-emerald-50 p-3 text-xs text-emerald-900">Lorsque vous changez la date et enregistrez, le client reçoit automatiquement la proposition par courriel.</p>
+          {job.scheduled_start && <p className="text-xs text-slate-500">Current appointment: {formatDate(job.scheduled_start)}</p>}
+          <p className="rounded-lg bg-emerald-50 p-3 text-xs text-emerald-900">When you change the date and save, the customer automatically receives the appointment proposal by email.</p>
         </section>
         <section className="space-y-4 rounded-xl border bg-white p-5 shadow-sm">
           <h2 className="font-bold">Gestion</h2>
-          <label className="block text-sm font-medium">Statut
+          <label className="block text-sm font-medium">Status
             <select value={status} onChange={(event) => setStatus(event.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2">
               {Object.entries(statuses).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           </label>
-          <label className="block text-sm font-medium">Employé
+          <label className="block text-sm font-medium">Employee
             <select value={employeeId} onChange={(event) => setEmployeeId(event.target.value)} className="mt-1 w-full rounded-lg border px-3 py-2">
-              <option value="">Non affecté</option>
+              <option value="">Unassigned</option>
               {employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.first_name} {employee.last_name ?? ""}</option>)}
             </select>
           </label>
-          <label className="block text-sm font-medium">Notes internes
+          <label className="block text-sm font-medium">Internal Notes
             <textarea value={notes} onChange={(event) => setNotes(event.target.value)} className="mt-1 min-h-28 w-full rounded-lg border px-3 py-2" />
           </label>
-          <button onClick={() => void save()} disabled={saving} className="w-full rounded-lg bg-blue-700 px-4 py-2.5 font-semibold text-white disabled:opacity-50">{saving ? "Enregistrement…" : "Enregistrer"}</button>
+          <button onClick={() => void save()} disabled={saving} className="w-full rounded-lg bg-blue-700 px-4 py-2.5 font-semibold text-white disabled:opacity-50">{saving ? "Saving…" : "Save"}</button>
         </section>
       </aside>
     </div>

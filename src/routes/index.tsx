@@ -232,7 +232,7 @@ function HomePage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
-              {["Ottawa", "Kanata", "Orléans", "Barrhaven", "Nepean", "Stittsville", "Gatineau", "Manotick", "Rockcliffe"].map((area) => (
+              {["Ottawa", "Kanata", "Orleans", "Barrhaven", "Nepean", "Stittsville", "Gatineau", "Manotick", "Rockcliffe"].map((area) => (
                 <div key={area} className="flex items-center gap-2 rounded-xl bg-secondary/75 px-3 py-3 text-sm font-medium text-navy"><MapPin className="h-4 w-4 shrink-0 text-accent" />{area}</div>
               ))}
             </div>
@@ -244,11 +244,11 @@ function HomePage() {
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="overflow-hidden rounded-3xl bg-navy p-7 text-white shadow-lift sm:p-10 md:flex md:items-center md:justify-between md:gap-10">
             <div className="max-w-2xl">
-              <Badge className="border border-white/15 bg-white/10 text-white hover:bg-white/10">Client Portal</Badge>
+              <Badge className="border border-white/15 bg-white/10 text-white hover:bg-white/10">Customer Portal</Badge>
               <h2 className="mt-4 font-display text-3xl font-bold">Your quotes, appointments and invoices — in one place</h2>
               <p className="mt-3 text-sm leading-relaxed text-white/70 sm:text-base">Return anytime to review signed quotes, scheduled services, work photos and invoices.</p>
             </div>
-            <Link to="/portal" className="mt-6 block shrink-0 md:mt-0"><Button size="lg" className="h-12 w-full rounded-xl bg-accent px-6 font-bold text-accent-foreground md:w-auto">Open Client Portal <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
+            <Link to="/portal" className="mt-6 block shrink-0 md:mt-0"><Button size="lg" className="h-12 w-full rounded-xl bg-accent px-6 font-bold text-accent-foreground md:w-auto">Open Customer Portal <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
           </div>
         </div>
       </section>

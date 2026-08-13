@@ -40,8 +40,8 @@ function money(value: unknown) {
 }
 
 function dateTime(value: string | null) {
-  if (!value) return "Date à confirmer"
-  return new Intl.DateTimeFormat("fr-CA", {
+  if (!value) return "Date to be confirmed"
+  return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Toronto",
     dateStyle: "full",
     timeStyle: "short",
@@ -150,8 +150,8 @@ Deno.serve(async (req) => {
       recipient = adminEmail
       recipientType = "admin"
       replyTo = request.email
-      subject = `Nouvelle demande de devis — ${request.service_name || "Service"}`
-      html = layout("Nouvelle demande de devis", `<p>Une nouvelle demande vient d’être envoyée depuis le site.</p><table style="width:100%;border-collapse:collapse"><tr><td style="padding:7px 0;color:#64748b">Client</td><td style="padding:7px 0;font-weight:700">${escapeHtml(`${request.first_name} ${request.last_name || ""}`)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Service</td><td style="padding:7px 0">${escapeHtml(request.service_name)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Courriel</td><td style="padding:7px 0">${escapeHtml(request.email)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Téléphone</td><td style="padding:7px 0">${escapeHtml(request.phone)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Adresse</td><td style="padding:7px 0">${escapeHtml(request.address_line)}</td></tr></table>${formatQuestionnaire(request.questionnaire_answers)}<p><a href="${siteUrl}/admin/quotes/${request.id}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Ouvrir la demande</a></p>`)
+      subject = `New quote request — ${request.service_name || "Service"}`
+      html = layout("New Quote Request", `<p>A new quote request was submitted from the website.</p><table style="width:100%;border-collapse:collapse"><tr><td style="padding:7px 0;color:#64748b">Customer</td><td style="padding:7px 0;font-weight:700">${escapeHtml(`${request.first_name} ${request.last_name || ""}`)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Service</td><td style="padding:7px 0">${escapeHtml(request.service_name)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Email</td><td style="padding:7px 0">${escapeHtml(request.email)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Phone</td><td style="padding:7px 0">${escapeHtml(request.phone)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Address</td><td style="padding:7px 0">${escapeHtml(request.address_line)}</td></tr></table>${formatQuestionnaire(request.questionnaire_answers)}<p><a href="${siteUrl}/admin/quotes/${request.id}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Open Request</a></p>`)
     } else if (body.type === "estimate_accepted") {
       const customerId = await linkedCustomerId(user?.id)
       const { data: estimate } = await admin.from("estimates").select("id,estimate_number,title,total,status,customer_id,customer:customers(first_name,last_name,email)").eq("id", body.estimateId).maybeSingle()
@@ -162,8 +162,8 @@ Deno.serve(async (req) => {
       recipient = adminEmail
       recipientType = "admin"
       replyTo = customer?.email
-      subject = `Devis accepté — ${estimate.estimate_number}`
-      html = layout("Un client a accepté son devis", `<p><strong>${escapeHtml(`${customer?.first_name || ""} ${customer?.last_name || ""}`)}</strong> a accepté le devis <strong>${escapeHtml(estimate.estimate_number)}</strong>.</p><p>Montant : <strong>${money(estimate.total)}</strong></p><p><a href="${siteUrl}/admin/estimates/${estimate.id}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Ouvrir le devis</a></p>`)
+      subject = `Quote accepted — ${estimate.estimate_number}`
+      html = layout("A customer accepted a quote", `<p><strong>${escapeHtml(`${customer?.first_name || ""} ${customer?.last_name || ""}`)}</strong> accepted quote <strong>${escapeHtml(estimate.estimate_number)}</strong>.</p><p>Amount: <strong>${money(estimate.total)}</strong></p><p><a href="${siteUrl}/admin/estimates/${estimate.id}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Open Quote</a></p>`)
     } else if (body.type === "estimate_ready") {
       if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
       const { data: estimate } = await admin.from("estimates").select("id,estimate_number,title,total,status,updated_at,estimated_duration_minutes,crew_size,customer:customers(first_name,last_name,email)").eq("id", body.estimateId).maybeSingle()
@@ -173,11 +173,11 @@ Deno.serve(async (req) => {
       key = `estimate-ready:${estimate.id}:${estimate.updated_at}`
       recordId = estimate.id
       recipient = customer.email
-      subject = `Votre devis ${estimate.estimate_number} est prêt`
+      subject = `Your quote ${estimate.estimate_number} is ready`
       const portalLink = await createDirectPortalLink(customer.email, estimate.id)
       const duration = Number(estimate.estimated_duration_minutes || 0)
-      const durationText = duration ? `${(duration / 60).toFixed(duration % 60 === 0 ? 0 : 1)} heure(s) sur place · équipe de ${estimate.crew_size || 1}` : "Durée à confirmer"
-      html = layout("Votre devis est prêt", `<p>Bonjour ${escapeHtml(customer.first_name)},</p><p>Nous avons préparé votre devis <strong>${escapeHtml(estimate.estimate_number)}</strong> pour ${escapeHtml(estimate.title || "le service demandé")}.</p><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin:18px 0"><p style="margin:0 0 8px">Montant : <strong>${money(estimate.total)}</strong></p><p style="margin:0">Durée estimée : <strong>${escapeHtml(durationText)}</strong></p></div><p>Le bouton ci-dessous vous connecte directement et de façon sécurisée à votre devis. Vous pourrez le lire, le signer et ensuite choisir un créneau disponible.</p><p><a href="${portalLink}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Voir et signer mon devis</a></p>`)
+      const durationText = duration ? `${(duration / 60).toFixed(duration % 60 === 0 ? 0 : 1)} on-site hour(s) · crew of ${estimate.crew_size || 1}` : "Duration to be confirmed"
+      html = layout("Your quote is ready", `<p>Hello ${escapeHtml(customer.first_name)},</p><p>We prepared your quote <strong>${escapeHtml(estimate.estimate_number)}</strong> for ${escapeHtml(estimate.title || "the requested service")}.</p><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin:18px 0"><p style="margin:0 0 8px">Amount: <strong>${money(estimate.total)}</strong></p><p style="margin:0">Estimated duration: <strong>${escapeHtml(durationText)}</strong></p></div><p>The button below signs you in directly and securely to your quote. You can review it, choose an available appointment, and sign it.</p><p><a href="${portalLink}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">View & Sign My Quote</a></p>`)
     } else if (body.type === "appointment_proposed") {
       if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
       const { data: job } = await admin.from("jobs").select("id,job_number,title,status,scheduled_start,scheduled_end,address_line,city,customer:customers(first_name,last_name,email)").eq("id", body.jobId).maybeSingle()
@@ -187,8 +187,8 @@ Deno.serve(async (req) => {
       key = `appointment:${job.id}:${job.scheduled_start}`
       recordId = job.id
       recipient = customer.email
-      subject = `Proposition de rendez-vous — ${job.title}`
-      html = layout("Proposition de rendez-vous", `<p>Bonjour ${escapeHtml(customer.first_name)},</p><p>Nous vous proposons le rendez-vous suivant pour <strong>${escapeHtml(job.title)}</strong> :</p><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px;margin:18px 0"><div style="font-size:18px;font-weight:700">${escapeHtml(dateTime(job.scheduled_start))}</div>${job.scheduled_end ? `<div style="margin-top:5px;color:#475569">Fin prévue : ${escapeHtml(dateTime(job.scheduled_end))}</div>` : ""}<div style="margin-top:5px;color:#475569">${escapeHtml([job.address_line, job.city].filter(Boolean).join(", "))}</div></div><p>Consultez votre espace client pour retrouver les détails de l’intervention.</p><p><a href="${siteUrl}/portal" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Voir mon rendez-vous</a></p>`)
+      subject = `Appointment proposal — ${job.title}`
+      html = layout("Appointment proposal", `<p>Hello ${escapeHtml(customer.first_name)},</p><p>We propose the following appointment for <strong>${escapeHtml(job.title)}</strong> :</p><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px;margin:18px 0"><div style="font-size:18px;font-weight:700">${escapeHtml(dateTime(job.scheduled_start))}</div>${job.scheduled_end ? `<div style="margin-top:5px;color:#475569">Estimated end: ${escapeHtml(dateTime(job.scheduled_end))}</div>` : ""}<div style="margin-top:5px;color:#475569">${escapeHtml([job.address_line, job.city].filter(Boolean).join(", "))}</div></div><p>View your client portal for the job details.</p><p><a href="${siteUrl}/portal" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">View my appointment</a></p>`)
     } else if (body.type === "invoice_ready") {
       if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
       const { data: invoice } = await admin
@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
       recordId = invoice.id
       recipient = customer.email
       recipientType = "customer"
-      subject = isPaid ? `Facture acquittée — ${invoice.invoice_number}` : `Votre facture ${invoice.invoice_number}`
+      subject = isPaid ? `Paid invoice — ${invoice.invoice_number}` : `Your invoice ${invoice.invoice_number}`
       const portalLink = await createDirectInvoiceLink(customer.email, invoice.id)
       let invoicePhotoHtml = ""
       if (invoice.job_id) {
@@ -219,21 +219,21 @@ Deno.serve(async (req) => {
         }))
         const visiblePhotos = signedPhotos.filter(Boolean) as { url: string; caption: string | null }[]
         if (visiblePhotos.length) {
-          invoicePhotoHtml = `<div style="margin:0 0 22px 0"><div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:10px">Photos du travail terminé</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>${visiblePhotos.map((photo, index) => `<td width="${Math.floor(100 / Math.min(visiblePhotos.length, 3))}%" valign="top" style="padding:4px"><a href="${photo.url}" style="text-decoration:none"><img src="${photo.url}" alt="${escapeHtml(photo.caption || `Photo ${index + 1}`)}" width="170" style="display:block;width:100%;max-width:170px;height:120px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0"><div style="margin-top:5px;font-size:11px;color:#64748b">${escapeHtml(photo.caption || `Photo ${index + 1}`)}</div></a></td>${(index + 1) % 3 === 0 && index + 1 < visiblePhotos.length ? `</tr><tr>` : ""}`).join("")}</tr></table><div style="margin-top:8px;font-size:11px;color:#64748b">Ces liens photo sont sécurisés et temporaires. La galerie complète reste disponible dans votre portail client.</div></div>`
+          invoicePhotoHtml = `<div style="margin:0 0 22px 0"><div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:10px">Completed work photos</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>${visiblePhotos.map((photo, index) => `<td width="${Math.floor(100 / Math.min(visiblePhotos.length, 3))}%" valign="top" style="padding:4px"><a href="${photo.url}" style="text-decoration:none"><img src="${photo.url}" alt="${escapeHtml(photo.caption || `Photo ${index + 1}`)}" width="170" style="display:block;width:100%;max-width:170px;height:120px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0"><div style="margin-top:5px;font-size:11px;color:#64748b">${escapeHtml(photo.caption || `Photo ${index + 1}`)}</div></a></td>${(index + 1) % 3 === 0 && index + 1 < visiblePhotos.length ? `</tr><tr>` : ""}`).join("")}</tr></table><div style="margin-top:8px;font-size:11px;color:#64748b">These photo links are secure and temporary. The full gallery remains available in your client portal.</div></div>`
         }
       }
       const taxRate = Number(invoice.tax_rate || 0) * 100
-      const paymentLabels: Record<string, string> = { etransfer: "Interac e-Transfer", credit_card: "Carte de crédit", debit_card: "Carte de débit", cash: "Comptant", cheque: "Chèque", bank_transfer: "Virement bancaire", other: "Autre" }
+      const paymentLabels: Record<string, string> = { etransfer: "Interac e-Transfer", credit_card: "Credit card", debit_card: "Debit card", cash: "Cash", cheque: "Cheque", bank_transfer: "Bank transfer", other: "Other" }
       const itemRows = (items || []).map((item) => `<tr><td style="padding:10px 0;border-bottom:1px solid #e2e8f0">${escapeHtml(item.description)}</td><td style="padding:10px 0;border-bottom:1px solid #e2e8f0;text-align:center">${escapeHtml(item.quantity)}</td><td style="padding:10px 0;border-bottom:1px solid #e2e8f0;text-align:right">${money(item.unit_price)}</td><td style="padding:10px 0;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:700">${money(item.line_total)}</td></tr>`).join("")
       const paymentRows = (payments || []).map((p) => `<tr><td style="padding:8px 0;border-bottom:1px solid #e2e8f0">${escapeHtml(p.payment_date)}</td><td style="padding:8px 0;border-bottom:1px solid #e2e8f0">${escapeHtml(paymentLabels[p.method] || p.method)}</td><td style="padding:8px 0;border-bottom:1px solid #e2e8f0">${escapeHtml(p.reference || "—")}</td><td style="padding:8px 0;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:700">${money(p.amount)}</td></tr>`).join("")
       const customerAddress = [customer.address_line, customer.city, customer.province, customer.postal_code].filter(Boolean).join(", ")
-      const statusLabel = isPaid ? "ACQUITTÉE" : "À PAYER"
+      const statusLabel = isPaid ? "PAID" : "AMOUNT DUE"
       const invoiceBody = `
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
           <tr>
             <td style="padding:0 0 18px 0;font-size:15px;line-height:1.65;color:#334155">
-              Bonjour <strong>${escapeHtml(customer.first_name)}</strong>,<br>
-              ${isPaid ? "Nous confirmons la réception de votre paiement. Votre facture acquittée est disponible ci-dessous et dans votre espace client." : "Votre facture est prête. Vous trouverez ci-dessous son récapitulatif."}
+              Hello <strong>${escapeHtml(customer.first_name)}</strong>,<br>
+              ${isPaid ? "We confirm receipt of your payment. Your paid invoice is available below and in your client portal." : "Your invoice is ready. A summary is provided below."}
             </td>
           </tr>
         </table>
@@ -241,36 +241,36 @@ Deno.serve(async (req) => {
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:0;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin:0 0 20px 0">
           <tr>
             <td width="55%" valign="top" style="padding:18px;border-right:1px solid #e2e8f0">
-              <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:7px">Facturé à</div>
+              <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:7px">Billed to</div>
               <div style="font-size:15px;font-weight:700;color:#0f172a">${escapeHtml(`${customer.first_name} ${customer.last_name || ""}`)}</div>
               ${customerAddress ? `<div style="margin-top:5px;font-size:13px;line-height:1.5;color:#64748b">${escapeHtml(customerAddress)}</div>` : ""}
               <div style="margin-top:4px;font-size:13px;color:#64748b">${escapeHtml(customer.email)}</div>
             </td>
             <td width="45%" valign="top" align="right" style="padding:18px">
-              <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:7px">Facture</div>
+              <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:7px">Invoice</div>
               <div style="font-size:16px;font-weight:800;color:#0f172a">${escapeHtml(invoice.invoice_number)}</div>
-              <div style="margin-top:5px;font-size:13px;color:#64748b">Émise le ${escapeHtml(invoice.issue_date)}</div>
-              ${invoice.due_date ? `<div style="margin-top:3px;font-size:13px;color:#64748b">Échéance ${escapeHtml(invoice.due_date)}</div>` : ""}
+              <div style="margin-top:5px;font-size:13px;color:#64748b">Issued ${escapeHtml(invoice.issue_date)}</div>
+              ${invoice.due_date ? `<div style="margin-top:3px;font-size:13px;color:#64748b">Due ${escapeHtml(invoice.due_date)}</div>` : ""}
               <div style="margin-top:9px"><span style="display:inline-block;padding:5px 9px;border-radius:999px;background:${isPaid ? "#d1fae5" : "#fef3c7"};color:${isPaid ? "#065f46" : "#92400e"};font-size:11px;font-weight:800">${statusLabel}</span></div>
             </td>
           </tr>
         </table>
 
-        ${itemRows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 20px 0;font-size:13px"><thead><tr style="background:#f8fafc"><th style="padding:10px;text-align:left;border:1px solid #e2e8f0;color:#475569">Description</th><th style="padding:10px;text-align:center;border:1px solid #e2e8f0;color:#475569">Qté</th><th style="padding:10px;text-align:right;border:1px solid #e2e8f0;color:#475569">Prix</th><th style="padding:10px;text-align:right;border:1px solid #e2e8f0;color:#475569">Montant</th></tr></thead><tbody>${itemRows}</tbody></table>` : ""}
+        ${itemRows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 20px 0;font-size:13px"><thead><tr style="background:#f8fafc"><th style="padding:10px;text-align:left;border:1px solid #e2e8f0;color:#475569">Description</th><th style="padding:10px;text-align:center;border:1px solid #e2e8f0;color:#475569">Qty</th><th style="padding:10px;text-align:right;border:1px solid #e2e8f0;color:#475569">Price</th><th style="padding:10px;text-align:right;border:1px solid #e2e8f0;color:#475569">Amount</th></tr></thead><tbody>${itemRows}</tbody></table>` : ""}
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 22px 0">
           <tr>
             <td width="48%" valign="top" style="padding-right:12px">
-              ${paymentRows ? `<div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:9px">Paiement reçu</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px"><thead><tr><th style="padding:7px 4px;text-align:left;color:#64748b;border-bottom:1px solid #e2e8f0">Date</th><th style="padding:7px 4px;text-align:left;color:#64748b;border-bottom:1px solid #e2e8f0">Méthode</th><th style="padding:7px 4px;text-align:right;color:#64748b;border-bottom:1px solid #e2e8f0">Montant</th></tr></thead><tbody>${(payments || []).map((p) => `<tr><td style="padding:7px 4px;border-bottom:1px solid #f1f5f9">${escapeHtml(p.payment_date)}</td><td style="padding:7px 4px;border-bottom:1px solid #f1f5f9">${escapeHtml(paymentLabels[p.method] || p.method)}</td><td style="padding:7px 4px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:700">${money(p.amount)}</td></tr>`).join("")}</tbody></table>` : ""}
+              ${paymentRows ? `<div style="font-size:14px;font-weight:800;color:#0f172a;margin-bottom:9px">Payment received</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px"><thead><tr><th style="padding:7px 4px;text-align:left;color:#64748b;border-bottom:1px solid #e2e8f0">Date</th><th style="padding:7px 4px;text-align:left;color:#64748b;border-bottom:1px solid #e2e8f0">Method</th><th style="padding:7px 4px;text-align:right;color:#64748b;border-bottom:1px solid #e2e8f0">Amount</th></tr></thead><tbody>${(payments || []).map((p) => `<tr><td style="padding:7px 4px;border-bottom:1px solid #f1f5f9">${escapeHtml(p.payment_date)}</td><td style="padding:7px 4px;border-bottom:1px solid #f1f5f9">${escapeHtml(paymentLabels[p.method] || p.method)}</td><td style="padding:7px 4px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:700">${money(p.amount)}</td></tr>`).join("")}</tbody></table>` : ""}
             </td>
             <td width="52%" valign="top" style="padding-left:12px">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;font-size:13px">
-                <tr><td style="padding:12px 14px 5px;color:#475569">Sous-total avant taxes</td><td align="right" style="padding:12px 14px 5px;font-weight:700">${money(invoice.subtotal)}</td></tr>
-                ${Number(invoice.discount_total || 0) > 0 ? `<tr><td style="padding:5px 14px;color:#475569">Remise</td><td align="right" style="padding:5px 14px;font-weight:700">-${money(invoice.discount_total)}</td></tr>` : ""}
+                <tr><td style="padding:12px 14px 5px;color:#475569">Subtotal before tax</td><td align="right" style="padding:12px 14px 5px;font-weight:700">${money(invoice.subtotal)}</td></tr>
+                ${Number(invoice.discount_total || 0) > 0 ? `<tr><td style="padding:5px 14px;color:#475569">Discount</td><td align="right" style="padding:5px 14px;font-weight:700">-${money(invoice.discount_total)}</td></tr>` : ""}
                 <tr><td style="padding:5px 14px;color:#475569">HST (${taxRate.toFixed(taxRate % 1 === 0 ? 0 : 2)} %)</td><td align="right" style="padding:5px 14px;font-weight:700">${money(invoice.tax_total)}</td></tr>
                 <tr><td style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:16px;font-weight:800">Total</td><td align="right" style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:16px;font-weight:800">${money(invoice.total)}</td></tr>
-                <tr><td style="padding:5px 14px;color:#047857">Montant payé</td><td align="right" style="padding:5px 14px;color:#047857;font-weight:800">${money(invoice.amount_paid)}</td></tr>
-                <tr><td style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:15px;font-weight:800">Solde</td><td align="right" style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:15px;font-weight:800">${money(invoice.balance_due)}</td></tr>
+                <tr><td style="padding:5px 14px;color:#047857">Amount paid</td><td align="right" style="padding:5px 14px;color:#047857;font-weight:800">${money(invoice.amount_paid)}</td></tr>
+                <tr><td style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:15px;font-weight:800">Balance</td><td align="right" style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:15px;font-weight:800">${money(invoice.balance_due)}</td></tr>
               </table>
             </td>
           </tr>
@@ -279,16 +279,16 @@ Deno.serve(async (req) => {
         ${invoicePhotoHtml}
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 22px 0">
-          <tr><td align="center"><a href="${portalLink}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:9px;font-weight:800;font-size:14px">Voir la facture et télécharger le PDF</a></td></tr>
+          <tr><td align="center"><a href="${portalLink}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:13px 22px;border-radius:9px;font-weight:800;font-size:14px">View Invoice & Download PDF</a></td></tr>
         </table>
 
         <div style="padding-top:17px;border-top:1px solid #e2e8f0;font-size:12px;line-height:1.6;color:#64748b">
           Ottawa Multiservices Group Inc.<br>
           ${escapeHtml(businessAddress)}${businessPhone ? `<br>${escapeHtml(businessPhone)}` : ""}${gstHstNumber ? `<br>GST/HST No. ${escapeHtml(gstHstNumber)}` : ""}
         </div>
-        ${isPaid ? `<p style="margin:18px 0 0;color:#334155">Merci pour votre paiement et votre confiance.</p>` : ""}
+        ${isPaid ? `<p style="margin:18px 0 0;color:#334155">Thank you for your payment and your business.</p>` : ""}
       `
-      html = layout(isPaid ? "Facture acquittée" : "Votre facture", invoiceBody)
+      html = layout(isPaid ? "Paid invoice" : "Your invoice", invoiceBody)
     } else if (body.type === "booking_confirmed") {
       const customerId = await linkedCustomerId(user?.id)
       const { data: booking } = await admin.from("estimate_bookings").select("id,estimate_id,customer_id,starts_at,ends_at,status,estimate:estimates(estimate_number,title,total),customer:customers(first_name,last_name,email)").eq("id", body.bookingId).maybeSingle()
@@ -300,8 +300,8 @@ Deno.serve(async (req) => {
       recordId = booking.id
       recipient = customer.email
       recipientType = "customer"
-      subject = `Rendez-vous réservé — ${estimate?.estimate_number || "Ottawa Multiservices"}`
-      html = layout("Votre rendez-vous est réservé", `<p>Bonjour ${escapeHtml(customer.first_name)},</p><p>Votre devis a été accepté et votre créneau est maintenant réservé.</p><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px;margin:18px 0"><div style="font-size:18px;font-weight:700">${escapeHtml(dateTime(booking.starts_at))}</div><div style="margin-top:5px;color:#475569">Fin estimée : ${escapeHtml(dateTime(booking.ends_at))}</div><div style="margin-top:8px">${escapeHtml(estimate?.title || "Service")}</div></div><p><strong>Important :</strong> la signature du devis et la réservation du créneau constituent votre engagement à faire exécuter le service et à payer la facture conformément au devis accepté et aux travaux effectivement autorisés.</p><p>Nous vous transmettrons la facture après l’intervention.</p>`)
+      subject = `Appointment booked — ${estimate?.estimate_number || "Ottawa Multiservices"}`
+      html = layout("Your appointment is booked", `<p>Hello ${escapeHtml(customer.first_name)},</p><p>Your quote was accepted and your appointment is now booked.</p><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px;margin:18px 0"><div style="font-size:18px;font-weight:700">${escapeHtml(dateTime(booking.starts_at))}</div><div style="margin-top:5px;color:#475569">Estimated end: ${escapeHtml(dateTime(booking.ends_at))}</div><div style="margin-top:8px">${escapeHtml(estimate?.title || "Service")}</div></div><p><strong>Important:</strong> signing the quote and booking the appointment confirms your commitment to have the service performed and to pay the invoice according to the accepted quote and any additional work you authorize.</p><p>We will send you the invoice after the service is completed.</p>`)
     } else {
       throw new Error("Unsupported event")
     }

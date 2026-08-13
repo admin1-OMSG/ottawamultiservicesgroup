@@ -6,7 +6,7 @@ const supabasePublishableKey =
 
 if (!supabaseUrl || !supabasePublishableKey) {
   throw new Error(
-    "Les variables Supabase sont manquantes dans le fichier .env.local.",
+    "Supabase environment variables are missing from the .env.local file.",
   );
 }
 

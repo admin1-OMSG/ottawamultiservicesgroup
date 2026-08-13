@@ -7,7 +7,7 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? ""
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 
 const stripe = new Stripe(stripeSecretKey, {
-  httpClient: Stripe.createFetchHttpClient(),
+  httpCustomer: Stripe.createFetchHttpCustomer(),
 })
 
 Deno.serve(async (req) => {
