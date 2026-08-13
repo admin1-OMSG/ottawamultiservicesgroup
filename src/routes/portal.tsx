@@ -240,8 +240,8 @@ function SignatureDialog({ estimate, slot, defaultName, onClose, onSigned }: { e
   const [error, setError] = useState("")
 
   useEffect(() => { resizeCanvas() }, [])
-  function resizeCanvas() { const canvas = canvasRef.current; if (!canvas) return; const rect = canvas.getBoundingCustomerRect(); const ratio = window.devicePixelRatio || 1; canvas.width = Math.max(1, Math.floor(rect.width * ratio)); canvas.height = Math.max(1, Math.floor(180 * ratio)); const context = canvas.getContext("2d"); if (!context) return; context.scale(ratio, ratio); context.lineWidth = 2.5; context.lineCap = "round"; context.lineJoin = "round"; context.strokeStyle = "#0f172a" }
-  function point(event: PointerEvent<HTMLCanvasElement>) { const rect = event.currentTarget.getBoundingCustomerRect(); return { x: event.clientX - rect.left, y: event.clientY - rect.top } }
+  function resizeCanvas() { const canvas = canvasRef.current; if (!canvas) return; const rect = canvas.getBoundingClientRect(); const ratio = window.devicePixelRatio || 1; canvas.width = Math.max(1, Math.floor(rect.width * ratio)); canvas.height = Math.max(1, Math.floor(180 * ratio)); const context = canvas.getContext("2d"); if (!context) return; context.scale(ratio, ratio); context.lineWidth = 2.5; context.lineCap = "round"; context.lineJoin = "round"; context.strokeStyle = "#0f172a" }
+  function point(event: PointerEvent<HTMLCanvasElement>) { const rect = event.currentTarget.getBoundingClientRect(); return { x: event.clientX - rect.left, y: event.clientY - rect.top } }
   function start(event: PointerEvent<HTMLCanvasElement>) { event.currentTarget.setPointerCapture(event.pointerId); drawing.current = true; const context = event.currentTarget.getContext("2d"); const p = point(event); context?.beginPath(); context?.moveTo(p.x, p.y) }
   function move(event: PointerEvent<HTMLCanvasElement>) { if (!drawing.current) return; const context = event.currentTarget.getContext("2d"); const p = point(event); context?.lineTo(p.x, p.y); context?.stroke(); setHasSignature(true) }
   function stop() { drawing.current = false }
@@ -284,3 +284,4 @@ function Stat({ icon: Icon, label, value }: { icon: typeof FileText; label: stri
 function Badge({ status }: { status: string }) { return <span className="mt-2 inline-block rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">{statusLabel[status] ?? status}</span> }
 function Empty() { return <div className="rounded-xl border border-dashed bg-white p-6 text-center text-slate-500">Nothing here yet.</div> }
 function Alert({ text }: { text: string }) { return <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{text}</div> }
+
