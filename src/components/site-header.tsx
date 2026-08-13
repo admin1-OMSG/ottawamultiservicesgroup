@@ -3,6 +3,7 @@ import { Menu, Phone, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import brandLogo from "@/assets/omsg-logo.png";
+import { LanguageSwitcher } from "@/lib/language";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -57,6 +58,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
         </nav>
 
         <div className="flex items-center gap-2">
+          <div className="hidden lg:block"><LanguageSwitcher compact /></div>
           <a
             href="tel:+16134076699"
             className={`hidden items-center gap-1.5 whitespace-nowrap text-sm font-semibold xl:inline-flex ${isTransparent ? "text-white" : "text-navy"}`}

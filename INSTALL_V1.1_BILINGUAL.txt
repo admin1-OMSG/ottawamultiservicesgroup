@@ -1,0 +1,18 @@
+Ottawa Multiservices Group v1.1 — English / French language switcher
+
+What this patch does
+- Keeps English source content unchanged.
+- Adds an EN / FR language selector.
+- Remembers the visitor's language in the browser.
+- Translates visible public-site and client-portal text at runtime.
+- Translates common buttons, statuses, placeholders, invoice labels and appointment/signature UI.
+- Does not rename JavaScript variables/functions and does not alter Supabase data.
+
+Installation
+1. Copy the patch contents into the root of your current project and replace matching files.
+2. Run: npm.cmd run build
+3. Run: npm.cmd run dev
+4. Test EN and FR on the home page, quote form and customer portal.
+5. If everything is correct, commit and push to GitHub.
+
+No Supabase migration or Edge Function deployment is required for this UI-language patch.
