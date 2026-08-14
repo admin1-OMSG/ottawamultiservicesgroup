@@ -1,0 +1,12 @@
+Ottawa Multiservices Group CRM v1.2 — Settings Module
+
+1. Copy this patch into the project root and replace files.
+2. Run: npx supabase db push
+   Expected migration: 202608140001_crm_v12_settings.sql
+3. Run: npm.cmd run build
+4. Run: npm.cmd run dev
+5. Open Admin CRM > Settings.
+6. Test saving company profile, tax/quote defaults and business hours.
+7. If successful: git add . && git commit -m "feat: add CRM settings module" && git push origin main
+
+No Edge Function deployment is required for this version.

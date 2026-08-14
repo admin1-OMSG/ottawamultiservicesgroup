@@ -25,6 +25,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminScheduleRouteImport } from './routes/admin/schedule'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminContractsIndexRouteImport } from './routes/admin/contracts.index'
 import { Route as AdminCustomersIndexRouteImport } from './routes/admin/customers.index'
 import { Route as AdminCustomersCustomerIdRouteImport } from './routes/admin/customers.$customerId'
@@ -121,6 +122,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 const AdminScheduleRoute = AdminScheduleRouteImport.update({
   id: '/schedule',
   path: '/schedule',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminContractsIndexRoute = AdminContractsIndexRouteImport.update({
@@ -227,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/schedule': typeof AdminScheduleRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin/customers/new': typeof AdminCustomersNewRoute
@@ -261,6 +268,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/schedule': typeof AdminScheduleRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin': typeof AdminIndexRoute
   '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin/customers/new': typeof AdminCustomersNewRoute
@@ -297,6 +305,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/schedule': typeof AdminScheduleRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin/customers/new': typeof AdminCustomersNewRoute
@@ -334,6 +343,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin/login'
     | '/admin/schedule'
+    | '/admin/settings'
     | '/admin/'
     | '/admin/customers/$customerId'
     | '/admin/customers/new'
@@ -368,6 +378,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin/login'
     | '/admin/schedule'
+    | '/admin/settings'
     | '/admin'
     | '/admin/customers/$customerId'
     | '/admin/customers/new'
@@ -403,6 +414,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin/login'
     | '/admin/schedule'
+    | '/admin/settings'
     | '/admin/'
     | '/admin/customers/$customerId'
     | '/admin/customers/new'
@@ -553,6 +565,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminScheduleRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/contracts/': {
       id: '/admin/contracts/'
       path: '/contracts'
@@ -678,6 +697,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AdminScheduleRoute: typeof AdminScheduleRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminCustomersCustomerIdRoute: typeof AdminCustomersCustomerIdRoute
   AdminCustomersNewRoute: typeof AdminCustomersNewRoute
@@ -701,6 +721,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AdminScheduleRoute: AdminScheduleRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminCustomersCustomerIdRoute: AdminCustomersCustomerIdRoute,
   AdminCustomersNewRoute: AdminCustomersNewRoute,
