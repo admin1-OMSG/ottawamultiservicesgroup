@@ -1,0 +1,20 @@
+Ottawa Multiservices Group — v1.1.2 Complete Bilingual Client Experience
+
+1. Copy this patch over the project root and replace existing files.
+2. Run: npm.cmd run build
+3. Run locally: npm.cmd run dev
+4. Deploy customer email function:
+   npx supabase functions deploy send-crm-email --no-verify-jwt
+5. After testing EN and FR:
+   git add .
+   git commit -m "feat: complete bilingual client experience"
+   git push origin main
+
+No new database migration is required by this patch.
+
+Main changes:
+- Expanded French translations for quote request funnel, validations, service options and buttons.
+- Expanded French translations for client portal, quote signing, appointments, invoices, statuses and errors.
+- Added EN/FR switcher directly to the client portal header.
+- Preserves invoice PDF language support and customer preferred-language behavior.
+- Keeps customer-facing email language selection and expands French email labels.

@@ -90,6 +90,8 @@ function frenchCustomerEmail(subject: string, html: string) {
     ["Your quote was accepted and your appointment is now booked.", "Votre devis a été accepté et votre rendez-vous est maintenant réservé."],
     ["Important:", "Important :"], ["signing the quote and booking the appointment confirms your commitment to have the service performed and to pay the invoice according to the accepted quote and any additional work you authorize.", "la signature du devis et la réservation du rendez-vous confirment votre engagement à faire effectuer le service et à payer la facture conformément au devis accepté ainsi que tout travail supplémentaire que vous autorisez."],
     ["We will send you the invoice after the service is completed.", "Nous vous enverrons la facture une fois le service terminé."],
+    ["Description", "Description"], ["Date", "Date"], ["Reference", "Référence"], ["Total", "Total"],
+    ["Service", "Service"], ["Photo ", "Photo "],
   ]
   for (const [en, fr] of replacements) html = html.split(en).join(fr)
   return { subject, html }
