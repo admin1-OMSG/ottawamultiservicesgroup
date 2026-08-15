@@ -270,6 +270,7 @@ async function downloadInvoicePdf(invoice: Invoice, customer: Customer | null, i
 }
 
 function SignatureDialog({ estimate, slot, defaultName, onClose, onSigned }: { estimate: Estimate; slot: Slot; defaultName: string; onClose: () => void; onSigned: () => Promise<void> }) {
+  const { language } = useLanguage()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawing = useRef(false)
   const [name, setName] = useState(defaultName)

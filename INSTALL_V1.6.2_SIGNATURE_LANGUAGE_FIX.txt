@@ -1,0 +1,19 @@
+Ottawa Multiservices CRM v1.6.2 - Signature Language Fix
+
+Fixes: "language is not defined" after signing/accepting an estimate.
+
+Cause:
+SignatureDialog sent the booking confirmation email with a `language` variable that was not defined inside the component.
+
+Fix:
+SignatureDialog now reads the active EN/FR language from the existing LanguageProvider via useLanguage().
+The existing portal EN/FR switch remains the customer's language selector and the portal continues saving the preference to customers.preferred_language.
+
+Install:
+1. Copy the contents of this patch to the project root and replace files.
+2. Run: npm.cmd run build
+3. Run: npm.cmd run dev
+4. Test quote -> appointment -> signature in both EN and FR.
+
+No database migration required.
+No Edge Function redeployment required.
