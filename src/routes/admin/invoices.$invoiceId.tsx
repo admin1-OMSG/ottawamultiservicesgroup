@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { Printer, Send } from "lucide-react"
+import { Printer, Send, Trash2 } from "lucide-react"
 import { requireActiveAdmin } from "@/features/admin/requireAdmin"
 import { formatCad, formatDate } from "@/features/admin/formatters"
 import { sendCrmEmail } from "@/lib/email-notifications"
@@ -159,6 +159,18 @@ function InvoiceDetail() {
     finally { setUploadingPhotos(false) }
   }
 
+  async function deleteInvoice() {
+    if (!inv) return
+    setError(""); setNotice("")
+    try {
+      if (!(await requireActiveAdmin())) { await navigate({ to: "/admin/login" }); return }
+      if (Number(inv.amount_paid || 0) > 0 || inv.status === "paid") throw new Error("Paid or partially paid invoices cannot be deleted. Keep the invoice for your accounting records.")
+      if (!window.confirm(`Delete invoice ${inv.invoice_number}? This action cannot be undone.`)) return
+      const { error } = await supabase.from("invoices").delete().eq("id", inv.id); if (error) throw error
+      await navigate({ to: "/admin/invoices" })
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "Unable to delete invoice.") }
+  }
+
   async function sendInvoice() {
     if (!inv) return
     setSending(true); setError(""); setNotice("")
@@ -207,7 +219,7 @@ function InvoiceDetail() {
         <div><h1 className="text-3xl font-bold">{inv.invoice_number}</h1><p className="text-slate-600">{inv.title}</p></div>
         <div className="flex gap-2">
           <button type="button" onClick={() => window.print()} className="inline-flex items-center rounded-lg border bg-white px-4 py-2.5 text-sm font-semibold"><Printer className="mr-2 h-4 w-4" />Imprimer / PDF</button>
-          <button type="button" onClick={sendInvoice} disabled={sending || !inv.customer?.email} className="inline-flex items-center rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><Send className="mr-2 h-4 w-4" />{sending ? "Sending…" : paid ? "Send Paid Invoice" : "Send Invoice"}</button>
+          <button type="button" onClick={sendInvoice} disabled={sending || !inv.customer?.email} className="inline-flex items-center rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><Send className="mr-2 h-4 w-4" />{sending ? "Sending…" : paid ? "Send Paid Invoice" : "Send Invoice"}</button><button type="button" onClick={()=>void deleteInvoice()} disabled={paid || Number(inv.amount_paid || 0) > 0} title={paid || Number(inv.amount_paid || 0) > 0 ? "Paid invoices cannot be deleted" : "Delete invoice"} className="inline-flex items-center rounded-lg border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"><Trash2 className="mr-2 h-4 w-4"/>Delete</button>
         </div>
       </div>
     </header>

@@ -1,0 +1,11 @@
+CRM v1.6.3 - Safe Delete Actions
+
+Adds protected Delete actions for Customers, Invoices, Partners and Inventory.
+- Customers: blocked while operational records are linked.
+- Invoices: paid/partially paid invoices cannot be deleted.
+- Partners: blocked while job assignments exist.
+- Inventory: deletion requires confirmation and cascades its movement history.
+
+No Supabase migration or Edge Function deployment is required.
+Run: npm.cmd run build
+Then test each Delete action locally before pushing.
