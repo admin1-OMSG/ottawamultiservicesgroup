@@ -560,6 +560,7 @@ function ContactForm({
 }
 
 function PartnerForm({ onSubmitted }: { onSubmitted: () => void }) {
+  const { language } = useLanguage();
   const [pending, setPending] = useState(false);
   const [photos, setPhotos] = useState<File[]>([]);
 
