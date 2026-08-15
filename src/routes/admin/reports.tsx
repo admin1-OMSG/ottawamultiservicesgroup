@@ -14,7 +14,7 @@ type Payment = { amount:number; payment_date:string; invoice_id:string|null }
 type Invoice = { id:string; total:number; amount_paid:number; balance_due:number; status:string; issue_date:string; created_at:string; customer_id:string; estimate_id:string|null }
 type Estimate = { id:string; status:string; total:number; created_at:string; service_request_id:string|null }
 type Request = { id:string; service_name:string|null; status:string; created_at:string }
-type Job = { id:string; status:string; created_at:string; completed_at?:string|null }
+type Job = { id:string; status:string; created_at:string; updated_at:string }
 type Customer = { id:string; created_at:string }
 
 function startFor(range: RangeKey) {
@@ -38,7 +38,7 @@ function ReportsPage(){
     supabase.from("invoices").select("id,total,amount_paid,balance_due,status,issue_date,created_at,customer_id,estimate_id").order("created_at"),
     supabase.from("estimates").select("id,status,total,created_at,service_request_id").order("created_at"),
     supabase.from("service_requests").select("id,service_name,status,created_at").order("created_at"),
-    supabase.from("jobs").select("id,status,created_at,completed_at").order("created_at"),
+    supabase.from("jobs").select("id,status,created_at,updated_at").order("created_at"),
     supabase.from("customers").select("id,created_at").order("created_at")
   ]); const failed=[p,i,e,r,j,c].find(x=>x.error); if(failed?.error) throw failed.error; setPayments((p.data??[]) as Payment[]);setInvoices((i.data??[]) as Invoice[]);setEstimates((e.data??[]) as Estimate[]);setRequests((r.data??[]) as Request[]);setJobs((j.data??[]) as Job[]);setCustomers((c.data??[]) as Customer[])
   }catch(e){setError(e instanceof Error?e.message:"Unable to load reports.")}finally{setLoading(false)} }
