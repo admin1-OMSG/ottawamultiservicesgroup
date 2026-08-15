@@ -589,7 +589,7 @@ function PartnerForm({ onSubmitted }: { onSubmitted: () => void }) {
         setPending(true);
 
         try {
-          const { error } = await supabase
+          const { data: application, error } = await supabase
             .from("partner_applications")
             .insert({
               contact_first_name: firstName,
@@ -599,12 +599,20 @@ function PartnerForm({ onSubmitted }: { onSubmitted: () => void }) {
               phone: phone || null,
               service_areas: trade ? [trade] : [],
               availability: about || null,
-            });
+              preferred_language: language,
+            })
+            .select("id")
+            .single();
 
           if (error) {
             console.error("Supabase partner application error:", error);
             toast.error("The application could not be submitted. Please try again.");
             return;
+          }
+
+          if (application?.id) {
+            const result = await sendCrmEmail({ type: "partner_application_received", applicationId: application.id });
+            if (!result.ok) console.warn("Partner application email notification failed:", result.error);
           }
 
           form.reset();

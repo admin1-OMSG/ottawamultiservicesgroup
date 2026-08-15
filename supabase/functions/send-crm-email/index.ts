@@ -25,6 +25,7 @@ type EventBody =
   | { type: "appointment_proposed"; jobId: string }
   | { type: "booking_confirmed"; bookingId: string; language?: "en" | "fr" }
   | { type: "invoice_ready"; invoiceId: string }
+  | { type: "partner_application_received"; applicationId: string }
 
 function escapeHtml(value: unknown) {
   return String(value ?? "")
@@ -188,6 +189,41 @@ Deno.serve(async (req) => {
     let key = ""
     let recordId = ""
     let recipientType = "customer"
+
+    if (body.type === "partner_application_received") {
+      const { data: application, error: applicationError } = await admin
+        .from("partner_applications")
+        .select("id,business_name,contact_first_name,contact_last_name,email,phone,service_areas,availability,preferred_language,created_at")
+        .eq("id", body.applicationId)
+        .maybeSingle()
+      if (applicationError) throw applicationError
+      if (!application?.email) throw new Error("Partner application not found or email missing")
+
+      const applicantName = [application.contact_first_name, application.contact_last_name].filter(Boolean).join(" ") || application.business_name || "Partner applicant"
+      const services = Array.isArray(application.service_areas) ? application.service_areas.join(", ") : ""
+      const language: CustomerLanguage = application.preferred_language === "fr" ? "fr" : "en"
+      const adminKey = `partner-application-admin:${application.id}`
+      const applicantKey = `partner-application-applicant:${application.id}`
+
+      if (!(await alreadySent(adminKey))) {
+        const adminSubject = `New partner application — ${application.business_name || applicantName}`
+        const adminHtml = layout("New partner application", `<p>A new partner/subcontractor application was submitted.</p><table style="width:100%;border-collapse:collapse"><tr><td style="padding:7px 0;color:#64748b">Name</td><td style="padding:7px 0;font-weight:700">${escapeHtml(applicantName)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Business</td><td style="padding:7px 0">${escapeHtml(application.business_name || "—")}</td></tr><tr><td style="padding:7px 0;color:#64748b">Email</td><td style="padding:7px 0">${escapeHtml(application.email)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Phone</td><td style="padding:7px 0">${escapeHtml(application.phone || "—")}</td></tr><tr><td style="padding:7px 0;color:#64748b">Trade / service</td><td style="padding:7px 0">${escapeHtml(services || "—")}</td></tr><tr><td style="padding:7px 0;color:#64748b">Availability / notes</td><td style="padding:7px 0">${escapeHtml(application.availability || "—")}</td></tr></table><p style="margin-top:22px"><a href="${siteUrl}/admin/partners" style="display:inline-block;background:#059669;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Review partner application</a></p>`)
+        const providerId = await sendEmail(adminEmail, adminSubject, adminHtml, application.email)
+        await logEmail({ event_type: body.type, record_id: application.id, recipient_email: adminEmail, recipient_type: "admin", subject: adminSubject, provider_message_id: providerId, status: "sent", idempotency_key: adminKey, sent_at: new Date().toISOString() })
+      }
+
+      if (!(await alreadySent(applicantKey))) {
+        const applicantSubject = language === "fr" ? "Nous avons reçu votre demande de partenariat" : "We received your partner application"
+        const applicantBody = language === "fr"
+          ? `<p>Bonjour ${escapeHtml(application.contact_first_name || applicantName)},</p><p>Merci de votre intérêt pour Ottawa Multiservices Group. Nous avons bien reçu votre demande de partenariat.</p><p>Notre équipe examinera vos informations et communiquera avec vous si votre profil correspond à nos besoins.</p><p><strong>Service / métier :</strong> ${escapeHtml(services || "Non précisé")}</p>`
+          : `<p>Hello ${escapeHtml(application.contact_first_name || applicantName)},</p><p>Thank you for your interest in Ottawa Multiservices Group. We have received your partner application.</p><p>Our team will review your information and contact you if your profile matches our current needs.</p><p><strong>Service / trade:</strong> ${escapeHtml(services || "Not specified")}</p>`
+        const applicantHtml = layout(language === "fr" ? "Demande de partenariat reçue" : "Partner application received", applicantBody)
+        const providerId = await sendEmail(application.email, applicantSubject, applicantHtml)
+        await logEmail({ event_type: body.type, record_id: application.id, recipient_email: application.email, recipient_type: "partner_applicant", subject: applicantSubject, provider_message_id: providerId, status: "sent", idempotency_key: applicantKey, sent_at: new Date().toISOString() })
+      }
+
+      return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } })
+    }
     let replyTo: string | undefined
 
     if (body.type === "quote_requested") {

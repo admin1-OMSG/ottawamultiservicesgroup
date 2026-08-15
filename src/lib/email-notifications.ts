@@ -7,6 +7,7 @@ export type CrmEmailEvent =
   | { type: "appointment_proposed"; jobId: string }
   | { type: "booking_confirmed"; bookingId: string; language?: "en" | "fr" }
   | { type: "invoice_ready"; invoiceId: string }
+  | { type: "partner_application_received"; applicationId: string }
 
 export async function sendCrmEmail(event: CrmEmailEvent) {
   const { data, error } = await supabase.functions.invoke("send-crm-email", {

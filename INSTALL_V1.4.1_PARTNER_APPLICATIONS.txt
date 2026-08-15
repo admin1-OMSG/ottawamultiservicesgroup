@@ -1,0 +1,16 @@
+CRM v1.4.1 — Partner applications workflow fix
+
+What this fixes:
+- Public partner applications now appear in Admin > Partners.
+- Admin can approve an application to create a partner record, or reject it.
+- Admin receives an email when a partner applies.
+- Applicant receives an acknowledgement email in EN or FR based on the selected site language.
+
+Install:
+1. Copy patch contents into the project root.
+2. npx supabase db push
+3. npx supabase functions deploy send-crm-email --no-verify-jwt
+4. npm.cmd run build
+5. npm.cmd run dev
+
+Expected migration: 202608140003_crm_v141_partner_applications_workflow.sql
