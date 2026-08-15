@@ -1,0 +1,13 @@
+Ottawa Multiservices Group CRM v1.6 — Launch Readiness
+
+1) Copy this patch into the project root and replace files.
+2) Run:
+   npm.cmd run build
+   npm.cmd run audit:launch
+   npm.cmd run dev
+
+No Supabase migration and no Edge Function deployment are required.
+
+IMPORTANT:
+supabase/manual/RESET_TEST_DATA.sql is destructive and is NOT a migration.
+Do not run it until you are ready to erase test customer/workflow data.
