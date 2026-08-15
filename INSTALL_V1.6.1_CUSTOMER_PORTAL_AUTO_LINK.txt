@@ -1,0 +1,14 @@
+Ottawa Multiservices Group CRM v1.6.1 - Customer Portal Auto-Link
+
+1. Copy this patch over the project root.
+2. Run: npx supabase db push
+3. Run: npm.cmd run build
+4. Run: npm.cmd run dev
+5. Test the quote email link with the affected customer.
+
+No Edge Function redeploy is required.
+
+What this fixes:
+- Existing Supabase Auth user + newly-created CRM customer now link automatically.
+- Portal self-repairs a missing customer_accounts row after secure login.
+- Current matching Auth/customer records are backfilled by the migration.

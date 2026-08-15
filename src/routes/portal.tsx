@@ -80,7 +80,33 @@ function CustomerPortal() {
 
   async function loadPortal() {
     setError("")
-    const { data: account, error: accountError } = await supabase.from("customer_accounts").select("customer_id").single()
+
+    // Self-heal the portal link. This is important when an Auth user already
+    // existed before the CRM customer record was created (for example after
+    // test data was reset while Supabase Auth users were kept).
+    let { data: account, error: accountError } = await supabase
+      .from("customer_accounts")
+      .select("customer_id")
+      .maybeSingle()
+
+    if (accountError) {
+      setCustomer(null)
+      setError(accountError.message)
+      return
+    }
+
+    if (!account) {
+      const { error: linkError } = await supabase.rpc("ensure_my_customer_account")
+      if (!linkError) {
+        const retry = await supabase
+          .from("customer_accounts")
+          .select("customer_id")
+          .maybeSingle()
+        account = retry.data
+        accountError = retry.error
+      }
+    }
+
     if (accountError || !account) {
       setCustomer(null)
       setError("No customer account is associated with this email address. Contact Ottawa Multiservices Group at (613) 407-6699 so we can verify your email.")
