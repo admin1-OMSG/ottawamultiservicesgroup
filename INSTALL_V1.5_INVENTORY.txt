@@ -1,0 +1,14 @@
+Ottawa Multiservices Group CRM v1.5 - Inventory
+
+1. Copy this patch over the project root and replace files.
+2. Run: npx supabase db push
+   Apply migration: 202608150001_crm_v15_inventory.sql
+3. Run: npm.cmd run build
+4. Run: npm.cmd run dev
+5. Test Admin > Inventory: add item, stock in, stock out, low-stock filters and movement history.
+6. If successful:
+   git add .
+   git commit -m "feat: add CRM inventory module"
+   git push origin main
+
+No Supabase Edge Function deployment is required.
