@@ -41,6 +41,7 @@ import { Route as AdminInvoicesNewRouteImport } from './routes/admin/invoices.ne
 import { Route as AdminJobsIndexRouteImport } from './routes/admin/jobs.index'
 import { Route as AdminJobsJobIdRouteImport } from './routes/admin/jobs.$jobId'
 import { Route as AdminJobsNewRouteImport } from './routes/admin/jobs.new'
+import { Route as AdminPartnersIndexRouteImport } from './routes/admin/partners.index'
 import { Route as AdminPaymentsIndexRouteImport } from './routes/admin/payments.index'
 import { Route as AdminQuotesIndexRouteImport } from './routes/admin/quotes.index'
 import { Route as AdminQuotesRequestIdRouteImport } from './routes/admin/quotes.$requestId'
@@ -207,6 +208,11 @@ const AdminJobsNewRoute = AdminJobsNewRouteImport.update({
   path: '/jobs/new',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPartnersIndexRoute = AdminPartnersIndexRouteImport.update({
+  id: '/partners/',
+  path: '/partners/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPaymentsIndexRoute = AdminPaymentsIndexRouteImport.update({
   id: '/payments/',
   path: '/payments/',
@@ -257,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/admin/estimates/': typeof AdminEstimatesIndexRoute
   '/admin/invoices/': typeof AdminInvoicesIndexRoute
   '/admin/jobs/': typeof AdminJobsIndexRoute
+  '/admin/partners/': typeof AdminPartnersIndexRoute
   '/admin/payments/': typeof AdminPaymentsIndexRoute
   '/admin/quotes/': typeof AdminQuotesIndexRoute
 }
@@ -293,6 +300,7 @@ export interface FileRoutesByTo {
   '/admin/estimates': typeof AdminEstimatesIndexRoute
   '/admin/invoices': typeof AdminInvoicesIndexRoute
   '/admin/jobs': typeof AdminJobsIndexRoute
+  '/admin/partners': typeof AdminPartnersIndexRoute
   '/admin/payments': typeof AdminPaymentsIndexRoute
   '/admin/quotes': typeof AdminQuotesIndexRoute
 }
@@ -331,6 +339,7 @@ export interface FileRoutesById {
   '/admin/estimates/': typeof AdminEstimatesIndexRoute
   '/admin/invoices/': typeof AdminInvoicesIndexRoute
   '/admin/jobs/': typeof AdminJobsIndexRoute
+  '/admin/partners/': typeof AdminPartnersIndexRoute
   '/admin/payments/': typeof AdminPaymentsIndexRoute
   '/admin/quotes/': typeof AdminQuotesIndexRoute
 }
@@ -370,6 +379,7 @@ export interface FileRouteTypes {
     | '/admin/estimates/'
     | '/admin/invoices/'
     | '/admin/jobs/'
+    | '/admin/partners/'
     | '/admin/payments/'
     | '/admin/quotes/'
   fileRoutesByTo: FileRoutesByTo
@@ -406,6 +416,7 @@ export interface FileRouteTypes {
     | '/admin/estimates'
     | '/admin/invoices'
     | '/admin/jobs'
+    | '/admin/partners'
     | '/admin/payments'
     | '/admin/quotes'
   id:
@@ -443,6 +454,7 @@ export interface FileRouteTypes {
     | '/admin/estimates/'
     | '/admin/invoices/'
     | '/admin/jobs/'
+    | '/admin/partners/'
     | '/admin/payments/'
     | '/admin/quotes/'
   fileRoutesById: FileRoutesById
@@ -689,6 +701,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminJobsNewRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/partners/': {
+      id: '/admin/partners/'
+      path: '/partners'
+      fullPath: '/admin/partners/'
+      preLoaderRoute: typeof AdminPartnersIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/payments/': {
       id: '/admin/payments/'
       path: '/payments'
@@ -734,6 +753,7 @@ interface AdminRouteChildren {
   AdminEstimatesIndexRoute: typeof AdminEstimatesIndexRoute
   AdminInvoicesIndexRoute: typeof AdminInvoicesIndexRoute
   AdminJobsIndexRoute: typeof AdminJobsIndexRoute
+  AdminPartnersIndexRoute: typeof AdminPartnersIndexRoute
   AdminPaymentsIndexRoute: typeof AdminPaymentsIndexRoute
   AdminQuotesIndexRoute: typeof AdminQuotesIndexRoute
 }
@@ -759,6 +779,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminEstimatesIndexRoute: AdminEstimatesIndexRoute,
   AdminInvoicesIndexRoute: AdminInvoicesIndexRoute,
   AdminJobsIndexRoute: AdminJobsIndexRoute,
+  AdminPartnersIndexRoute: AdminPartnersIndexRoute,
   AdminPaymentsIndexRoute: AdminPaymentsIndexRoute,
   AdminQuotesIndexRoute: AdminQuotesIndexRoute,
 }
