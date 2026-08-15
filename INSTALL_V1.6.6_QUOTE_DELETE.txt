@@ -1,0 +1,12 @@
+Ottawa Multiservices Group CRM v1.6.6 - Quote Delete
+
+Adds Delete controls for official quotes in Admin > Quotes list and quote detail.
+Deleting a quote removes its quote items, signature and booking via existing database cascade rules. Linked jobs/invoices are retained and detached by existing foreign-key rules.
+
+No database migration or Edge Function deployment is required.
+
+Test:
+  npm.cmd run build
+  npm.cmd run dev
+
+Then commit and push.

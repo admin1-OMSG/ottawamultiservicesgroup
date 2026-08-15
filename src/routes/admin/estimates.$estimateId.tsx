@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { Trash2 } from "lucide-react"
 import { requireActiveAdmin } from "@/features/admin/requireAdmin"
 import { formatCad, formatDate } from "@/features/admin/formatters"
 import { supabase } from "@/lib/supabase"
@@ -39,6 +40,32 @@ function EstimateDetailPage() {
   const [rescheduleReason, setRescheduleReason] = useState("")
 
   useEffect(() => { void load() }, [estimateId])
+
+  async function deleteEstimate() {
+    if (!estimate) return
+    setError(""); setSuccess("")
+    try {
+      if (!(await requireActiveAdmin())) { await navigate({ to: "/admin/login" }); return }
+      const [jobsResult, invoicesResult] = await Promise.all([
+        supabase.from("jobs").select("id", { count: "exact", head: true }).eq("estimate_id", estimate.id),
+        supabase.from("invoices").select("id", { count: "exact", head: true }).eq("estimate_id", estimate.id),
+      ])
+      const failed = [jobsResult, invoicesResult].find((result) => result.error)
+      if (failed?.error) throw failed.error
+      const linkedJobs = jobsResult.count ?? 0
+      const linkedInvoices = invoicesResult.count ?? 0
+      const linkedNote = linkedJobs || linkedInvoices
+        ? ` ${linkedJobs} job(s) and ${linkedInvoices} invoice(s) are linked to this quote; they will be kept but detached from it.`
+        : ""
+      if (!window.confirm(`Delete quote ${estimate.estimate_number}?${linkedNote} Quote items, electronic signature and reserved appointment will also be deleted. This action cannot be undone.`)) return
+      setSaving(true)
+      const { error: deleteError } = await supabase.from("estimates").delete().eq("id", estimate.id)
+      if (deleteError) throw deleteError
+      await navigate({ to: "/admin/estimates" })
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Unable to delete quote.")
+    } finally { setSaving(false) }
+  }
 
   async function load() {
     setLoading(true)
@@ -134,7 +161,7 @@ function EstimateDetailPage() {
   const labourHours = durationHours * crewSize
 
   return <div className="space-y-6">
-    <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><Link to="/admin/estimates" className="text-sm font-semibold text-blue-700 hover:underline">← Back to quotes</Link><h1 className="mt-2 text-3xl font-bold">{estimate.estimate_number}</h1><p className="text-slate-600">{estimate.title || "Untitled quote"}</p></div><span className="w-fit rounded-full bg-slate-200 px-4 py-2 text-sm font-semibold">{labels[estimate.status] ?? estimate.status}</span></header>
+    <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><Link to="/admin/estimates" className="text-sm font-semibold text-blue-700 hover:underline">← Back to quotes</Link><h1 className="mt-2 text-3xl font-bold">{estimate.estimate_number}</h1><p className="text-slate-600">{estimate.title || "Untitled quote"}</p></div><div className="flex flex-wrap items-center gap-2"><span className="w-fit rounded-full bg-slate-200 px-4 py-2 text-sm font-semibold">{labels[estimate.status] ?? estimate.status}</span><button type="button" onClick={()=>void deleteEstimate()} disabled={saving} className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"><Trash2 className="h-4 w-4"/>Delete quote</button></div></header>
     {error && <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">{error}</div>}{success && <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">{success}</div>}
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
       <div className="space-y-6">
