@@ -1,0 +1,11 @@
+Ottawa Multiservices Group CRM v1.3 — Reports
+
+1. Copy this patch over the project root.
+2. Run: npm.cmd run build
+3. Run: npm.cmd run dev
+4. Open Admin > Reports.
+5. Test date filters, Refresh, charts and Export CSV.
+
+No Supabase migration is required. No Edge Function redeployment is required.
+
+Reports uses existing CRM data: payments, invoices, estimates, quote requests, jobs and customers.
