@@ -1,0 +1,18 @@
+Ottawa Multiservices Group CRM v1.6.4 - Test Data Delete Controls
+
+Adds admin Delete controls for:
+- Jobs: deletes the job after confirmation. Job photos and partner assignments cascade; invoices keep their record and lose the job link.
+- Invoices: delete from list or invoice detail after confirmation. Related invoice items and payments cascade. Intended for test-data cleanup; do not delete real accounting records.
+- Employees: deletes after confirmation. Existing jobs become unassigned because assigned_employee_id uses ON DELETE SET NULL.
+- Payments: deletes after confirmation, then recalculates the linked invoice amount_paid, balance_due and status.
+
+Install:
+1. Copy patch contents over the project root.
+2. npm.cmd run build
+3. npm.cmd run dev
+4. Test only with test records first.
+5. git add .
+6. git commit -m "feat: add test data delete controls"
+7. git push origin main
+
+No Supabase migration or Edge Function deployment is required.
