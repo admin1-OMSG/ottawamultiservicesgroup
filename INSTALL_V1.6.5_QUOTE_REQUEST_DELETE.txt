@@ -1,0 +1,13 @@
+# v1.6.5 – Quote Request Delete Control
+
+Adds safe Delete controls for website quote requests in Admin > Quote Requests.
+
+- Delete button in the quote-request list.
+- Delete request button on the request detail page.
+- Confirmation before deletion.
+- Removes request photos from Supabase Storage.
+- Removes quote request history.
+- Deletes the service request.
+- Existing official estimates are preserved and become unlinked from the deleted request.
+
+No SQL migration or Edge Function deployment is required.

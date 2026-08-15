@@ -257,6 +257,72 @@ function AdminQuoteDetailPage() {
     void loadQuote()
   }, [loadQuote])
 
+  async function deleteQuoteRequest() {
+    if (!quote) return
+
+    setErrorMessage("")
+    setSuccessMessage("")
+
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      if (userError || !user) {
+        await navigate({ to: "/admin/login" })
+        return
+      }
+
+      const { data: adminUser, error: adminError } = await supabase
+        .from("admin_users")
+        .select("id")
+        .eq("id", user.id)
+        .eq("is_active", true)
+        .maybeSingle()
+      if (adminError || !adminUser) throw new Error("Administrator access is required.")
+
+      const { count: estimateCount, error: estimateCountError } = await supabase
+        .from("estimates")
+        .select("id", { count: "exact", head: true })
+        .eq("service_request_id", quote.id)
+      if (estimateCountError) throw estimateCountError
+
+      const linkedMessage = (estimateCount ?? 0) > 0
+        ? ` ${estimateCount} official quote(s) are linked to this request; they will be kept but unlinked from the request.`
+        : ""
+
+      if (!window.confirm(`Delete quote request #${quote.request_number}?${linkedMessage} Attached request photos and request history will be deleted. This action cannot be undone.`)) return
+
+      const { data: photoRows, error: photoError } = await supabase
+        .from("service_request_photos")
+        .select("storage_path")
+        .eq("service_request_id", quote.id)
+      if (photoError) throw photoError
+
+      const storagePaths = (photoRows ?? [])
+        .map((row) => row.storage_path as string | null)
+        .filter((path): path is string => Boolean(path))
+      if (storagePaths.length > 0) {
+        const { error: storageError } = await supabase.storage.from("service-photos").remove(storagePaths)
+        if (storageError) throw storageError
+      }
+
+      const { error: historyError } = await supabase
+        .from("quote_history")
+        .delete()
+        .eq("service_request_id", quote.id)
+      if (historyError) throw historyError
+
+      const { error: requestError } = await supabase
+        .from("service_requests")
+        .delete()
+        .eq("id", quote.id)
+      if (requestError) throw requestError
+
+      await navigate({ to: "/admin/quotes" })
+    } catch (error) {
+      console.error("Unable to delete quote request:", error)
+      setErrorMessage(error instanceof Error ? error.message : "Unable to delete quote request.")
+    }
+  }
+
   async function updateStatus() {
     if (!quote || selectedStatus === quote.status) {
       return
@@ -432,9 +498,18 @@ function AdminQuoteDetailPage() {
               </p>
             </div>
 
-            <span className="inline-flex w-fit rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
-              {STATUS_LABELS[quote.status]}
-            </span>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="inline-flex w-fit rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+                {STATUS_LABELS[quote.status]}
+              </span>
+              <button
+                type="button"
+                onClick={() => void deleteQuoteRequest()}
+                className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
+              >
+                Delete request
+              </button>
+            </div>
           </div>
         </header>
 
