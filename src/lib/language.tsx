@@ -15,6 +15,23 @@ const LanguageContext = createContext<LanguageContextValue>({
 });
 
 const FR: Record<string, string> = {
+  "Become a Partner": "Devenir partenaire",
+  "Choose a service": "Choisissez un service",
+  "Home, vehicle & everyday services": "Services résidentiels, automobiles et courants",
+  "Business & property services": "Services commerciaux et d’entretien de propriétés",
+  "Work With Us": "Travaillez avec nous",
+  "Two ways to partner with Ottawa Multiservices Group.": "Deux façons de collaborer avec Ottawa Multiservices Group.",
+  "I want to work with OMSG": "Je veux travailler avec OMSG",
+  "I need OMSG as a subcontractor": "J’ai besoin d’OMSG comme sous-traitant",
+  "Join our service network": "Rejoindre notre réseau de services",
+  "Submit a subcontracting opportunity": "Soumettre une occasion de sous-traitance",
+  "Contact Name": "Nom du contact",
+  "Business / Organization": "Entreprise / organisation",
+  "Services you can provide": "Services que vous pouvez offrir",
+  "Services you need": "Services dont vous avez besoin",
+  "Submit Partner Profile": "Soumettre mon profil partenaire",
+  "Submit Subcontracting Opportunity": "Soumettre l’occasion de sous-traitance",
+
   "Home": "Accueil",
   "Services": "Services",
   "About": "À propos",

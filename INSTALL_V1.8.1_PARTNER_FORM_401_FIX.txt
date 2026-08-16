@@ -1,0 +1,17 @@
+Ottawa Multiservices Group CRM v1.8.1
+Partner application public form 401 fix
+
+Problem:
+The public partner form used INSERT ... SELECT id. Anonymous visitors are allowed to submit applications but are not allowed to SELECT partner_applications, so PostgREST returned 401 after the insert request.
+
+Fix:
+The browser now generates the UUID before insertion and sends it with the row. The form no longer requests SELECT access to partner_applications. The known UUID is still passed to send-crm-email for the bilingual confirmation/admin notification.
+
+No database migration is required.
+No Edge Function redeployment is required if send-crm-email v1.8 is already deployed.
+
+Test:
+1. npm.cmd run build
+2. npm.cmd run dev
+3. Submit both partner paths locally.
+4. Confirm the Network/Console no longer shows partner_applications?select=id with 401.

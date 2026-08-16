@@ -7,6 +7,7 @@ import {
   Check,
   FileCheck2,
   Hammer,
+  Handshake,
   Leaf,
   Mail,
   MapPin,
@@ -105,6 +106,11 @@ function HomePage() {
               <Button size="lg" onClick={scrollToFunnel} className="h-13 rounded-xl bg-accent px-6 text-base font-bold text-accent-foreground shadow-xl hover:brightness-105 sm:w-auto">
                 Get My Free Quote <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
+              <Link to="/partners" className="inline-flex">
+                <Button size="lg" variant="outline" className="h-13 rounded-xl border-accent/40 bg-white/80 px-6 text-base font-bold text-accent backdrop-blur-sm hover:bg-accent/5">
+                  Become a Partner <Handshake className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
               <a href="tel:+16134076699" className="inline-flex h-13 items-center justify-center gap-2 rounded-xl border border-teal-200 bg-white/80 px-6 text-base font-semibold text-teal-900 backdrop-blur-sm transition hover:bg-teal-50">
                 <Phone className="h-4 w-4" /> (613) 407-6699
               </a>

@@ -65,8 +65,11 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
           >
             <Phone className="h-4 w-4" /> (613) 407-6699
           </a>
+          <Link to="/partners" className="hidden xl:inline-flex">
+            <Button variant="outline" className="h-10 rounded-xl border-accent/40 px-4 font-semibold text-accent hover:bg-accent/5">Become a Partner</Button>
+          </Link>
           <Link to="/quote" className="hidden sm:inline-flex">
-            <Button className="h-10 rounded-xl bg-gradient-to-r from-primary to-accent px-5 font-semibold text-white shadow-sm hover:brightness-105">Free Quote</Button>
+            <Button className="h-10 rounded-xl bg-gradient-to-r from-primary to-accent px-5 font-semibold text-white shadow-sm hover:brightness-105">Get a Quote</Button>
           </Link>
           <Button
             variant="ghost"
@@ -94,12 +97,15 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
                 {n.label}
               </Link>
             ))}
-            <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border pt-4">
+            <div className="mt-3 grid gap-2 border-t border-border pt-4 sm:grid-cols-3">
               <a href="tel:+16134076699" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border text-sm font-semibold text-navy">
                 <Phone className="h-4 w-4" /> Call us
               </a>
+              <Link to="/partners" onClick={() => setOpen(false)}>
+                <Button variant="outline" className="h-11 w-full rounded-xl border-accent/40 font-semibold text-accent">Become a Partner</Button>
+              </Link>
               <Link to="/quote" onClick={() => setOpen(false)}>
-                <Button className="h-11 w-full rounded-xl bg-accent font-semibold text-accent-foreground">Free Quote</Button>
+                <Button className="h-11 w-full rounded-xl bg-accent font-semibold text-accent-foreground">Get a Quote</Button>
               </Link>
             </div>
           </div>

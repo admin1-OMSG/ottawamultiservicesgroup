@@ -38,13 +38,11 @@ const COM_SERVICES: { key: ServiceKey; label: string; icon: React.ElementType; b
   { key: "janitorial",       label: "Janitorial Services",   icon: Sparkles,  blurb: "Full-service janitorial" },
 ];
 
-type UserType = "client" | "partner" | null;
+
 type ClientKind = "residential" | "commercial" | null;
 type AnswerValue = string | string[];
 
-export function QuoteFunnel({ startWith }: { startWith?: "client" | "partner" }) {
-  const { language } = useLanguage();
-  const [userType, setUserType] = useState<UserType>(startWith ?? null);
+export function QuoteFunnel() {
   const [clientKind, setClientKind] = useState<ClientKind>(null);
   const [service, setService] = useState<ServiceKey | null>(null);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
@@ -53,48 +51,48 @@ export function QuoteFunnel({ startWith }: { startWith?: "client" | "partner" })
   const services = clientKind === "commercial" ? COM_SERVICES : RES_SERVICES;
   const activeService = useMemo(() => services.find((s) => s.key === service), [services, service]);
   const setA = (k: string, v: AnswerValue) => setAnswers((p) => ({ ...p, [k]: v }));
-  const reset = () => { setUserType(startWith ?? null); setClientKind(null); setService(null); setAnswers({}); setShowContact(false); };
+  const reset = () => { setClientKind(null); setService(null); setAnswers({}); setShowContact(false); };
+  const chooseService = (kind: Exclude<ClientKind, null>, key: ServiceKey) => {
+    setClientKind(kind);
+    setService(key);
+    setAnswers({});
+  };
 
   return (
     <Card className="p-6 md:p-10 shadow-lift border-border/60">
-      <Stepper userType={userType} clientKind={clientKind} service={service} showContact={showContact} />
+      <Stepper service={service} showContact={showContact} />
 
-      {!userType && (
-        <StepBlock title="Are you a Customer or a Partner?" subtitle="Tell us who you are so we can point you to the right form.">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <ChoiceTile icon={Home}  title="I'm a Customer"  desc="I need a service for my home or business." onClick={() => setUserType("client")} />
-            <ChoiceTile icon={Users} title="I'm a Partner" desc="I want to offer subcontracting services." onClick={() => setUserType("partner")} />
+      {!service && (
+        <StepBlock title="Choose a service" subtitle="Select what you need and we'll ask a few quick questions to prepare an accurate quote.">
+          <div className="space-y-8">
+            <div>
+              <div className="mb-3 flex items-center gap-2">
+                <Home className="h-5 w-5 text-accent" />
+                <h3 className="font-semibold text-navy">Home, vehicle & everyday services</h3>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {RES_SERVICES.map((s) => (
+                  <ServiceTile key={s.key} icon={s.icon} title={s.label} blurb={s.blurb} onClick={() => chooseService("residential", s.key)} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="mb-3 flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-accent" />
+                <h3 className="font-semibold text-navy">Business & property services</h3>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {COM_SERVICES.map((s) => (
+                  <ServiceTile key={s.key} icon={s.icon} title={s.label} blurb={s.blurb} onClick={() => chooseService("commercial", s.key)} />
+                ))}
+              </div>
+            </div>
           </div>
         </StepBlock>
       )}
 
-      {userType === "partner" && (
-        <StepBlock title="Join our partner network" subtitle="Share a few details and our team will reach out." onBack={reset}>
-          <PartnerForm onSubmitted={() => { toast.success("Application received — we'll be in touch."); reset(); }} />
-        </StepBlock>
-      )}
-
-      {userType === "client" && !clientKind && (
-        <StepBlock title="Home or business?" subtitle="This helps us match you with the right team and pricing." onBack={reset}>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <ChoiceTile icon={Home}      title="Residential" desc="Services for your home." onClick={() => setClientKind("residential")} />
-            <ChoiceTile icon={Building2} title="Commercial"  desc="Services for your business or property." onClick={() => setClientKind("commercial")} />
-          </div>
-        </StepBlock>
-      )}
-
-      {userType === "client" && clientKind && !service && (
-        <StepBlock title={`Choose a ${clientKind} service`} subtitle="Pick what you need — we'll ask a few quick questions to price it accurately." onBack={() => setClientKind(null)}>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {services.map((s) => (
-              <ServiceTile key={s.key} icon={s.icon} title={s.label} blurb={s.blurb} onClick={() => setService(s.key)} />
-            ))}
-          </div>
-        </StepBlock>
-      )}
-
-      {userType === "client" && clientKind && service && !showContact && (
-        <StepBlock title={activeService?.label ?? ""} subtitle="Answer a few quick questions so we can prepare an accurate quote." onBack={() => { setService(null); setAnswers({}); }}>
+      {clientKind && service && !showContact && (
+        <StepBlock title={activeService?.label ?? ""} subtitle="Answer a few quick questions so we can prepare an accurate quote." onBack={() => { setService(null); setClientKind(null); setAnswers({}); }}>
           <ServiceQuestions serviceKey={service} answers={answers} setA={setA} />
           <div className="mt-8 flex justify-end">
             <Button size="lg" className="bg-accent text-accent-foreground hover:brightness-105 h-12 px-6" onClick={() => setShowContact(true)}>
@@ -104,29 +102,27 @@ export function QuoteFunnel({ startWith }: { startWith?: "client" | "partner" })
         </StepBlock>
       )}
 
-      {userType === "client" && showContact && (
+      {clientKind && showContact && (
         <StepBlock title="Great! Where should we send your quote?" subtitle="We'll get back to you within one business day." onBack={() => setShowContact(false)}>
           <ContactForm
-  service={activeService?.label ?? ""}
-  answers={answers}
-  onSubmitted={() => {
-    toast.success("Quote request received — we'll contact you soon!");
-    reset();
-  }}
-/>
+            service={activeService?.label ?? ""}
+            answers={answers}
+            onSubmitted={() => {
+              toast.success("Quote request received — we'll contact you soon!");
+              reset();
+            }}
+          />
         </StepBlock>
       )}
     </Card>
   );
 }
 
-function Stepper({ userType, clientKind, service, showContact }: { userType: UserType; clientKind: ClientKind; service: ServiceKey | null; showContact: boolean; }) {
-  const steps = ["You", "Type", "Service", "Details", "Quote"];
+function Stepper({ service, showContact }: { service: ServiceKey | null; showContact: boolean; }) {
+  const steps = ["Service", "Details", "Quote"];
   let current = 0;
-  if (userType) current = 1;
-  if (clientKind || userType === "partner") current = 2;
-  if (service) current = 3;
-  if (showContact) current = 4;
+  if (service) current = 1;
+  if (showContact) current = 2;
   return (
     <div className="mb-8 flex items-center gap-2 text-xs flex-wrap">
       {steps.map((s, i) => (
@@ -559,27 +555,49 @@ function ContactForm({
   );
 }
 
-function PartnerForm({ onSubmitted }: { onSubmitted: () => void }) {
+export type PartnerApplicationMode = "service_provider" | "subcontracting_client";
+
+const PARTNER_SERVICES = [
+  "Residential Cleaning",
+  "Commercial Cleaning",
+  "Vehicle Detailing / Car Wash",
+  "Landscaping & Gardening",
+  "Snow Removal",
+  "Moving",
+  "Mobile Tire Change",
+  "Small Repairs / Renovation",
+];
+
+export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApplicationMode; onSubmitted: () => void }) {
   const { language } = useLanguage();
   const [pending, setPending] = useState(false);
-  const [photos, setPhotos] = useState<File[]>([]);
 
   return (
     <form
       onSubmit={async (e) => {
         e.preventDefault();
-
         const form = e.currentTarget;
         const data = new FormData(form);
-
         const fullName = String(data.get("name") ?? "").trim();
+        const businessName = String(data.get("business_name") ?? "").trim();
         const email = String(data.get("email") ?? "").trim();
         const phone = String(data.get("phone") ?? "").trim();
-        const trade = String(data.get("trade") ?? "").trim();
-        const about = String(data.get("about") ?? "").trim();
+        const applicantType = String(data.get("applicant_type") ?? "").trim();
+        const city = String(data.get("city") ?? "").trim();
+        const projectLocation = String(data.get("project_location") ?? "").trim();
+        const frequency = String(data.get("frequency") ?? "").trim();
+        const startDate = String(data.get("start_date") ?? "").trim();
+        const desiredRateRaw = String(data.get("desired_rate") ?? "").trim();
+        const contractValueRaw = String(data.get("estimated_contract_value") ?? "").trim();
+        const details = String(data.get("details") ?? "").trim();
+        const services = data.getAll("services").map(String).filter(Boolean);
 
         if (!fullName || !email) {
-          toast.error("Please provide your name and email.");
+          toast.error("Please provide your contact name and email.");
+          return;
+        }
+        if (services.length === 0) {
+          toast.error("Please select at least one service.");
           return;
         }
 
@@ -588,34 +606,40 @@ function PartnerForm({ onSubmitted }: { onSubmitted: () => void }) {
         const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Not provided";
 
         setPending(true);
-
         try {
-          const { data: application, error } = await supabase
+          // Generate the UUID in the browser so the public form does not need
+          // SELECT permission on partner_applications just to retrieve the new id.
+          const applicationId = crypto.randomUUID();
+          const { error } = await supabase
             .from("partner_applications")
             .insert({
+              id: applicationId,
+              application_type: mode,
+              applicant_type: mode === "service_provider" ? (applicantType || "self_employed") : "business_client",
               contact_first_name: firstName,
               contact_last_name: lastName,
-              business_name: fullName,
+              business_name: businessName || fullName,
               email,
               phone: phone || null,
-              service_areas: trade ? [trade] : [],
-              availability: about || null,
+              service_areas: services,
+              availability: details || null,
               preferred_language: language,
-            })
-            .select("id")
-            .single();
+              city: city || null,
+              project_location: projectLocation || null,
+              frequency: frequency || null,
+              start_date: startDate || null,
+              desired_rate: desiredRateRaw ? Number(desiredRateRaw) : null,
+              estimated_contract_value: contractValueRaw ? Number(contractValueRaw) : null,
+              details: details || null,
+            });
 
           if (error) {
             console.error("Supabase partner application error:", error);
             toast.error("The application could not be submitted. Please try again.");
             return;
           }
-
-          if (application?.id) {
-            const result = await sendCrmEmail({ type: "partner_application_received", applicationId: application.id });
-            if (!result.ok) console.warn("Partner application email notification failed:", result.error);
-          }
-
+          const result = await sendCrmEmail({ type: "partner_application_received", applicationId });
+          if (!result.ok) console.warn("Partner application email notification failed:", result.error);
           form.reset();
           onSubmitted();
         } catch (error) {
@@ -628,48 +652,68 @@ function PartnerForm({ onSubmitted }: { onSubmitted: () => void }) {
       className="grid gap-5"
     >
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Business / Contact Name" required>
-          <Input name="name" required maxLength={100} />
-        </Field>
-        <Field label="Email" required>
-          <Input type="email" name="email" required maxLength={120} />
-        </Field>
-        <Field label="Phone">
-          <Input type="tel" name="phone" maxLength={30} />
-        </Field>
-        <Field label="Primary Trade">
-          <Select name="trade">
-            <SelectTrigger className="h-11">
-              <SelectValue placeholder="Select a trade" />
-            </SelectTrigger>
-            <SelectContent>
-              {["Cleaning", "Snow Removal", "Landscaping", "Moving", "Detailing", "Handyman", "Other"].map((tradeName) => (
-                <SelectItem key={tradeName} value={tradeName}>
-                  {tradeName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
+        <Field label="Contact Name" required><Input name="name" required maxLength={100} /></Field>
+        <Field label="Business / Organization"><Input name="business_name" maxLength={120} /></Field>
+        <Field label="Email" required><Input type="email" name="email" required maxLength={120} /></Field>
+        <Field label="Phone"><Input type="tel" name="phone" maxLength={30} /></Field>
+
+        {mode === "service_provider" ? (
+          <>
+            <Field label="I am">
+              <select name="applicant_type" className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm">
+                <option value="self_employed">Self-employed / Independent contractor</option>
+                <option value="company">Company / Service business</option>
+                <option value="job_seeker">Job seeker / Individual worker</option>
+              </select>
+            </Field>
+            <Field label="City / Service Area"><Input name="city" placeholder="Ottawa, Gatineau, Kanata…" maxLength={120} /></Field>
+            <Field label="Desired hourly rate (optional)"><Input name="desired_rate" type="number" min="0" step="0.01" /></Field>
+          </>
+        ) : (
+          <>
+            <Field label="Project / Contract Location"><Input name="project_location" placeholder="Ottawa, Gatineau…" maxLength={160} /></Field>
+            <Field label="Service Frequency">
+              <select name="frequency" className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm">
+                <option value="">Select frequency</option>
+                <option value="one_time">One-time contract</option>
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Every 2 weeks</option>
+                <option value="monthly">Monthly</option>
+                <option value="seasonal">Seasonal</option>
+                <option value="ongoing">Ongoing / Other</option>
+              </select>
+            </Field>
+            <Field label="Preferred Start Date"><Input name="start_date" type="date" /></Field>
+            <Field label="Estimated Contract Value (optional)"><Input name="estimated_contract_value" type="number" min="0" step="0.01" /></Field>
+          </>
+        )}
       </div>
 
-      <Field label="Tell us about your business">
+      <Field label={mode === "service_provider" ? "Services you can provide" : "Services you need"} required>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {PARTNER_SERVICES.map((serviceName) => (
+            <label key={serviceName} className="flex items-center gap-3 rounded-lg border border-border p-3 text-sm">
+              <input type="checkbox" name="services" value={serviceName} className="h-4 w-4" />
+              <span>{serviceName}</span>
+            </label>
+          ))}
+        </div>
+      </Field>
+
+      <Field label={mode === "service_provider" ? "Experience, availability and additional information" : "Tell us about the contract or project"}>
         <Textarea
-          name="about"
-          rows={4}
-          maxLength={800}
-          placeholder="Years in business, service area, team size…"
+          name="details"
+          rows={5}
+          maxLength={1500}
+          placeholder={mode === "service_provider"
+            ? "Experience, certifications, availability, equipment, team size…"
+            : "Scope of work, expected volume, schedule, special requirements, contract details…"}
         />
       </Field>
 
       <div className="flex justify-end">
-        <Button
-          type="submit"
-          size="lg"
-          disabled={pending}
-          className="h-12 bg-accent px-8 text-accent-foreground hover:brightness-105"
-        >
-          {pending ? "Sending…" : "Submit Application"}
+        <Button type="submit" size="lg" disabled={pending} className="h-12 bg-accent px-8 text-accent-foreground hover:brightness-105">
+          {pending ? "Sending…" : mode === "service_provider" ? "Submit Partner Profile" : "Submit Subcontracting Opportunity"}
         </Button>
       </div>
     </form>

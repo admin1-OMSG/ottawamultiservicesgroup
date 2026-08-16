@@ -1,0 +1,21 @@
+Ottawa Multiservices Group CRM v1.8
+Partners & Subcontracting Redesign
+
+1. Copy this patch into the project root and replace existing files.
+2. Run: npx supabase db push
+   Expected migration: 202608160001_crm_v18_partner_subcontracting.sql
+3. Run: npm.cmd run build
+4. Run: npm.cmd run dev
+5. Test:
+   - Get a Quote opens directly on service selection.
+   - Header shows Get a Quote + Become a Partner.
+   - Partners page offers:
+     a) service provider / self-employed / company / job seeker
+     b) business subcontracting opportunity
+   - Admin > Partners shows application type and appropriate actions.
+6. If successful:
+   git add .
+   git commit -m "feat: redesign partners and subcontracting workflow"
+   git push origin main
+
+No Edge Function redeploy is required for this patch.
