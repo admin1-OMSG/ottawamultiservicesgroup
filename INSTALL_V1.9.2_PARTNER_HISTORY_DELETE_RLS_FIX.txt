@@ -1,0 +1,22 @@
+Ottawa Multiservices Group CRM v1.9.2
+Partner History Delete RLS Fix
+
+Problem
+-------
+The Admin > Partners page showed Delete history, but deleting a processed partner application was blocked by Supabase Row Level Security. partner_applications had admin SELECT and UPDATE policies, but no DELETE policy.
+
+Fix
+---
+Adds an authenticated active-admin DELETE policy on public.partner_applications.
+Existing attachment metadata already cascades when an application is deleted, and the UI removes private Storage files first.
+
+Install
+-------
+1. Copy this patch into the project root.
+2. Run:
+   npx supabase db push
+3. Accept migration:
+   202608160005_crm_v192_partner_application_delete_policy.sql
+4. Reload Admin > Partners and test Delete history.
+
+No frontend rebuild or Edge Function deployment is required for this database-only fix.

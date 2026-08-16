@@ -1,0 +1,14 @@
+OMSG CRM v1.9.3 - Dashboard & Reports Expansion
+
+Changes:
+- Dashboard: active partners, new partner applications, subcontracting opportunities, inventory count/value, low-stock alerts.
+- Reports: partner/subcontracting metrics, inventory metrics, average invoice, stock movement activity.
+- CSV export includes the new metrics.
+
+Install:
+1. Copy the src folder into the project root and replace files.
+2. Run: npm.cmd run build
+3. Run: npm.cmd run dev
+4. Test Admin > Dashboard and Admin > Reports.
+
+No Supabase migration or Edge Function deployment is required.

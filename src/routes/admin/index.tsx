@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
-import { Handshake, LogOut, RefreshCw } from "lucide-react"
+import { AlertTriangle, Boxes, BriefcaseBusiness, Handshake, LogOut, RefreshCw } from "lucide-react"
 
 import { PageHeader } from "@/components/admin/PageHeader"
 import { getDashboardStats } from "@/features/dashboard/api/getDashboardStats"
@@ -28,6 +28,12 @@ type DashboardData = {
   activeQuotes: number
   completedQuotes: number
   partnerApplications: number
+  newPartnerApplications: number
+  subcontractingOpportunities: number
+  activePartners: number
+  inventoryItems: number
+  lowStockItems: number
+  inventoryValue: number
 }
 
 const initialDashboardData: DashboardData = {
@@ -36,6 +42,12 @@ const initialDashboardData: DashboardData = {
   activeQuotes: 0,
   completedQuotes: 0,
   partnerApplications: 0,
+  newPartnerApplications: 0,
+  subcontractingOpportunities: 0,
+  activePartners: 0,
+  inventoryItems: 0,
+  lowStockItems: 0,
+  inventoryValue: 0,
 }
 
 export const Route = createFileRoute("/admin/")({
@@ -166,29 +178,33 @@ function AdminDashboardPage() {
     }
 
     try {
-      const { count, error } = await supabase
-        .from("partner_applications")
-        .select("*", {
-          count: "exact",
-          head: true,
-        })
+      const [applicationsResult, partnersResult, inventoryResult] = await Promise.all([
+        supabase.from("partner_applications").select("application_type,review_status"),
+        supabase.from("partners").select("status"),
+        supabase.from("inventory_items").select("quantity,unit_cost,reorder_level,status"),
+      ])
+      if (applicationsResult.error) throw applicationsResult.error
+      if (partnersResult.error) throw partnersResult.error
+      if (inventoryResult.error) throw inventoryResult.error
 
-      if (error) {
-        throw error
-      }
-
+      const applications = applicationsResult.data ?? []
+      const partners = partnersResult.data ?? []
+      const inventory = inventoryResult.data ?? []
       if (componentIsMounted) {
         setDashboardData((currentData) => ({
           ...currentData,
-          partnerApplications: count ?? 0,
+          partnerApplications: applications.length,
+          newPartnerApplications: applications.filter((x) => x.review_status === "new").length,
+          subcontractingOpportunities: applications.filter((x) => x.application_type === "subcontracting_client" && x.review_status !== "rejected").length,
+          activePartners: partners.filter((x) => x.status === "active").length,
+          inventoryItems: inventory.filter((x) => x.status === "active").length,
+          lowStockItems: inventory.filter((x) => x.status === "active" && Number(x.quantity) <= Number(x.reorder_level)).length,
+          inventoryValue: inventory.reduce((sum, x) => sum + Number(x.quantity || 0) * Number(x.unit_cost || 0), 0),
         }))
       }
     } catch (error) {
-      console.error("Partner applications error:", error)
-
-      errors.push(
-        "Partner application statistics could not be loaded.",
-      )
+      console.error("Business overview statistics error:", error)
+      errors.push("Partner or inventory statistics could not be loaded.")
     }
 
     if (componentIsMounted) {
@@ -332,22 +348,11 @@ function AdminDashboardPage() {
             </p>
           </div>
 
-          <div className="mt-4 rounded-xl border border-slate-200 p-4">
-            <p className="text-sm font-semibold text-slate-900">
-              Active processing rate
-            </p>
-
-            <p className="mt-1 text-xs text-slate-500">
-              Requests currently requiring attention.
-            </p>
-
-            <p className="mt-4 text-2xl font-bold text-slate-950">
-              {calculateActivePercentage(
-                dashboardData.activeQuotes,
-                dashboardData.totalQuotes,
-              )}
-              %
-            </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <OverviewMetric icon={<BriefcaseBusiness className="h-4 w-4" />} label="Active partners" value={dashboardData.activePartners} note={`${dashboardData.newPartnerApplications} new application(s)`} />
+            <OverviewMetric icon={<Handshake className="h-4 w-4" />} label="Subcontracting opportunities" value={dashboardData.subcontractingOpportunities} note="Open/contacted opportunities" />
+            <OverviewMetric icon={<Boxes className="h-4 w-4" />} label="Inventory" value={dashboardData.inventoryItems} note={`Stock value ${new Intl.NumberFormat("en-CA",{style:"currency",currency:"CAD"}).format(dashboardData.inventoryValue)}`} />
+            <OverviewMetric icon={<AlertTriangle className="h-4 w-4" />} label="Low stock alerts" value={dashboardData.lowStockItems} note="At or below reorder level" />
           </div>
         </aside>
       </section>
@@ -370,4 +375,7 @@ function calculateActivePercentage(
   }
 
   return Math.round((activeQuotes / totalQuotes) * 100)
+}
+function OverviewMetric({icon,label,value,note}:{icon:React.ReactNode;label:string;value:number;note:string}) {
+  return <div className="rounded-xl border border-slate-200 p-4"><div className="flex items-center gap-2 text-emerald-700">{icon}<p className="text-sm font-semibold text-slate-900">{label}</p></div><p className="mt-3 text-2xl font-bold text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-500">{note}</p></div>
 }
