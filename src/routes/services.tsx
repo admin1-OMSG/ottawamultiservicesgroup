@@ -20,6 +20,8 @@ export const Route = createFileRoute("/services")({
   component: ServicesPage,
 });
 
+const SERVICE_LINKS: Record<string, string> = {"House Cleaning": "/house-cleaning-ottawa", "Mobile Vehicle Detailing": "/mobile-car-detailing-ottawa", "Lawn & Landscaping": "/landscaping-ottawa", "Snow Removal": "/snow-removal-ottawa", "Moving Services": "/moving-services-ottawa", "Mobile Tire Change": "/mobile-tire-change-ottawa", "Handyman & Maintenance": "/handyman-ottawa", "Office Cleaning": "/commercial-cleaning-ottawa", "Commercial Snow Removal": "/snow-removal-ottawa", "Commercial Lawn Care": "/landscaping-ottawa", "Property Maintenance": "/handyman-ottawa", "Janitorial Services": "/commercial-cleaning-ottawa"};
+
 const CATEGORIES = [
   {
     kind: "Residential",
@@ -64,6 +66,7 @@ function ServicesPage() {
                   <div className="h-11 w-11 rounded-lg bg-navy text-navy-foreground grid place-items-center"><s.icon className="h-5 w-5" /></div>
                   <h3 className="mt-4 text-lg font-semibold text-navy">{s.title}</h3>
                   <p className="mt-2 text-sm text-muted-foreground">{s.body}</p>
+                  <a href={SERVICE_LINKS[s.title]} className="mt-4 inline-flex text-sm font-semibold text-teal-700 hover:underline">Learn more <ArrowRight className="ml-1 h-4 w-4" /></a>
                 </Card>
               ))}
             </div>

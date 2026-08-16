@@ -1,0 +1,26 @@
+OMSG v2.0 — SEO & Local Search Optimization
+
+Included:
+- Absolute production sitemap URLs and robots.txt sitemap declaration
+- /admin and /portal excluded from crawling; noindex metadata added
+- Local Open Graph image hosted by the site
+- Eight crawlable local service landing pages with unique title, description, H1, useful service content and Service JSON-LD
+- Service-page internal links from /services
+- Sitemap entries for all new landing pages
+
+After copying this patch:
+1. npm.cmd run build
+2. npm.cmd run dev
+3. Test /sitemap.xml, /robots.txt and the new service URLs
+4. Deploy with git push
+5. Add https://www.ottawamultiservicesgroup.com/sitemap.xml to Google Search Console and Bing Webmaster Tools.
+
+New SEO URLs:
+/house-cleaning-ottawa
+/commercial-cleaning-ottawa
+/landscaping-ottawa
+/snow-removal-ottawa
+/mobile-car-detailing-ottawa
+/mobile-tire-change-ottawa
+/moving-services-ottawa
+/handyman-ottawa

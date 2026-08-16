@@ -13,14 +13,22 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BlogRouteImport } from './routes/blog'
+import { Route as CommercialCleaningOttawaRouteImport } from './routes/commercial-cleaning-ottawa'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as HandymanOttawaRouteImport } from './routes/handyman-ottawa'
+import { Route as HouseCleaningOttawaRouteImport } from './routes/house-cleaning-ottawa'
+import { Route as LandscapingOttawaRouteImport } from './routes/landscaping-ottawa'
+import { Route as MobileCarDetailingOttawaRouteImport } from './routes/mobile-car-detailing-ottawa'
+import { Route as MobileTireChangeOttawaRouteImport } from './routes/mobile-tire-change-ottawa'
+import { Route as MovingServicesOttawaRouteImport } from './routes/moving-services-ottawa'
 import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SnowRemovalOttawaRouteImport } from './routes/snow-removal-ottawa'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
@@ -67,6 +75,12 @@ const BlogRoute = BlogRouteImport.update({
   path: '/blog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommercialCleaningOttawaRoute =
+  CommercialCleaningOttawaRouteImport.update({
+    id: '/commercial-cleaning-ottawa',
+    path: '/commercial-cleaning-ottawa',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -75,6 +89,37 @@ const ContactRoute = ContactRouteImport.update({
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HandymanOttawaRoute = HandymanOttawaRouteImport.update({
+  id: '/handyman-ottawa',
+  path: '/handyman-ottawa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HouseCleaningOttawaRoute = HouseCleaningOttawaRouteImport.update({
+  id: '/house-cleaning-ottawa',
+  path: '/house-cleaning-ottawa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LandscapingOttawaRoute = LandscapingOttawaRouteImport.update({
+  id: '/landscaping-ottawa',
+  path: '/landscaping-ottawa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MobileCarDetailingOttawaRoute =
+  MobileCarDetailingOttawaRouteImport.update({
+    id: '/mobile-car-detailing-ottawa',
+    path: '/mobile-car-detailing-ottawa',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const MobileTireChangeOttawaRoute = MobileTireChangeOttawaRouteImport.update({
+  id: '/mobile-tire-change-ottawa',
+  path: '/mobile-tire-change-ottawa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MovingServicesOttawaRoute = MovingServicesOttawaRouteImport.update({
+  id: '/moving-services-ottawa',
+  path: '/moving-services-ottawa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PartnersRoute = PartnersRouteImport.update({
@@ -105,6 +150,11 @@ const ServicesRoute = ServicesRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SnowRemovalOttawaRoute = SnowRemovalOttawaRouteImport.update({
+  id: '/snow-removal-ottawa',
+  path: '/snow-removal-ottawa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -240,14 +290,22 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRoute
+  '/commercial-cleaning-ottawa': typeof CommercialCleaningOttawaRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/handyman-ottawa': typeof HandymanOttawaRoute
+  '/house-cleaning-ottawa': typeof HouseCleaningOttawaRoute
+  '/landscaping-ottawa': typeof LandscapingOttawaRoute
+  '/mobile-car-detailing-ottawa': typeof MobileCarDetailingOttawaRoute
+  '/mobile-tire-change-ottawa': typeof MobileTireChangeOttawaRoute
+  '/moving-services-ottawa': typeof MovingServicesOttawaRoute
   '/partners': typeof PartnersRoute
   '/portal': typeof PortalRoute
   '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/snow-removal-ottawa': typeof SnowRemovalOttawaRoute
   '/terms': typeof TermsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
@@ -278,14 +336,22 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
+  '/commercial-cleaning-ottawa': typeof CommercialCleaningOttawaRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/handyman-ottawa': typeof HandymanOttawaRoute
+  '/house-cleaning-ottawa': typeof HouseCleaningOttawaRoute
+  '/landscaping-ottawa': typeof LandscapingOttawaRoute
+  '/mobile-car-detailing-ottawa': typeof MobileCarDetailingOttawaRoute
+  '/mobile-tire-change-ottawa': typeof MobileTireChangeOttawaRoute
+  '/moving-services-ottawa': typeof MovingServicesOttawaRoute
   '/partners': typeof PartnersRoute
   '/portal': typeof PortalRoute
   '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/snow-removal-ottawa': typeof SnowRemovalOttawaRoute
   '/terms': typeof TermsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
@@ -318,14 +384,22 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRoute
+  '/commercial-cleaning-ottawa': typeof CommercialCleaningOttawaRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/handyman-ottawa': typeof HandymanOttawaRoute
+  '/house-cleaning-ottawa': typeof HouseCleaningOttawaRoute
+  '/landscaping-ottawa': typeof LandscapingOttawaRoute
+  '/mobile-car-detailing-ottawa': typeof MobileCarDetailingOttawaRoute
+  '/mobile-tire-change-ottawa': typeof MobileTireChangeOttawaRoute
+  '/moving-services-ottawa': typeof MovingServicesOttawaRoute
   '/partners': typeof PartnersRoute
   '/portal': typeof PortalRoute
   '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/snow-removal-ottawa': typeof SnowRemovalOttawaRoute
   '/terms': typeof TermsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
@@ -359,14 +433,22 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/blog'
+    | '/commercial-cleaning-ottawa'
     | '/contact'
     | '/faq'
+    | '/handyman-ottawa'
+    | '/house-cleaning-ottawa'
+    | '/landscaping-ottawa'
+    | '/mobile-car-detailing-ottawa'
+    | '/mobile-tire-change-ottawa'
+    | '/moving-services-ottawa'
     | '/partners'
     | '/portal'
     | '/privacy'
     | '/quote'
     | '/services'
     | '/sitemap.xml'
+    | '/snow-removal-ottawa'
     | '/terms'
     | '/admin/inventory'
     | '/admin/login'
@@ -397,14 +479,22 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/blog'
+    | '/commercial-cleaning-ottawa'
     | '/contact'
     | '/faq'
+    | '/handyman-ottawa'
+    | '/house-cleaning-ottawa'
+    | '/landscaping-ottawa'
+    | '/mobile-car-detailing-ottawa'
+    | '/mobile-tire-change-ottawa'
+    | '/moving-services-ottawa'
     | '/partners'
     | '/portal'
     | '/privacy'
     | '/quote'
     | '/services'
     | '/sitemap.xml'
+    | '/snow-removal-ottawa'
     | '/terms'
     | '/admin/inventory'
     | '/admin/login'
@@ -436,14 +526,22 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/blog'
+    | '/commercial-cleaning-ottawa'
     | '/contact'
     | '/faq'
+    | '/handyman-ottawa'
+    | '/house-cleaning-ottawa'
+    | '/landscaping-ottawa'
+    | '/mobile-car-detailing-ottawa'
+    | '/mobile-tire-change-ottawa'
+    | '/moving-services-ottawa'
     | '/partners'
     | '/portal'
     | '/privacy'
     | '/quote'
     | '/services'
     | '/sitemap.xml'
+    | '/snow-removal-ottawa'
     | '/terms'
     | '/admin/inventory'
     | '/admin/login'
@@ -476,14 +574,22 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   BlogRoute: typeof BlogRoute
+  CommercialCleaningOttawaRoute: typeof CommercialCleaningOttawaRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
+  HandymanOttawaRoute: typeof HandymanOttawaRoute
+  HouseCleaningOttawaRoute: typeof HouseCleaningOttawaRoute
+  LandscapingOttawaRoute: typeof LandscapingOttawaRoute
+  MobileCarDetailingOttawaRoute: typeof MobileCarDetailingOttawaRoute
+  MobileTireChangeOttawaRoute: typeof MobileTireChangeOttawaRoute
+  MovingServicesOttawaRoute: typeof MovingServicesOttawaRoute
   PartnersRoute: typeof PartnersRoute
   PortalRoute: typeof PortalRoute
   PrivacyRoute: typeof PrivacyRoute
   QuoteRoute: typeof QuoteRoute
   ServicesRoute: typeof ServicesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SnowRemovalOttawaRoute: typeof SnowRemovalOttawaRoute
   TermsRoute: typeof TermsRoute
 }
 
@@ -517,6 +623,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/commercial-cleaning-ottawa': {
+      id: '/commercial-cleaning-ottawa'
+      path: '/commercial-cleaning-ottawa'
+      fullPath: '/commercial-cleaning-ottawa'
+      preLoaderRoute: typeof CommercialCleaningOttawaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -529,6 +642,48 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/handyman-ottawa': {
+      id: '/handyman-ottawa'
+      path: '/handyman-ottawa'
+      fullPath: '/handyman-ottawa'
+      preLoaderRoute: typeof HandymanOttawaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/house-cleaning-ottawa': {
+      id: '/house-cleaning-ottawa'
+      path: '/house-cleaning-ottawa'
+      fullPath: '/house-cleaning-ottawa'
+      preLoaderRoute: typeof HouseCleaningOttawaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/landscaping-ottawa': {
+      id: '/landscaping-ottawa'
+      path: '/landscaping-ottawa'
+      fullPath: '/landscaping-ottawa'
+      preLoaderRoute: typeof LandscapingOttawaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mobile-car-detailing-ottawa': {
+      id: '/mobile-car-detailing-ottawa'
+      path: '/mobile-car-detailing-ottawa'
+      fullPath: '/mobile-car-detailing-ottawa'
+      preLoaderRoute: typeof MobileCarDetailingOttawaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mobile-tire-change-ottawa': {
+      id: '/mobile-tire-change-ottawa'
+      path: '/mobile-tire-change-ottawa'
+      fullPath: '/mobile-tire-change-ottawa'
+      preLoaderRoute: typeof MobileTireChangeOttawaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/moving-services-ottawa': {
+      id: '/moving-services-ottawa'
+      path: '/moving-services-ottawa'
+      fullPath: '/moving-services-ottawa'
+      preLoaderRoute: typeof MovingServicesOttawaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/partners': {
@@ -571,6 +726,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/snow-removal-ottawa': {
+      id: '/snow-removal-ottawa'
+      path: '/snow-removal-ottawa'
+      fullPath: '/snow-removal-ottawa'
+      preLoaderRoute: typeof SnowRemovalOttawaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -812,14 +974,22 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   BlogRoute: BlogRoute,
+  CommercialCleaningOttawaRoute: CommercialCleaningOttawaRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
+  HandymanOttawaRoute: HandymanOttawaRoute,
+  HouseCleaningOttawaRoute: HouseCleaningOttawaRoute,
+  LandscapingOttawaRoute: LandscapingOttawaRoute,
+  MobileCarDetailingOttawaRoute: MobileCarDetailingOttawaRoute,
+  MobileTireChangeOttawaRoute: MobileTireChangeOttawaRoute,
+  MovingServicesOttawaRoute: MovingServicesOttawaRoute,
   PartnersRoute: PartnersRoute,
   PortalRoute: PortalRoute,
   PrivacyRoute: PrivacyRoute,
   QuoteRoute: QuoteRoute,
   ServicesRoute: ServicesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SnowRemovalOttawaRoute: SnowRemovalOttawaRoute,
   TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport

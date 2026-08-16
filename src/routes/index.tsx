@@ -41,9 +41,9 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Request a clear quote for cleaning, moving, landscaping, snow removal, mobile detailing and property services across Ottawa and Gatineau." },
       { property: "og:title", content: "Ottawa Multiservices Group Inc. | Home & Property Services" },
       { property: "og:description", content: "One trusted team for home and property services across Ottawa and Gatineau." },
-      { property: "og:url", content: "/" },
+      { property: "og:url", content: "https://www.ottawamultiservicesgroup.com/" },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [{ rel: "canonical", href: "https://www.ottawamultiservicesgroup.com/" }],
     scripts: [{
       type: "application/ld+json",
       children: JSON.stringify({

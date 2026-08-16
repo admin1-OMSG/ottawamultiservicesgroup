@@ -6,7 +6,7 @@ import { sendCrmEmail } from "@/lib/email-notifications"
 import { formatCad, formatDate } from "@/features/admin/formatters"
 import { LanguageSwitcher, useLanguage } from "@/lib/language"
 
-export const Route = createFileRoute("/portal")({ component: CustomerPortal })
+export const Route = createFileRoute("/portal")({ head: () => ({ meta: [{ title: "Customer Portal | Ottawa Multiservices Group" }, { name: "robots", content: "noindex, nofollow, noarchive" }] }), component: CustomerPortal })
 
 type Customer = { id: string; first_name: string; last_name: string | null; email: string; phone: string | null; address_line: string | null; city: string | null; province: string | null; postal_code: string | null; preferred_language?: "en" | "fr" | null }
 type Estimate = { id: string; estimate_number: string; title: string | null; status: string; valid_until: string | null; total: number; created_at: string; estimated_duration_minutes: number | null; crew_size: number }

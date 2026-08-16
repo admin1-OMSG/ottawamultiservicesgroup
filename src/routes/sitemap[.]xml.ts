@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 
-const BASE_URL = "";
+const BASE_URL = "https://www.ottawamultiservicesgroup.com";
 
 interface SitemapEntry { path: string; changefreq?: string; priority?: string; }
 
@@ -12,10 +12,17 @@ export const Route = createFileRoute("/sitemap.xml")({
         const entries: SitemapEntry[] = [
           { path: "/",         changefreq: "weekly",  priority: "1.0" },
           { path: "/services", changefreq: "monthly", priority: "0.9" },
+          { path: "/house-cleaning-ottawa", changefreq: "monthly", priority: "0.9" },
+          { path: "/commercial-cleaning-ottawa", changefreq: "monthly", priority: "0.9" },
+          { path: "/landscaping-ottawa", changefreq: "monthly", priority: "0.9" },
+          { path: "/snow-removal-ottawa", changefreq: "monthly", priority: "0.9" },
+          { path: "/mobile-car-detailing-ottawa", changefreq: "monthly", priority: "0.9" },
+          { path: "/mobile-tire-change-ottawa", changefreq: "monthly", priority: "0.9" },
+          { path: "/moving-services-ottawa", changefreq: "monthly", priority: "0.9" },
+          { path: "/handyman-ottawa", changefreq: "monthly", priority: "0.9" },
           { path: "/about",    changefreq: "monthly", priority: "0.7" },
           { path: "/partners", changefreq: "monthly", priority: "0.8" },
           { path: "/quote",    changefreq: "monthly", priority: "0.9" },
-          { path: "/portal",   changefreq: "yearly",  priority: "0.4" },
           { path: "/contact",  changefreq: "yearly",  priority: "0.6" },
           { path: "/faq",      changefreq: "monthly", priority: "0.6" },
           { path: "/blog",     changefreq: "weekly",  priority: "0.7" },

@@ -6,6 +6,7 @@ import {
 import { AdminLayout } from "../components/admin/AdminLayout"
 
 export const Route = createFileRoute("/admin")({
+  head: () => ({ meta: [{ name: "robots", content: "noindex, nofollow, noarchive" }] }),
   component: AdminRouteLayout,
 })
 
