@@ -1,0 +1,23 @@
+Ottawa Multiservices Group CRM v1.8.5
+Partner Attachments RLS Fix
+
+Problem fixed:
+Public partner/subcontracting applications could be saved, but attachment upload failed with:
+  StorageApiError: new row violates row-level security policy
+
+Cause:
+The public storage/metadata policies checked partner_applications directly. Because that table is protected by RLS, the EXISTS check could fail for anonymous visitors.
+
+Fix:
+- Adds a narrowly-scoped SECURITY DEFINER helper that only answers whether a partner application id exists.
+- Uses it in the public metadata insert policy.
+- Uses it in the partner-documents storage upload policy.
+- Does not expose partner application content to the public.
+
+Install:
+1. Copy this patch into the project root.
+2. Run: npx supabase db push
+3. Accept migration 202608160003_crm_v185_partner_attachments_rls_fix.sql
+4. Test a partner application with an attachment.
+
+No frontend code change and no Edge Function redeploy are required.

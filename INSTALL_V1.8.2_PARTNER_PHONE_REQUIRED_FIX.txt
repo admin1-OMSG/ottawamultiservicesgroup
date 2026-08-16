@@ -1,0 +1,18 @@
+Ottawa Multiservices Group CRM v1.8.2 — Partner Phone Required Fix
+
+Problem
+The public partner/subcontracting form allowed Phone to be empty, while public.partner_applications.phone is NOT NULL. Supabase therefore returned PostgreSQL error 23502 and rejected the application.
+
+Fix
+- Phone is now required in both partner application modes.
+- Client-side validation stops submission before Supabase if phone is empty.
+- Validation message supports English and French.
+- No database migration is required.
+- No Edge Function redeployment is required for this specific fix.
+
+Test
+1. npm.cmd run build
+2. npm.cmd run dev
+3. Submit a Service Partner application with a phone number.
+4. Submit a Subcontracting Opportunity with a phone number.
+5. Confirm the application appears in Admin > Partners.

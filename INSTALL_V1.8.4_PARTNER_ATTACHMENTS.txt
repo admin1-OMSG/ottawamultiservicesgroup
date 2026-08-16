@@ -1,0 +1,21 @@
+Ottawa Multiservices Group CRM v1.8.4 - Partner Attachments
+
+1. Copy the patch files into the project root.
+2. Apply the Supabase migration:
+   npx supabase db push
+3. Build:
+   npm.cmd run build
+4. Test locally:
+   npm.cmd run dev
+
+What is added:
+- Up to 8 attachments per partner/subcontracting application.
+- 10 MB maximum per file.
+- PDF, Word, Excel, JPG/PNG/WEBP and ICS calendar files.
+- Categories: CV/resume, project details, images, schedule/calendar, certificates/insurance/licence, other.
+- Private Supabase Storage bucket: partner-documents.
+- Attachment metadata table with RLS.
+- Admin can open attachments through short-lived signed URLs.
+- Processed applications remain in Application history so their documents are not lost after approval/contact/closure.
+
+No Edge Function deployment is required.

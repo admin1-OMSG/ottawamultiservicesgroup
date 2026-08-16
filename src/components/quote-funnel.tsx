@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { sendCrmEmail } from "@/lib/email-notifications";
 import { useLanguage } from "@/lib/language";
+import { EmailVerification } from "@/components/email-verification";
 
 
 type ServiceKey =
@@ -349,6 +350,8 @@ function ContactForm({
   const { language } = useLanguage();
   const [pending, setPending] = useState(false);
   const [photos, setPhotos] = useState<File[]>([]);
+  const [emailValue, setEmailValue] = useState("");
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
 
   return (
     <form
@@ -371,6 +374,10 @@ function ContactForm({
           toast.error("Please complete all required fields.");
           return;
         }
+        if (!verificationToken || email.toLowerCase() !== emailValue.trim().toLowerCase()) {
+          toast.error(language === "fr" ? "Veuillez vérifier votre adresse courriel avant d’envoyer la demande." : "Please verify your email address before submitting.");
+          return;
+        }
 
         const nameParts = fullName.split(/\s+/);
         const firstName = nameParts[0];
@@ -384,13 +391,13 @@ function ContactForm({
 
         try {
           const requestId = crypto.randomUUID();
-          const { error } = await supabase
-            .from("service_requests")
-            .insert({
+          const { error } = await supabase.rpc("submit_verified_quote_request", {
+            p_email: email,
+            p_token: verificationToken,
+            p_payload: {
               id: requestId,
               first_name: firstName,
               last_name: lastName,
-              email,
               phone: phone || null,
               address_line: address,
               province: "Ontario",
@@ -402,9 +409,8 @@ function ContactForm({
                 preferredLanguage: language,
               },
               preferred_language: language,
-              status: "new",
-              source: "website",
-            });
+            },
+          });
 
           if (error) {
             console.error("Supabase service request error:", error);
@@ -435,6 +441,8 @@ function ContactForm({
           }
 
           form.reset();
+          setEmailValue("");
+          setVerificationToken(null);
           onSubmitted();
         } catch (error) {
           console.error("Unexpected service request error:", error);
@@ -474,6 +482,8 @@ function ContactForm({
             placeholder="jane@example.com"
             required
             maxLength={120}
+            value={emailValue}
+            onChange={(e) => { setEmailValue(e.target.value); setVerificationToken(null); }}
           />
         </Field>
 
@@ -496,6 +506,8 @@ function ContactForm({
           />
         </Field>
       </div>
+
+      <EmailVerification email={emailValue} purpose="quote" language={language} token={verificationToken} onVerified={setVerificationToken} />
 
       <Field label="Preferred Contact Method">
         <RadioGroup
@@ -571,6 +583,8 @@ const PARTNER_SERVICES = [
 export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApplicationMode; onSubmitted: () => void }) {
   const { language } = useLanguage();
   const [pending, setPending] = useState(false);
+  const [emailValue, setEmailValue] = useState("");
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
 
   return (
     <form
@@ -592,8 +606,12 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
         const details = String(data.get("details") ?? "").trim();
         const services = data.getAll("services").map(String).filter(Boolean);
 
-        if (!fullName || !email) {
-          toast.error("Please provide your contact name and email.");
+        if (!fullName || !email || !phone) {
+          toast.error(language === "fr" ? "Veuillez fournir votre nom, courriel et téléphone." : "Please provide your contact name, email and phone.");
+          return;
+        }
+        if (!verificationToken || email.toLowerCase() !== emailValue.trim().toLowerCase()) {
+          toast.error(language === "fr" ? "Veuillez vérifier votre adresse courriel avant d’envoyer la demande." : "Please verify your email address before submitting.");
           return;
         }
         if (services.length === 0) {
@@ -610,16 +628,17 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
           // Generate the UUID in the browser so the public form does not need
           // SELECT permission on partner_applications just to retrieve the new id.
           const applicationId = crypto.randomUUID();
-          const { error } = await supabase
-            .from("partner_applications")
-            .insert({
+          const purpose = mode === "service_provider" ? "partner_service_provider" : "partner_subcontracting";
+          const { error } = await supabase.rpc("submit_verified_partner_application", {
+            p_email: email,
+            p_purpose: purpose,
+            p_token: verificationToken,
+            p_payload: {
               id: applicationId,
-              application_type: mode,
               applicant_type: mode === "service_provider" ? (applicantType || "self_employed") : "business_client",
               contact_first_name: firstName,
               contact_last_name: lastName,
               business_name: businessName || fullName,
-              email,
               phone: phone || null,
               service_areas: services,
               availability: details || null,
@@ -631,7 +650,8 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
               desired_rate: desiredRateRaw ? Number(desiredRateRaw) : null,
               estimated_contract_value: contractValueRaw ? Number(contractValueRaw) : null,
               details: details || null,
-            });
+            },
+          });
 
           if (error) {
             console.error("Supabase partner application error:", error);
@@ -641,6 +661,8 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
           const result = await sendCrmEmail({ type: "partner_application_received", applicationId });
           if (!result.ok) console.warn("Partner application email notification failed:", result.error);
           form.reset();
+          setEmailValue("");
+          setVerificationToken(null);
           onSubmitted();
         } catch (error) {
           console.error("Unexpected partner application error:", error);
@@ -654,8 +676,8 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Contact Name" required><Input name="name" required maxLength={100} /></Field>
         <Field label="Business / Organization"><Input name="business_name" maxLength={120} /></Field>
-        <Field label="Email" required><Input type="email" name="email" required maxLength={120} /></Field>
-        <Field label="Phone"><Input type="tel" name="phone" maxLength={30} /></Field>
+        <Field label="Email" required><Input type="email" name="email" required maxLength={120} value={emailValue} onChange={(e) => { setEmailValue(e.target.value); setVerificationToken(null); }} /></Field>
+        <Field label="Phone" required><Input type="tel" name="phone" required maxLength={30} /></Field>
 
         {mode === "service_provider" ? (
           <>
@@ -688,6 +710,8 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
           </>
         )}
       </div>
+
+      <EmailVerification email={emailValue} purpose={mode === "service_provider" ? "partner_service_provider" : "partner_subcontracting"} language={language} token={verificationToken} onVerified={setVerificationToken} />
 
       <Field label={mode === "service_provider" ? "Services you can provide" : "Services you need"} required>
         <div className="grid gap-2 sm:grid-cols-2">

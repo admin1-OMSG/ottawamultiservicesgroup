@@ -1,0 +1,26 @@
+Ottawa Multiservices CRM v1.9 - Verified Email Submissions
+
+1. Copy this patch into the project root.
+2. Apply database migration:
+   npx supabase db push
+3. Deploy both public verification Edge Functions:
+   npx supabase functions deploy request-email-verification --no-verify-jwt
+   npx supabase functions deploy verify-email-code --no-verify-jwt
+4. Build/test locally:
+   npm.cmd run build
+   npm.cmd run dev
+
+The existing RESEND_API_KEY and EMAIL_FROM secrets used by send-crm-email are reused.
+Optional: set a dedicated secret:
+   npx supabase secrets set EMAIL_VERIFICATION_SECRET="a-long-random-secret"
+If omitted, the function safely falls back to SUPABASE_SERVICE_ROLE_KEY as the hashing secret.
+
+Flow:
+- Quote requests require email verification.
+- Service-provider/job-seeker partner applications require email verification.
+- Subcontracting opportunities require email verification.
+- Code expires after 10 minutes.
+- Maximum 3 code requests per email per 15 minutes.
+- Maximum 5 incorrect code attempts.
+- Successful verification token expires after 30 minutes and is consumed on submission.
+- Database RPCs enforce verification server-side; bypassing the browser UI cannot create an anonymous submission.

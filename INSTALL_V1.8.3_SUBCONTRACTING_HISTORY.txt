@@ -1,0 +1,15 @@
+CRM v1.8.3 - Subcontracting opportunity history
+
+Fixes the admin Partners workflow so subcontracting opportunities do not disappear after Mark contacted / Close.
+
+- Service partner applications remain in the normal approval queue.
+- Subcontracting opportunities have their own persistent section.
+- New, Contacted, and Closed opportunities remain visible for history and follow-up.
+- Existing database values are reused: review_status=approved displays as Contacted; review_status=rejected displays as Closed.
+- No database migration required.
+- No Edge Function deployment required.
+
+Install:
+1. Copy this patch into the project root and replace files.
+2. npm.cmd run build
+3. npm.cmd run dev
