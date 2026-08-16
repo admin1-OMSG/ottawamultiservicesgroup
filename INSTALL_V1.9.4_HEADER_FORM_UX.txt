@@ -1,0 +1,14 @@
+OMSG v1.9.4 - Header & Form UX
+
+Changes:
+- Better balanced and more readable public navigation header.
+- Quote page automatically positions the visitor at the quote form.
+- Partner CTAs scroll to the selected form and focus its first field.
+- Contact page opens at the contact form and focuses the first field.
+- Sticky-header offsets prevent fields from being hidden behind navigation.
+
+No Supabase migration or Edge Function deployment is required.
+
+Test:
+  npm.cmd run build
+  npm.cmd run dev

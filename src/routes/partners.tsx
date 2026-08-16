@@ -28,7 +28,16 @@ function PartnersPage() {
 
   const openForm = (next: PartnerApplicationMode) => {
     setMode(next);
-    window.setTimeout(() => document.getElementById("partner-form")?.scrollIntoView({ behavior: "smooth", block: "start" }), 20);
+    window.setTimeout(() => {
+      const section = document.getElementById("partner-form");
+      section?.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.setTimeout(() => {
+        const firstField = section?.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+          'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])'
+        );
+        firstField?.focus({ preventScroll: true });
+      }, 450);
+    }, 40);
   };
 
   return (
@@ -79,7 +88,7 @@ function PartnersPage() {
         </div>
       </section>
 
-      <section id="partner-form" className="border-y border-border bg-secondary/40 py-16 scroll-mt-28">
+      <section id="partner-form" className="scroll-mt-[88px] border-y border-border bg-secondary/40 py-10 sm:py-12">
         <div className="mx-auto max-w-4xl px-6">
           {!mode ? (
             <div className="text-center">

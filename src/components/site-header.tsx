@@ -16,7 +16,7 @@ const NAV = [
 
 export function BrandMark({ light = false }: { light?: boolean }) {
   return (
-    <div className={`grid h-16 w-16 shrink-0 sm:h-20 sm:w-20 place-items-center overflow-hidden rounded-full border shadow-sm ${light ? "border-white/30 bg-white" : "border-border bg-white"}`}>
+    <div className={`grid h-14 w-14 shrink-0 sm:h-16 sm:w-16 place-items-center overflow-hidden rounded-full border shadow-sm ${light ? "border-white/30 bg-white" : "border-border bg-white"}`}>
       <img src={brandLogo} alt="Ottawa Multiservices Group logo" className="h-full w-full object-contain p-0.5" />
     </div>
   );
@@ -34,7 +34,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
 
   return (
     <header className={wrapper}>
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[76px] max-w-[1480px] items-center justify-between gap-4 px-4 py-2 sm:px-6 lg:px-8">
         <Link to="/" className={`flex min-w-0 items-center gap-3 ${brandColor}`} aria-label="Ottawa Multiservices Group home">
           <BrandMark light={isTransparent} />
           <div className="min-w-0 leading-tight">
@@ -43,12 +43,12 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm lg:flex xl:gap-7">
+        <nav className="hidden items-center gap-4 text-[13px] font-medium lg:flex xl:gap-5 2xl:text-sm">
           {NAV.map((n) => (
             <Link
               key={n.to}
               to={n.to}
-              className={`${linkClass} transition-colors`}
+              className={`${linkClass} whitespace-nowrap rounded-lg px-1.5 py-2 transition-colors hover:bg-secondary/70`}
               activeProps={{ className: "font-semibold text-accent" }}
               activeOptions={{ exact: n.to === "/" }}
             >
@@ -57,15 +57,15 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <div className="hidden lg:block"><LanguageSwitcher compact /></div>
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="hidden xl:block"><LanguageSwitcher compact /></div>
           <a
             href="tel:+16134076699"
-            className="hidden items-center gap-1.5 whitespace-nowrap text-sm font-semibold text-navy xl:inline-flex"
+            className="hidden items-center gap-1.5 whitespace-nowrap text-[13px] font-semibold text-navy 2xl:inline-flex"
           >
             <Phone className="h-4 w-4" /> (613) 407-6699
           </a>
-          <Link to="/partners" className="hidden xl:inline-flex">
+          <Link to="/partners" className="hidden 2xl:inline-flex">
             <Button variant="outline" className="h-10 rounded-xl border-accent/40 px-4 font-semibold text-accent hover:bg-accent/5">Become a Partner</Button>
           </Link>
           <Link to="/quote" className="hidden sm:inline-flex">

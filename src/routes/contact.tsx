@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PageHero } from "@/components/page-hero";
@@ -28,6 +28,14 @@ export const Route = createFileRoute("/contact")({
 
 function ContactPage() {
   const [pending, setPending] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const form = document.getElementById("contact-form-start");
+      form?.scrollIntoView({ behavior: "auto", block: "start" });
+      form?.querySelector<HTMLInputElement>('input[name="name"]')?.focus({ preventScroll: true });
+    }, 60);
+    return () => window.clearTimeout(timer);
+  }, []);
   return (
     <div className="min-h-screen bg-background">
       <Toaster richColors position="top-center" />
@@ -53,7 +61,7 @@ function ContactPage() {
             ))}
           </div>
 
-          <Card className="p-6 md:p-8 border-border/60 shadow-soft">
+          <Card id="contact-form-start" className="scroll-mt-[88px] p-6 md:p-8 border-border/60 shadow-soft">
             <h2 className="text-2xl font-bold text-navy">Send us a message</h2>
             <form
               onSubmit={(e) => {
