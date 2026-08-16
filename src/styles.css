@@ -34,36 +34,36 @@
   --color-sand: var(--sand);
   --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --shadow-soft: 0 10px 30px -12px color-mix(in oklab, var(--navy) 25%, transparent);
-  --shadow-lift: 0 20px 50px -20px color-mix(in oklab, var(--navy) 35%, transparent);
-  --gradient-hero: linear-gradient(120deg, color-mix(in oklab, var(--navy) 92%, black) 0%, color-mix(in oklab, var(--navy) 70%, transparent) 60%, transparent 100%);
+  --shadow-soft: 0 12px 34px -18px color-mix(in oklab, var(--primary) 30%, transparent);
+  --shadow-lift: 0 22px 55px -24px color-mix(in oklab, var(--primary) 38%, transparent);
+  --gradient-hero: linear-gradient(120deg, rgba(244,255,253,.97) 0%, rgba(225,249,246,.91) 46%, rgba(225,249,246,.28) 74%, transparent 100%);
 }
 
-:root {
-  --radius: 0.75rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.20 0.03 250);
+ :root {
+  --radius: 0.9rem;
+  --background: oklch(0.985 0.012 185);
+  --foreground: oklch(0.24 0.035 200);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.20 0.03 250);
+  --card-foreground: oklch(0.24 0.035 200);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.20 0.03 250);
-  /* Ottawa MSG brand: Navy primary, Orange accent */
-  --navy: oklch(0.26 0.07 260);
-  --navy-foreground: oklch(0.98 0.005 250);
-  --primary: oklch(0.26 0.07 260);
-  --primary-foreground: oklch(0.98 0.005 250);
-  --secondary: oklch(0.96 0.01 250);
-  --secondary-foreground: oklch(0.26 0.07 260);
-  --muted: oklch(0.965 0.008 250);
-  --muted-foreground: oklch(0.48 0.02 255);
-  --accent: oklch(0.72 0.18 55); /* warm orange */
-  --accent-foreground: oklch(0.15 0.02 260);
-  --sand: oklch(0.97 0.015 80);
+  --popover-foreground: oklch(0.24 0.035 200);
+  /* Light cyan-green theme */
+  --navy: oklch(0.43 0.085 195);
+  --navy-foreground: oklch(0.99 0.006 180);
+  --primary: oklch(0.62 0.135 185);
+  --primary-foreground: oklch(0.99 0.004 180);
+  --secondary: oklch(0.955 0.028 185);
+  --secondary-foreground: oklch(0.32 0.055 195);
+  --muted: oklch(0.965 0.018 185);
+  --muted-foreground: oklch(0.48 0.035 195);
+  --accent: oklch(0.72 0.14 175);
+  --accent-foreground: oklch(0.18 0.035 195);
+  --sand: oklch(0.975 0.024 165);
   --destructive: oklch(0.60 0.22 27);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.92 0.01 250);
-  --input: oklch(0.92 0.01 250);
-  --ring: oklch(0.72 0.18 55);
+  --border: oklch(0.90 0.025 185);
+  --input: oklch(0.91 0.024 185);
+  --ring: oklch(0.68 0.13 180);
 }
 
 .dark {
@@ -113,3 +113,18 @@
 
 /* CRM v1.2 settings form */
 .input { @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20; }
+
+
+/* v1.7 light cyan-green theme: normalize legacy blue/emerald utilities across public, portal and admin pages */
+@layer utilities {
+  .bg-blue-700, .bg-blue-600 { background-color: var(--primary) !important; }
+  .bg-blue-50 { background-color: color-mix(in oklab, var(--secondary) 88%, white) !important; }
+  .text-blue-900, .text-blue-800, .text-blue-700, .text-blue-600 { color: var(--navy) !important; }
+  .border-blue-400, .border-blue-300, .border-blue-200 { border-color: color-mix(in oklab, var(--primary) 34%, white) !important; }
+  .bg-emerald-700, .bg-emerald-600, .bg-emerald-500 { background-color: var(--primary) !important; }
+  .bg-emerald-100, .bg-emerald-50 { background-color: color-mix(in oklab, var(--secondary) 85%, white) !important; }
+  .text-emerald-800, .text-emerald-700, .text-emerald-600, .text-emerald-500, .text-emerald-400 { color: var(--navy) !important; }
+  .border-emerald-300, .border-emerald-200 { border-color: color-mix(in oklab, var(--primary) 34%, white) !important; }
+}
+
+body { background-image: linear-gradient(180deg, rgba(239,253,250,.55), rgba(255,255,255,0) 420px); }

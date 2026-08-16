@@ -26,11 +26,11 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
   const [open, setOpen] = useState(false);
   const isTransparent = variant === "transparent";
   const wrapper = isTransparent
-    ? "absolute inset-x-0 top-0 z-40 border-b border-white/10 bg-navy/20 backdrop-blur-sm"
-    : "sticky top-0 z-40 border-b border-border bg-background/95 shadow-[0_1px_0_rgba(0,0,0,.03)] backdrop-blur";
-  const linkClass = isTransparent ? "text-white/90 hover:text-white" : "text-foreground/75 hover:text-navy";
-  const brandColor = isTransparent ? "text-white" : "text-navy";
-  const subColor = isTransparent ? "text-white/65" : "text-muted-foreground";
+    ? "absolute inset-x-0 top-0 z-40 border-b border-white/60 bg-white/88 shadow-sm backdrop-blur-xl"
+    : "sticky top-0 z-40 border-b border-border/80 bg-white/94 shadow-sm backdrop-blur-xl";
+  const linkClass = "text-foreground/75 hover:text-primary";
+  const brandColor = "text-navy";
+  const subColor = "text-muted-foreground";
 
   return (
     <header className={wrapper}>
@@ -61,12 +61,12 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
           <div className="hidden lg:block"><LanguageSwitcher compact /></div>
           <a
             href="tel:+16134076699"
-            className={`hidden items-center gap-1.5 whitespace-nowrap text-sm font-semibold xl:inline-flex ${isTransparent ? "text-white" : "text-navy"}`}
+            className="hidden items-center gap-1.5 whitespace-nowrap text-sm font-semibold text-navy xl:inline-flex"
           >
             <Phone className="h-4 w-4" /> (613) 407-6699
           </a>
           <Link to="/quote" className="hidden sm:inline-flex">
-            <Button className="h-10 rounded-xl bg-accent px-5 font-semibold text-accent-foreground shadow-sm hover:brightness-105">Free Quote</Button>
+            <Button className="h-10 rounded-xl bg-gradient-to-r from-primary to-accent px-5 font-semibold text-white shadow-sm hover:brightness-105">Free Quote</Button>
           </Link>
           <Button
             variant="ghost"
@@ -74,7 +74,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             onClick={() => setOpen((o) => !o)}
-            className={`lg:hidden ${isTransparent ? "text-white hover:bg-white/10 hover:text-white" : ""}`}
+            className="lg:hidden text-navy hover:bg-secondary"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>

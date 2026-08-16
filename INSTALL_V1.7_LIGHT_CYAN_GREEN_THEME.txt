@@ -1,0 +1,17 @@
+Ottawa Multiservices Group CRM v1.7 — Light Cyan-Green Theme
+
+Scope:
+- Public website (all shared public pages)
+- Home page hero and service sections
+- Customer portal
+- Admin CRM shell and all admin pages through shared theme variables
+- Header, footer, page heroes, buttons, cards, forms, status accents
+
+No database migration or Edge Function deployment is required.
+
+Install:
+1. Copy patch contents into the project root and replace files.
+2. Run: npm.cmd run build
+3. Run: npm.cmd run dev
+4. Check desktop, tablet and mobile.
+5. If approved: git add . && git commit -m "feat: apply light cyan green theme across all pages" && git push origin main

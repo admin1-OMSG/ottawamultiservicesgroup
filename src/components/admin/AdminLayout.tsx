@@ -10,7 +10,7 @@ export function AdminLayout({
   children,
 }: AdminLayoutProps) {
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50/80 via-slate-50 to-cyan-50/70">
       <div className="flex min-h-screen">
         <div className="hidden lg:block">
           <Sidebar />

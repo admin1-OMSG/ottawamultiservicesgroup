@@ -86,18 +86,18 @@ function HomePage() {
           fetchPriority="high"
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,22,52,.78)_0%,rgba(7,22,52,.68)_38%,rgba(7,22,52,.30)_68%,rgba(7,22,52,.08)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(248,255,254,.96)_0%,rgba(237,252,249,.90)_40%,rgba(229,249,246,.38)_70%,rgba(229,249,246,.08)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-background/20 to-transparent" />
 
         <div className="relative mx-auto flex min-h-[720px] max-w-7xl items-center px-4 pb-20 pt-28 sm:min-h-[760px] sm:px-6 sm:pt-32 lg:min-h-[780px] lg:px-8">
           <div className="max-w-3xl">
-            <Badge className="mb-5 border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white backdrop-blur-sm hover:bg-white/10 sm:text-[11px]">
+            <Badge className="mb-5 border border-teal-200 bg-white/75 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-teal-800 backdrop-blur-sm hover:bg-white/85 sm:text-[11px]">
               One Company. Multiple Solutions. All Seasons.
             </Badge>
-            <h1 className="font-display text-4xl font-extrabold leading-[1.02] text-white sm:text-5xl md:text-6xl lg:text-[68px]">
+            <h1 className="font-display text-4xl font-extrabold leading-[1.02] text-slate-900 sm:text-5xl md:text-6xl lg:text-[68px]">
               Everything You Need. <span className="text-accent">One Trusted Team.</span>
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/82 sm:text-lg md:text-xl">
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-700 sm:text-lg md:text-xl">
               Professional services for homes, businesses and vehicles across Ottawa & Gatineau.
             </p>
 
@@ -105,12 +105,12 @@ function HomePage() {
               <Button size="lg" onClick={scrollToFunnel} className="h-13 rounded-xl bg-accent px-6 text-base font-bold text-accent-foreground shadow-xl hover:brightness-105 sm:w-auto">
                 Get My Free Quote <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <a href="tel:+16134076699" className="inline-flex h-13 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 text-base font-semibold text-white backdrop-blur-sm transition hover:bg-white/18">
+              <a href="tel:+16134076699" className="inline-flex h-13 items-center justify-center gap-2 rounded-xl border border-teal-200 bg-white/80 px-6 text-base font-semibold text-teal-900 backdrop-blur-sm transition hover:bg-teal-50">
                 <Phone className="h-4 w-4" /> (613) 407-6699
               </a>
             </div>
 
-            <div className="mt-9 grid max-w-2xl gap-3 text-sm text-white/82 sm:grid-cols-3">
+            <div className="mt-9 grid max-w-2xl gap-3 text-sm text-slate-700 sm:grid-cols-3">
               <TrustPill icon={FileCheck2} text="Clear written quotes" />
               <TrustPill icon={CalendarCheck2} text="Online scheduling" />
               <TrustPill icon={Camera} text="Before & after photos" />
@@ -189,7 +189,7 @@ function HomePage() {
             </div>
           </div>
 
-          <Card className="overflow-hidden rounded-3xl border-border/60 bg-navy p-0 text-white shadow-lift">
+          <Card className="overflow-hidden rounded-3xl border-teal-100 bg-gradient-to-br from-teal-600 to-cyan-600 p-0 text-white shadow-lift">
             <div className="grid gap-px bg-white/10 sm:grid-cols-2">
               {[
                 { icon: Camera, number: "01", title: "Tell us what you need", body: "Choose your service, answer a few questions and add useful photos." },
@@ -197,7 +197,7 @@ function HomePage() {
                 { icon: CalendarCheck2, number: "03", title: "Choose your appointment", body: "Select an available time that works for you." },
                 { icon: UserRoundCheck, number: "04", title: "Follow everything online", body: "Access signed quotes, interventions, photos and invoices in your portal." },
               ].map((step) => (
-                <div key={step.number} className="bg-navy p-6 sm:p-7">
+                <div key={step.number} className="bg-white/8 p-6 sm:p-7">
                   <div className="flex items-center justify-between"><div className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-accent"><step.icon className="h-5 w-5" /></div><span className="font-display text-3xl font-extrabold text-white/12">{step.number}</span></div>
                   <h3 className="mt-6 font-display text-lg font-bold">{step.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-white/65">{step.body}</p>
@@ -227,13 +227,13 @@ function HomePage() {
               <h2 className="mt-2 font-display text-3xl font-bold text-navy">Serving Ottawa, Gatineau and surrounding communities</h2>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">Need to confirm that we serve your neighbourhood? Call or email us and we’ll let you know before you request a quote.</p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <a href="tel:+16134076699" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-navy px-5 text-sm font-semibold text-white hover:brightness-110"><Phone className="h-4 w-4" />(613) 407-6699</a>
+                <a href="tel:+16134076699" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-cyan-600 px-5 text-sm font-semibold text-white hover:brightness-110"><Phone className="h-4 w-4" />(613) 407-6699</a>
                 <a href="mailto:info@ottawamultiservicesgroup.com" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border px-5 text-sm font-semibold text-navy hover:bg-secondary"><Mail className="h-4 w-4" />Email us</a>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
               {["Ottawa", "Kanata", "Orleans", "Barrhaven", "Nepean", "Stittsville", "Gatineau", "Manotick", "Rockcliffe"].map((area) => (
-                <div key={area} className="flex items-center gap-2 rounded-xl bg-secondary/75 px-3 py-3 text-sm font-medium text-navy"><MapPin className="h-4 w-4 shrink-0 text-accent" />{area}</div>
+                <div key={area} className="flex items-center gap-2 rounded-xl bg-secondary/75 px-3 py-3 text-sm font-medium text-navy"><MapPin className="h-4 w-4 shrink-0 text-primary" />{area}</div>
               ))}
             </div>
           </div>
@@ -242,7 +242,7 @@ function HomePage() {
 
       <section className="py-14 sm:py-18 lg:py-20">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <div className="overflow-hidden rounded-3xl bg-navy p-7 text-white shadow-lift sm:p-10 md:flex md:items-center md:justify-between md:gap-10">
+          <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-teal-600 to-cyan-600 p-7 text-white shadow-lift sm:p-10 md:flex md:items-center md:justify-between md:gap-10">
             <div className="max-w-2xl">
               <Badge className="border border-white/15 bg-white/10 text-white hover:bg-white/10">Customer Portal</Badge>
               <h2 className="mt-4 font-display text-3xl font-bold">Your quotes, appointments and invoices — in one place</h2>
@@ -259,7 +259,7 @@ function HomePage() {
 }
 
 function TrustPill({ icon: Icon, text }: { icon: React.ElementType; text: string }) {
-  return <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/8 px-3.5 py-3 backdrop-blur-sm"><Icon className="h-4 w-4 shrink-0 text-accent" /><span>{text}</span></div>;
+  return <div className="flex items-center gap-2 rounded-xl border border-teal-200 bg-white/75 px-3.5 py-3 shadow-sm backdrop-blur-sm"><Icon className="h-4 w-4 shrink-0 text-primary" /><span>{text}</span></div>;
 }
 
 function SectionHeader({ eyebrow, title, align = "center" }: { eyebrow: string; title: string; align?: "left" | "center" }) {
