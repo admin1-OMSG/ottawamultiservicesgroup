@@ -1,0 +1,35 @@
+OMSG CRM v2.4 - Inventory Status & Capital Disposition
+
+This patch is based on project version 34 / Finance v2.3.
+
+WHAT IT ADDS
+- Consumables: Available / Not available.
+- Equipment: Available / Sold / Lost.
+- Sold/Lost equipment stays visible in Inventory with disposition date and note.
+- A "Value removed from capital" field is recorded when equipment is sold/lost.
+- Finance automatically creates a source-linked capital adjustment and subtracts it from Equipment / Capital.
+- Returning equipment to Available voids the automatic capital adjustment.
+- Stock in/out is disabled while equipment is marked Sold or Lost.
+- Reports uses net capital after dispositions.
+- Sidebar version updated to 2.4.
+
+INSTALL
+1. Extract this ZIP over the root of the existing project and allow replacement of the listed files.
+2. Run:
+   npx supabase db push
+3. Confirm that only this new migration is proposed:
+   202608170004_crm_v24_inventory_status_capital_disposition.sql
+4. Run:
+   npm.cmd run build
+   npm.cmd run dev
+5. Test locally before git push.
+
+TEST
+- Edit an equipment item with a known value, set it to Lost, enter a note and the value to remove.
+- Inventory must keep the item and show Lost + note.
+- Finance must show an automatic "inventory_disposition" capital adjustment.
+- Equipment / Capital must decrease by that value.
+- Change it back to Available: the automatic adjustment should be voided and capital restored.
+
+NOTE
+The asset purchase history is never deleted. The disposition is a separate audit-trail entry.

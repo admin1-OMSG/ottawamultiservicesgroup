@@ -1,0 +1,16 @@
+OMSG CRM v2.4.1 - Partial Equipment Disposition
+
+1. Copy this patch into the project root.
+2. Run: npx supabase db push
+   Expected migration: 202608170005_crm_v241_inventory_partial_disposition.sql
+3. Run: npm.cmd run build
+4. Run: npm.cmd run dev
+
+Test:
+- Equipment with quantity 2 and unit cost $300.
+- Click Dispose, choose Lost, quantity 1.
+- Inventory must become quantity 1 / active value $300.
+- Finance must add Capital Adjustment -$300.
+- If sold, optional sale proceeds are recorded separately as non-operating/other income.
+
+Do not git push until the test is confirmed.
