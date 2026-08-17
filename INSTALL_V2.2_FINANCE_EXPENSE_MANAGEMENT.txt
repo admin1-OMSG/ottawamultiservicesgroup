@@ -1,0 +1,23 @@
+OMSG CRM v2.2 - Finance & Expense Management
+
+Adds Admin > Finance with:
+- Operating revenue and operating expenses
+- Equipment/capital purchases separated from operations
+- Partner contributions and advances separated from revenue
+- Employee/contractor cost classification
+- Recurring subscriptions (domain, Supabase, Vercel, phone, advertising, etc.)
+- Tax/subtotal/total, payment method, paid-by and references
+- Test-data delete control
+
+Inventory already distinguishes consumable vs equipment; this remains the operational classification used for accounting integration.
+
+INSTALL
+1. Copy patch files over the project.
+2. Run: npx supabase db push
+3. Run: npm.cmd run build
+4. Run: npm.cmd run dev
+
+Migration: 202608170001_crm_v22_finance_management.sql
+
+IMPORTANT
+This is an operational finance register, not a replacement for professional accounting software or tax advice. Partner advances/contributions and capital assets are deliberately kept separate from operating revenue/expenses so your accountant can classify them correctly.

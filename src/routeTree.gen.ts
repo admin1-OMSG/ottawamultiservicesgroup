@@ -31,6 +31,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SnowRemovalOttawaRouteImport } from './routes/snow-removal-ottawa'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminFinanceRouteImport } from './routes/admin/finance'
 import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
@@ -165,6 +166,11 @@ const TermsRoute = TermsRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFinanceRoute = AdminFinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminInventoryRoute = AdminInventoryRouteImport.update({
@@ -307,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/snow-removal-ottawa': typeof SnowRemovalOttawaRoute
   '/terms': typeof TermsRoute
+  '/admin/finance': typeof AdminFinanceRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -353,6 +360,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/snow-removal-ottawa': typeof SnowRemovalOttawaRoute
   '/terms': typeof TermsRoute
+  '/admin/finance': typeof AdminFinanceRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -401,6 +409,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/snow-removal-ottawa': typeof SnowRemovalOttawaRoute
   '/terms': typeof TermsRoute
+  '/admin/finance': typeof AdminFinanceRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -450,6 +459,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/snow-removal-ottawa'
     | '/terms'
+    | '/admin/finance'
     | '/admin/inventory'
     | '/admin/login'
     | '/admin/reports'
@@ -496,6 +506,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/snow-removal-ottawa'
     | '/terms'
+    | '/admin/finance'
     | '/admin/inventory'
     | '/admin/login'
     | '/admin/reports'
@@ -543,6 +554,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/snow-removal-ottawa'
     | '/terms'
+    | '/admin/finance'
     | '/admin/inventory'
     | '/admin/login'
     | '/admin/reports'
@@ -749,6 +761,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/finance': {
+      id: '/admin/finance'
+      path: '/finance'
+      fullPath: '/admin/finance'
+      preLoaderRoute: typeof AdminFinanceRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/inventory': {
       id: '/admin/inventory'
       path: '/inventory'
@@ -914,6 +933,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminFinanceRoute: typeof AdminFinanceRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminReportsRoute: typeof AdminReportsRoute
@@ -941,6 +961,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminFinanceRoute: AdminFinanceRoute,
   AdminInventoryRoute: AdminInventoryRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminReportsRoute: AdminReportsRoute,
