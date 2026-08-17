@@ -34,6 +34,10 @@ type DashboardData = {
   inventoryItems: number
   lowStockItems: number
   inventoryValue: number
+  operatingRevenue: number
+  operatingExpenses: number
+  operatingResult: number
+  partnerDue: number
 }
 
 const initialDashboardData: DashboardData = {
@@ -48,6 +52,10 @@ const initialDashboardData: DashboardData = {
   inventoryItems: 0,
   lowStockItems: 0,
   inventoryValue: 0,
+  operatingRevenue: 0,
+  operatingExpenses: 0,
+  operatingResult: 0,
+  partnerDue: 0,
 }
 
 export const Route = createFileRoute("/admin/")({
@@ -178,18 +186,24 @@ function AdminDashboardPage() {
     }
 
     try {
-      const [applicationsResult, partnersResult, inventoryResult] = await Promise.all([
+      const [applicationsResult, partnersResult, inventoryResult, financeResult] = await Promise.all([
         supabase.from("partner_applications").select("application_type,review_status"),
         supabase.from("partners").select("status"),
         supabase.from("inventory_items").select("quantity,unit_cost,reorder_level,status"),
+        supabase.from("finance_transactions").select("direction,classification,category,total,paid_by,is_void").eq("is_void",false),
       ])
       if (applicationsResult.error) throw applicationsResult.error
       if (partnersResult.error) throw partnersResult.error
       if (inventoryResult.error) throw inventoryResult.error
+      if (financeResult.error) throw financeResult.error
 
       const applications = applicationsResult.data ?? []
       const partners = partnersResult.data ?? []
       const inventory = inventoryResult.data ?? []
+      const finance = financeResult.data ?? []
+      const operatingRevenue = finance.filter((x) => x.direction === "income").reduce((sum, x) => sum + Number(x.total || 0), 0)
+      const operatingExpenses = finance.filter((x) => x.direction === "expense" && ["operating_expense","employee_contractor"].includes(x.classification)).reduce((sum, x) => sum + Number(x.total || 0), 0)
+      const partnerDue = finance.filter((x) => x.direction === "expense" && ["Partner 1","Partner 2"].includes(x.paid_by ?? "")).reduce((sum, x) => sum + Number(x.total || 0), 0) + finance.filter((x) => x.direction === "funding" && x.category === "Partner advance").reduce((sum, x) => sum + Number(x.total || 0), 0) - finance.filter((x) => x.category === "Partner reimbursement").reduce((sum, x) => sum + Number(x.total || 0), 0)
       if (componentIsMounted) {
         setDashboardData((currentData) => ({
           ...currentData,
@@ -200,6 +214,10 @@ function AdminDashboardPage() {
           inventoryItems: inventory.filter((x) => x.status === "active").length,
           lowStockItems: inventory.filter((x) => x.status === "active" && Number(x.quantity) <= Number(x.reorder_level)).length,
           inventoryValue: inventory.reduce((sum, x) => sum + Number(x.quantity || 0) * Number(x.unit_cost || 0), 0),
+          operatingRevenue,
+          operatingExpenses,
+          operatingResult: operatingRevenue - operatingExpenses,
+          partnerDue: Math.max(0, partnerDue),
         }))
       }
     } catch (error) {
@@ -312,6 +330,8 @@ function AdminDashboardPage() {
         }}
       />
 
+      <section><h2 className="mb-3 text-lg font-bold text-slate-950">Financial snapshot</h2><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><MoneyOverview label="Operating revenue" value={dashboardData.operatingRevenue}/><MoneyOverview label="Operating expenses" value={dashboardData.operatingExpenses}/><MoneyOverview label="Operating result" value={dashboardData.operatingResult}/><MoneyOverview label="Due to partners" value={dashboardData.partnerDue}/></div></section>
+
       <section className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <RecentQuotes quotes={recentQuotes} />
@@ -379,3 +399,5 @@ function calculateActivePercentage(
 function OverviewMetric({icon,label,value,note}:{icon:React.ReactNode;label:string;value:number;note:string}) {
   return <div className="rounded-xl border border-slate-200 p-4"><div className="flex items-center gap-2 text-emerald-700">{icon}<p className="text-sm font-semibold text-slate-900">{label}</p></div><p className="mt-3 text-2xl font-bold text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-500">{note}</p></div>
 }
+
+function MoneyOverview({label,value}:{label:string;value:number}){return <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-sm font-medium text-slate-500">{label}</p><p className={`mt-2 text-2xl font-bold ${value<0?"text-red-700":"text-slate-950"}`}>{new Intl.NumberFormat("en-CA",{style:"currency",currency:"CAD"}).format(value)}</p></article>}

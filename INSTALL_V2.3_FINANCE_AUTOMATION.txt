@@ -1,0 +1,15 @@
+OMSG CRM v2.3 - Finance Automation & Partner Accounts
+
+1. Copy this patch over the project root.
+2. Run: npx supabase db push
+   Expected migration: 202608170003_crm_v23_finance_automation.sql
+3. Run: npm.cmd run build
+4. Run: npm.cmd run dev
+5. Test: create ONE payment on an invoice and confirm Finance shows exactly one Auto · payment revenue row.
+6. Delete that test payment and confirm the automatic finance row disappears from active Finance totals (it is voided for audit history).
+7. Check Finance partner-account cards, Dashboard financial snapshot and Reports Finance section.
+8. Only after validation: git add . && git commit -m "feat: automate finance payments and partner accounts" && git push origin main
+
+Notes:
+- Automatic payment transactions cannot be deleted directly from Finance. Correct/delete the source payment instead.
+- This patch does not automatically turn Inventory stock-ins into expenses yet; that will be safer as a separate phase because stock-in may represent purchases, transfers, opening stock or corrections.
