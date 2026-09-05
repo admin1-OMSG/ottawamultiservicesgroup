@@ -15,6 +15,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as CommercialCleaningOttawaRouteImport } from './routes/commercial-cleaning-ottawa'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DataDeletionRouteImport } from './routes/data-deletion'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as HandymanOttawaRouteImport } from './routes/handyman-ottawa'
 import { Route as HouseCleaningOttawaRouteImport } from './routes/house-cleaning-ottawa'
@@ -32,9 +33,12 @@ import { Route as SnowRemovalOttawaRouteImport } from './routes/snow-removal-ott
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminFinanceRouteImport } from './routes/admin/finance'
+import { Route as AdminInboxRouteImport } from './routes/admin/inbox'
 import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminMarketingRouteImport } from './routes/admin/marketing'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
+import { Route as AdminResetPasswordRouteImport } from './routes/admin/reset-password'
 import { Route as AdminScheduleRouteImport } from './routes/admin/schedule'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminContractsIndexRouteImport } from './routes/admin/contracts.index'
@@ -85,6 +89,11 @@ const CommercialCleaningOttawaRoute =
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataDeletionRoute = DataDeletionRouteImport.update({
+  id: '/data-deletion',
+  path: '/data-deletion',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -173,6 +182,11 @@ const AdminFinanceRoute = AdminFinanceRouteImport.update({
   path: '/finance',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminInboxRoute = AdminInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInventoryRoute = AdminInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -183,9 +197,19 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMarketingRoute = AdminMarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminReportsRoute = AdminReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminResetPasswordRoute = AdminResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminScheduleRoute = AdminScheduleRouteImport.update({
@@ -298,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRoute
   '/commercial-cleaning-ottawa': typeof CommercialCleaningOttawaRoute
   '/contact': typeof ContactRoute
+  '/data-deletion': typeof DataDeletionRoute
   '/faq': typeof FaqRoute
   '/handyman-ottawa': typeof HandymanOttawaRoute
   '/house-cleaning-ottawa': typeof HouseCleaningOttawaRoute
@@ -314,9 +339,12 @@ export interface FileRoutesByFullPath {
   '/snow-removal-ottawa': typeof SnowRemovalOttawaRoute
   '/terms': typeof TermsRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/inbox': typeof AdminInboxRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/marketing': typeof AdminMarketingRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/': typeof AdminIndexRoute
@@ -345,6 +373,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogRoute
   '/commercial-cleaning-ottawa': typeof CommercialCleaningOttawaRoute
   '/contact': typeof ContactRoute
+  '/data-deletion': typeof DataDeletionRoute
   '/faq': typeof FaqRoute
   '/handyman-ottawa': typeof HandymanOttawaRoute
   '/house-cleaning-ottawa': typeof HouseCleaningOttawaRoute
@@ -361,9 +390,12 @@ export interface FileRoutesByTo {
   '/snow-removal-ottawa': typeof SnowRemovalOttawaRoute
   '/terms': typeof TermsRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/inbox': typeof AdminInboxRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/marketing': typeof AdminMarketingRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin': typeof AdminIndexRoute
@@ -394,6 +426,7 @@ export interface FileRoutesById {
   '/blog': typeof BlogRoute
   '/commercial-cleaning-ottawa': typeof CommercialCleaningOttawaRoute
   '/contact': typeof ContactRoute
+  '/data-deletion': typeof DataDeletionRoute
   '/faq': typeof FaqRoute
   '/handyman-ottawa': typeof HandymanOttawaRoute
   '/house-cleaning-ottawa': typeof HouseCleaningOttawaRoute
@@ -410,9 +443,12 @@ export interface FileRoutesById {
   '/snow-removal-ottawa': typeof SnowRemovalOttawaRoute
   '/terms': typeof TermsRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/inbox': typeof AdminInboxRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/marketing': typeof AdminMarketingRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/': typeof AdminIndexRoute
@@ -444,6 +480,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/commercial-cleaning-ottawa'
     | '/contact'
+    | '/data-deletion'
     | '/faq'
     | '/handyman-ottawa'
     | '/house-cleaning-ottawa'
@@ -460,9 +497,12 @@ export interface FileRouteTypes {
     | '/snow-removal-ottawa'
     | '/terms'
     | '/admin/finance'
+    | '/admin/inbox'
     | '/admin/inventory'
     | '/admin/login'
+    | '/admin/marketing'
     | '/admin/reports'
+    | '/admin/reset-password'
     | '/admin/schedule'
     | '/admin/settings'
     | '/admin/'
@@ -491,6 +531,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/commercial-cleaning-ottawa'
     | '/contact'
+    | '/data-deletion'
     | '/faq'
     | '/handyman-ottawa'
     | '/house-cleaning-ottawa'
@@ -507,9 +548,12 @@ export interface FileRouteTypes {
     | '/snow-removal-ottawa'
     | '/terms'
     | '/admin/finance'
+    | '/admin/inbox'
     | '/admin/inventory'
     | '/admin/login'
+    | '/admin/marketing'
     | '/admin/reports'
+    | '/admin/reset-password'
     | '/admin/schedule'
     | '/admin/settings'
     | '/admin'
@@ -539,6 +583,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/commercial-cleaning-ottawa'
     | '/contact'
+    | '/data-deletion'
     | '/faq'
     | '/handyman-ottawa'
     | '/house-cleaning-ottawa'
@@ -555,9 +600,12 @@ export interface FileRouteTypes {
     | '/snow-removal-ottawa'
     | '/terms'
     | '/admin/finance'
+    | '/admin/inbox'
     | '/admin/inventory'
     | '/admin/login'
+    | '/admin/marketing'
     | '/admin/reports'
+    | '/admin/reset-password'
     | '/admin/schedule'
     | '/admin/settings'
     | '/admin/'
@@ -588,6 +636,7 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRoute
   CommercialCleaningOttawaRoute: typeof CommercialCleaningOttawaRoute
   ContactRoute: typeof ContactRoute
+  DataDeletionRoute: typeof DataDeletionRoute
   FaqRoute: typeof FaqRoute
   HandymanOttawaRoute: typeof HandymanOttawaRoute
   HouseCleaningOttawaRoute: typeof HouseCleaningOttawaRoute
@@ -647,6 +696,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data-deletion': {
+      id: '/data-deletion'
+      path: '/data-deletion'
+      fullPath: '/data-deletion'
+      preLoaderRoute: typeof DataDeletionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -768,6 +824,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFinanceRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/inbox': {
+      id: '/admin/inbox'
+      path: '/inbox'
+      fullPath: '/admin/inbox'
+      preLoaderRoute: typeof AdminInboxRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/inventory': {
       id: '/admin/inventory'
       path: '/inventory'
@@ -782,11 +845,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/marketing': {
+      id: '/admin/marketing'
+      path: '/marketing'
+      fullPath: '/admin/marketing'
+      preLoaderRoute: typeof AdminMarketingRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/reports': {
       id: '/admin/reports'
       path: '/reports'
       fullPath: '/admin/reports'
       preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reset-password': {
+      id: '/admin/reset-password'
+      path: '/reset-password'
+      fullPath: '/admin/reset-password'
+      preLoaderRoute: typeof AdminResetPasswordRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/schedule': {
@@ -934,9 +1011,12 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminFinanceRoute: typeof AdminFinanceRoute
+  AdminInboxRoute: typeof AdminInboxRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminMarketingRoute: typeof AdminMarketingRoute
   AdminReportsRoute: typeof AdminReportsRoute
+  AdminResetPasswordRoute: typeof AdminResetPasswordRoute
   AdminScheduleRoute: typeof AdminScheduleRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -962,9 +1042,12 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminFinanceRoute: AdminFinanceRoute,
+  AdminInboxRoute: AdminInboxRoute,
   AdminInventoryRoute: AdminInventoryRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminMarketingRoute: AdminMarketingRoute,
   AdminReportsRoute: AdminReportsRoute,
+  AdminResetPasswordRoute: AdminResetPasswordRoute,
   AdminScheduleRoute: AdminScheduleRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,
@@ -997,6 +1080,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRoute,
   CommercialCleaningOttawaRoute: CommercialCleaningOttawaRoute,
   ContactRoute: ContactRoute,
+  DataDeletionRoute: DataDeletionRoute,
   FaqRoute: FaqRoute,
   HandymanOttawaRoute: HandymanOttawaRoute,
   HouseCleaningOttawaRoute: HouseCleaningOttawaRoute,

@@ -3,3 +3,6 @@ verify_jwt = false
 
 [functions.sign-estimate]
 verify_jwt = true
+
+[functions.meta-inbox-webhook]
+verify_jwt = false

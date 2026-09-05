@@ -1,0 +1,21 @@
+Ottawa Multiservices Group CRM v2.5 — Marketing & Meta Ads
+
+Included:
+- Admin > Marketing dashboard for unlimited current/future campaigns.
+- Campaign spend, messages, leads, quotes, customers, attributed revenue, CAC and ROAS.
+- Marketing campaign, daily metric, demographic/geographic breakdown and lead-attribution tables.
+- Initial Moving – Ottawa & Gatineau campaign seed.
+- Supabase Edge Function sync-meta-ads for automatic Meta Ads Insights ingestion.
+
+INSTALL
+1. Apply migration: supabase/migrations/202608310001_crm_v25_marketing_meta_ads.sql
+2. Deploy function: supabase functions deploy sync-meta-ads
+3. In Supabase secrets set META_AD_ACCOUNT_ID and META_ACCESS_TOKEN. Never expose the token as a VITE_ browser variable.
+4. Invoke sync-meta-ads from an authenticated admin session. Schedule it (e.g. daily) after the first successful manual sync.
+5. For final business attribution, update marketing_leads stages as leads become qualified/quoted/converted and record converted_revenue. These rows can later be populated automatically from Meta lead/webhook data and CRM workflow links.
+
+IMPORTANT
+Meta API permissions/app review/token lifecycle depend on the Meta Business app configuration. The function deliberately fails safely until credentials are configured.
+
+Validation note
+This package was modified in an environment without node_modules. Full Vite/TypeScript build validation requires npm ci first.

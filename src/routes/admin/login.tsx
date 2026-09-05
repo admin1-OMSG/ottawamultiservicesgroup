@@ -27,8 +27,10 @@ function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -71,6 +73,7 @@ function AdminLoginPage() {
     event.preventDefault();
 
     setErrorMessage("");
+    setSuccessMessage("");
     setIsLoading(true);
 
     try {
@@ -120,6 +123,51 @@ function AdminLoginPage() {
     }
   }
 
+  async function handlePasswordRecovery(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setIsLoading(true);
+
+    try {
+      const normalizedEmail = email.trim().toLowerCase();
+
+      if (!normalizedEmail) {
+        setErrorMessage("Please enter your email address.");
+        return;
+      }
+
+      const redirectTo =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/admin/reset-password`
+          : undefined;
+
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        normalizedEmail,
+        redirectTo ? { redirectTo } : undefined,
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      setSuccessMessage(
+        "If this email belongs to an administrator account, a password recovery link has been sent.",
+      );
+    } catch (error) {
+      console.error("Admin password recovery error:", error);
+
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to send the recovery email. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   if (isCheckingSession) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6">
@@ -144,75 +192,156 @@ function AdminLoginPage() {
           </p>
 
           <h1 className="mt-3 text-3xl font-bold text-white">
-            Welcome back
+            {forgotPasswordMode ? "Reset your password" : "Welcome back"}
           </h1>
 
           <p className="mt-2 text-sm text-slate-400">
-            Sign in to manage quotes and partner applications.
+            {forgotPasswordMode
+              ? "Enter your administrator email to receive a recovery link."
+              : "Sign in to manage quotes and partner applications."}
           </p>
         </div>
 
         <div className="rounded-2xl border border-slate-800 bg-slate-900 p-7 shadow-2xl">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label
-                htmlFor="admin-email"
-                className="mb-2 block text-sm font-medium text-slate-200"
-              >
-                Email address
-              </label>
+          {forgotPasswordMode ? (
+            <form onSubmit={handlePasswordRecovery} className="space-y-5">
+              <div>
+                <label
+                  htmlFor="recovery-email"
+                  className="mb-2 block text-sm font-medium text-slate-200"
+                >
+                  Email address
+                </label>
 
-              <input
-                id="admin-email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="admin@example.com"
-                required
-                disabled={isLoading}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 disabled:cursor-not-allowed disabled:opacity-60"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="admin-password"
-                className="mb-2 block text-sm font-medium text-slate-200"
-              >
-                Password
-              </label>
-
-              <input
-                id="admin-password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Your password"
-                required
-                disabled={isLoading}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 disabled:cursor-not-allowed disabled:opacity-60"
-              />
-            </div>
-
-            {errorMessage ? (
-              <div
-                role="alert"
-                className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"
-              >
-                {errorMessage}
+                <input
+                  id="recovery-email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="admin@example.com"
+                  required
+                  disabled={isLoading}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 disabled:cursor-not-allowed disabled:opacity-60"
+                />
               </div>
-            ) : null}
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="inline-flex w-full items-center justify-center rounded-lg bg-amber-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isLoading ? "Signing in..." : "Sign in"}
-            </button>
-          </form>
+              {errorMessage ? (
+                <div
+                  role="alert"
+                  className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+                >
+                  {errorMessage}
+                </div>
+              ) : null}
+
+              {successMessage ? (
+                <div
+                  role="status"
+                  className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
+                >
+                  {successMessage}
+                </div>
+              ) : null}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="inline-flex w-full items-center justify-center rounded-lg bg-amber-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isLoading ? "Sending..." : "Send recovery email"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotPasswordMode(false);
+                  setErrorMessage("");
+                  setSuccessMessage("");
+                }}
+                disabled={isLoading}
+                className="w-full text-center text-sm font-semibold text-slate-300 transition hover:text-white disabled:opacity-60"
+              >
+                Back to sign in
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label
+                  htmlFor="admin-email"
+                  className="mb-2 block text-sm font-medium text-slate-200"
+                >
+                  Email address
+                </label>
+
+                <input
+                  id="admin-email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="admin@example.com"
+                  required
+                  disabled={isLoading}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </div>
+
+              <div>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <label
+                    htmlFor="admin-password"
+                    className="block text-sm font-medium text-slate-200"
+                  >
+                    Password
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotPasswordMode(true);
+                      setPassword("");
+                      setErrorMessage("");
+                      setSuccessMessage("");
+                    }}
+                    className="text-xs font-semibold text-amber-400 transition hover:text-amber-300"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+
+                <input
+                  id="admin-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Your password"
+                  required
+                  disabled={isLoading}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </div>
+
+              {errorMessage ? (
+                <div
+                  role="alert"
+                  className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+                >
+                  {errorMessage}
+                </div>
+              ) : null}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="inline-flex w-full items-center justify-center rounded-lg bg-amber-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isLoading ? "Signing in..." : "Sign in"}
+              </button>
+            </form>
+          )}
         </div>
 
         <p className="mt-6 text-center text-xs text-slate-500">

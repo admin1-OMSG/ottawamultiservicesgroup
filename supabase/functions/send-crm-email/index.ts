@@ -193,7 +193,7 @@ Deno.serve(async (req) => {
     if (body.type === "partner_application_received") {
       const { data: application, error: applicationError } = await admin
         .from("partner_applications")
-        .select("id,business_name,contact_first_name,contact_last_name,email,phone,service_areas,availability,preferred_language,created_at")
+        .select("id,business_name,contact_first_name,contact_last_name,email,phone,service_areas,availability,preferred_language")
         .eq("id", body.applicationId)
         .maybeSingle()
       if (applicationError) throw applicationError
