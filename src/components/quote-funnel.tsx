@@ -190,7 +190,7 @@ function ServiceQuestions({ serviceKey, answers, setA }: { serviceKey: ServiceKe
   );
 }
 
-type QItem = { id: string; label: string; kind: "radio" | "select" | "checkbox"; options: string[] };
+type QItem = { id: string; label: string; kind: "radio" | "select" | "checkbox" | "quantity"; options: string[] };
 
 function QuestionField({ item, value, onChange }: { item: QItem; value: AnswerValue; onChange: (v: AnswerValue) => void }) {
   if (item.kind === "select") {
@@ -229,6 +229,46 @@ function QuestionField({ item, value, onChange }: { item: QItem; value: AnswerVa
               </label>
             );
           })}
+        </div>
+      </div>
+    );
+  }
+
+  if (item.kind === "quantity") {
+    const selected = Array.isArray(value) ? value : [];
+    const quantities = Object.fromEntries(
+      selected.map((entry) => {
+        const [name, qty] = entry.split("|");
+        return [name, Number(qty) || 0];
+      }),
+    );
+
+    return (
+      <div>
+        <Label className="text-sm font-semibold text-navy">{item.label}</Label>
+        <p className="mt-1 text-xs text-muted-foreground">Enter the quantity for each item you are moving. Leave 0 for items you do not have.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {item.options.map((o) => (
+            <div key={o} className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+              <span className="text-sm">{o}</span>
+              <Input
+                type="number"
+                min="0"
+                max="99"
+                step="1"
+                value={quantities[o] ?? 0}
+                onChange={(event) => {
+                  const qty = Math.max(0, Number(event.target.value) || 0);
+                  const nextMap = { ...quantities, [o]: qty };
+                  const next = Object.entries(nextMap)
+                    .filter(([, amount]) => Number(amount) > 0)
+                    .map(([name, amount]) => `${name}|${amount}`);
+                  onChange(next);
+                }}
+                className="h-9 w-20 text-center"
+              />
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -291,6 +331,38 @@ function questionsFor(key: ServiceKey, a: Record<string, AnswerValue>): QItem[] 
       return [
         { id: "moveType", label: "What type of move is this?", kind: "radio", options: ["Residential Move (Local)","Business Move (Office)","Furniture Only","Packing Service"] },
         { id: "residenceSize", label: "What is the size of your current residence?", kind: "select", options: ["Studio","1-Bedroom","2-Bedroom","3-Bedroom","4+ Bedroom","Office"] },
+        { id: "movingInventory", label: "Furniture & large-item inventory", kind: "quantity", options: [
+          "Sofa / Couch",
+          "Sectional Sofa",
+          "Sofa Bed",
+          "Armchair / Recliner",
+          "Dining Table",
+          "Dining Chair",
+          "Coffee / Side Table",
+          "King Bed Frame",
+          "Queen Bed Frame",
+          "Double Bed Frame",
+          "Twin / Single Bed Frame",
+          "King Mattress",
+          "Queen Mattress",
+          "Double Mattress",
+          "Twin / Single Mattress",
+          "Dresser",
+          "Nightstand",
+          "Desk",
+          "Office Chair",
+          "Bookshelf / Shelving Unit",
+          "Wardrobe / Armoire",
+          "TV",
+          "TV Stand",
+          "Refrigerator",
+          "Freezer",
+          "Stove / Range",
+          "Dishwasher",
+          "Washer",
+          "Dryer",
+          "Other Large Item"
+        ] },
         { id: "packing", label: "Do you need packing materials?", kind: "radio", options: ["Yes, full packing service","Yes, boxes and tape","No, I will pack myself"] },
         { id: "loading", label: "Do you need loading and unloading assistance?", kind: "radio", options: ["Yes","No, just transportation"] },
       ];
