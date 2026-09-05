@@ -365,6 +365,9 @@ function ContactForm({
         const email = String(data.get("email") ?? "").trim();
         const phone = String(data.get("phone") ?? "").trim();
         const address = String(data.get("address") ?? "").trim();
+        const city = String(data.get("city") ?? "").trim();
+        const province = String(data.get("province") ?? "").trim();
+        const postalCode = String(data.get("postal_code") ?? "").trim();
         const contactMethod = String(
           data.get("contactMethod") ?? "Email",
         ).trim();
@@ -372,7 +375,7 @@ function ContactForm({
         const preferredTime = String(data.get("preferred_time") ?? "").trim();
         const notes = String(data.get("notes") ?? "").trim();
 
-        if (!fullName || !email || !phone || !address) {
+        if (!fullName || !email || !phone || !address || !city || !province || !postalCode) {
           toast.error("Please complete all required fields.");
           return;
         }
@@ -402,7 +405,9 @@ function ContactForm({
               last_name: lastName,
               phone: phone || null,
               address_line: address,
-              province: "Ontario",
+              city: city || null,
+              province: province || null,
+              postal_code: postalCode || null,
               service_name: service || null,
               preferred_date: preferredDate || null,
               preferred_time: preferredTime || null,
@@ -501,12 +506,42 @@ function ContactForm({
           />
         </Field>
 
-        <Field label="Address or Postal Code" required>
+        <Field label="Service Address" required>
           <Input
             name="address"
-            placeholder="K1A 0B1 or full address"
+            placeholder="123 Main Street"
             required
             maxLength={140}
+          />
+        </Field>
+
+        <Field label="City" required>
+          <Input
+            name="city"
+            placeholder="Ottawa or Gatineau"
+            required
+            maxLength={100}
+          />
+        </Field>
+
+        <Field label="Province" required>
+          <select
+            name="province"
+            defaultValue="Ontario"
+            required
+            className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="Ontario">Ontario</option>
+            <option value="Quebec">Quebec</option>
+          </select>
+        </Field>
+
+        <Field label="Postal Code" required>
+          <Input
+            name="postal_code"
+            placeholder="K1A 0B1"
+            required
+            maxLength={10}
           />
         </Field>
       </div>
