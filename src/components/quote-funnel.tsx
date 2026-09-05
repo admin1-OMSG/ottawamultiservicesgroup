@@ -658,6 +658,7 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
         const startDate = String(data.get("start_date") ?? "").trim();
         const desiredRateRaw = String(data.get("desired_rate") ?? "").trim();
         const contractValueRaw = String(data.get("estimated_contract_value") ?? "").trim();
+        const availability = String(data.get("availability") ?? "").trim();
         const details = String(data.get("details") ?? "").trim();
         const services = data.getAll("services").map(String).filter(Boolean);
 
@@ -696,7 +697,7 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
               business_name: businessName || fullName,
               phone: phone || null,
               service_areas: services,
-              availability: details || null,
+              availability: mode === "service_provider" ? (availability || null) : null,
               preferred_language: language,
               city: city || null,
               project_location: projectLocation || null,
@@ -779,13 +780,24 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
         </div>
       </Field>
 
-      <Field label={mode === "service_provider" ? "Experience, availability and additional information" : "Tell us about the contract or project"}>
+      {mode === "service_provider" && (
+        <Field label="Availability">
+          <Textarea
+            name="availability"
+            rows={3}
+            maxLength={600}
+            placeholder="Days and times available, start date, weekly availability…"
+          />
+        </Field>
+      )}
+
+      <Field label={mode === "service_provider" ? "Experience and additional information" : "Tell us about the contract or project"}>
         <Textarea
           name="details"
           rows={5}
           maxLength={1500}
           placeholder={mode === "service_provider"
-            ? "Experience, certifications, availability, equipment, team size…"
+            ? "Experience, certifications, equipment, team size and any additional information…"
             : "Scope of work, expected volume, schedule, special requirements, contract details…"}
         />
       </Field>
