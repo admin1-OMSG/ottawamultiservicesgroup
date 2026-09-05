@@ -653,6 +653,10 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
         const phone = String(data.get("phone") ?? "").trim();
         const applicantType = String(data.get("applicant_type") ?? "").trim();
         const city = String(data.get("city") ?? "").trim();
+        const serviceAreasRaw = String(data.get("service_areas") ?? "").trim();
+        const serviceAreas = serviceAreasRaw
+          ? serviceAreasRaw.split(",").map((area) => area.trim()).filter(Boolean)
+          : [];
         const projectLocation = String(data.get("project_location") ?? "").trim();
         const frequency = String(data.get("frequency") ?? "").trim();
         const startDate = String(data.get("start_date") ?? "").trim();
@@ -696,7 +700,8 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
               contact_last_name: lastName,
               business_name: businessName || fullName,
               phone: phone || null,
-              service_areas: services,
+              services,
+              service_areas: mode === "service_provider" ? serviceAreas : [],
               availability: mode === "service_provider" ? (availability || null) : null,
               preferred_language: language,
               city: city || null,
@@ -744,7 +749,14 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
                 <option value="job_seeker">Job seeker / Individual worker</option>
               </select>
             </Field>
-            <Field label="City / Service Area"><Input name="city" placeholder="Ottawa, Gatineau, Kanata…" maxLength={120} /></Field>
+            <Field label="Primary City"><Input name="city" placeholder="Ottawa or Gatineau" maxLength={120} /></Field>
+            <Field label="Service Areas">
+              <Input
+                name="service_areas"
+                placeholder="Ottawa, Gatineau, Kanata, Orleans…"
+                maxLength={300}
+              />
+            </Field>
             <Field label="Desired hourly rate (optional)"><Input name="desired_rate" type="number" min="0" step="0.01" /></Field>
           </>
         ) : (
