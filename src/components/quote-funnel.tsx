@@ -368,6 +368,8 @@ function ContactForm({
         const contactMethod = String(
           data.get("contactMethod") ?? "Email",
         ).trim();
+        const preferredDate = String(data.get("preferred_date") ?? "").trim();
+        const preferredTime = String(data.get("preferred_time") ?? "").trim();
         const notes = String(data.get("notes") ?? "").trim();
 
         if (!fullName || !email || !phone || !address) {
@@ -402,6 +404,8 @@ function ContactForm({
               address_line: address,
               province: "Ontario",
               service_name: service || null,
+              preferred_date: preferredDate || null,
+              preferred_time: preferredTime || null,
               description: notes || null,
               questionnaire_answers: {
                 ...answers,
@@ -503,6 +507,22 @@ function ContactForm({
             placeholder="K1A 0B1 or full address"
             required
             maxLength={140}
+          />
+        </Field>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Field label="Preferred Date">
+          <Input
+            name="preferred_date"
+            type="date"
+          />
+        </Field>
+
+        <Field label="Preferred Time">
+          <Input
+            name="preferred_time"
+            type="time"
           />
         </Field>
       </div>
