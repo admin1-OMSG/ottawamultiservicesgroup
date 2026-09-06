@@ -521,6 +521,19 @@ function ContactForm({
             console.warn("Quote saved, but admin email was not sent.");
           }
 
+          if (typeof window !== "undefined") {
+            const fbq = (window as Window & {
+              fbq?: (...args: unknown[]) => void;
+            }).fbq;
+
+            if (typeof fbq === "function") {
+              fbq("track", "Lead", {
+                content_name: service,
+                content_category: "Quote Request",
+              });
+            }
+          }
+
           form.reset();
           setEmailValue("");
           setVerificationToken(null);
