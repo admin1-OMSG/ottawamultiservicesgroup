@@ -24,7 +24,15 @@ export function SiteFooter() {
             <a href="https://www.facebook.com/profile.php?id=61594145271067" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-primary"><Facebook className="h-4 w-4" /></a>
 <a href="https://www.instagram.com/ottawamultiservicesgroup/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-primary"><Instagram className="h-4 w-4" /></a>
             <a href="https://www.linkedin.com/company/ottawa-multiservices-group-inc/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-primary"><Linkedin className="h-4 w-4" /></a>
-            <a href="#" aria-label="YouTube" className="hover:text-primary"><Youtube className="h-4 w-4" /></a>
+            <a
+  href="https://www.youtube.com/@OttawaMultiservicesGroup"
+  target="_blank"
+  rel="noopener noreferrer"
+  aria-label="YouTube"
+  className="hover:text-primary"
+>
+  <Youtube className="h-4 w-4" />
+</a>
           </div>
         </div>
         <FooterCol title="Quick Links" links={[
