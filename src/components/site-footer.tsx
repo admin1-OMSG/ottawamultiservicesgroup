@@ -41,6 +41,7 @@ export function SiteFooter() {
           { label: "FAQ", to: "/faq" },
           { label: "Blog", to: "/blog" },
           { label: "Contact", to: "/contact" },
+          { label: "Careers", to: "/careers" },
         ]} />
         <FooterCol title="For Customers" links={[
           { label: "Get a Quote", to: "/quote" },

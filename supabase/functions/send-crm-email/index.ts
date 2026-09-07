@@ -26,6 +26,7 @@ type EventBody =
   | { type: "booking_confirmed"; bookingId: string; language?: "en" | "fr" }
   | { type: "invoice_ready"; invoiceId: string }
   | { type: "partner_application_received"; applicationId: string }
+  | { type: "career_application_received"; applicationId: string }
 
 function escapeHtml(value: unknown) {
   return String(value ?? "")
@@ -189,6 +190,96 @@ Deno.serve(async (req) => {
     let key = ""
     let recordId = ""
     let recipientType = "customer"
+
+    if (body.type === "career_application_received") {
+      const { data: application, error: applicationError } = await admin
+        .from("career_applications")
+        .select("id,first_name,last_name,email,phone,city,position_interest,employment_type,availability,preferred_language,resume_file_name,created_at")
+        .eq("id", body.applicationId)
+        .maybeSingle()
+
+      if (applicationError) throw applicationError
+      if (!application?.email) throw new Error("Career application not found or email missing")
+
+      const applicantName = [application.first_name, application.last_name].filter(Boolean).join(" ") || "Career applicant"
+      const language: CustomerLanguage = application.preferred_language === "fr" ? "fr" : "en"
+      const adminKey = `career-application-admin:${application.id}`
+      const applicantKey = `career-application-applicant:${application.id}`
+
+      if (!(await alreadySent(adminKey))) {
+        const adminSubject = `New career application — ${applicantName}`
+        const adminHtml = layout(
+          "New career application",
+          `<p>A new verified career application was submitted.</p>
+          <table style="width:100%;border-collapse:collapse">
+            <tr><td style="padding:7px 0;color:#64748b">Applicant</td><td style="padding:7px 0;font-weight:700">${escapeHtml(applicantName)}</td></tr>
+            <tr><td style="padding:7px 0;color:#64748b">Position / area</td><td style="padding:7px 0">${escapeHtml(application.position_interest || "—")}</td></tr>
+            <tr><td style="padding:7px 0;color:#64748b">Employment type</td><td style="padding:7px 0">${escapeHtml(application.employment_type || "—")}</td></tr>
+            <tr><td style="padding:7px 0;color:#64748b">Email</td><td style="padding:7px 0">${escapeHtml(application.email)}</td></tr>
+            <tr><td style="padding:7px 0;color:#64748b">Phone</td><td style="padding:7px 0">${escapeHtml(application.phone || "—")}</td></tr>
+            <tr><td style="padding:7px 0;color:#64748b">City</td><td style="padding:7px 0">${escapeHtml(application.city || "—")}</td></tr>
+            <tr><td style="padding:7px 0;color:#64748b">Availability</td><td style="padding:7px 0">${escapeHtml(application.availability || "—")}</td></tr>
+            <tr><td style="padding:7px 0;color:#64748b">Resume</td><td style="padding:7px 0">${escapeHtml(application.resume_file_name || "Not attached")}</td></tr>
+          </table>
+          <p style="margin-top:22px"><a href="${siteUrl}/admin/careers" style="display:inline-block;background:#059669;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Review career application</a></p>`,
+        )
+        const providerId = await sendEmail(adminEmail, adminSubject, adminHtml, application.email)
+        await logEmail({
+          event_type: body.type,
+          record_id: application.id,
+          recipient_email: adminEmail,
+          recipient_type: "admin",
+          subject: adminSubject,
+          provider_message_id: providerId,
+          status: "sent",
+          idempotency_key: adminKey,
+          sent_at: new Date().toISOString(),
+        })
+      }
+
+      if (!(await alreadySent(applicantKey))) {
+        const applicantSubject =
+          language === "fr"
+            ? "Nous avons reçu votre candidature — Ottawa Multiservices Group"
+            : "Application received — Ottawa Multiservices Group"
+
+        const applicantBody =
+          language === "fr"
+            ? `<p>Bonjour ${escapeHtml(application.first_name || applicantName)},</p>
+               <p>Merci de votre intérêt pour Ottawa Multiservices Group Inc.</p>
+               <p>Nous confirmons que votre candidature a été reçue avec succès.</p>
+               <p><strong>Poste / domaine :</strong> ${escapeHtml(application.position_interest || "Non précisé")}</p>
+               <p>Notre équipe examinera votre candidature et communiquera avec vous si votre profil correspond à l’une de nos possibilités actuelles ou à venir.</p>
+               <p style="font-size:13px;color:#64748b">Veuillez noter que le dépôt d’une candidature ne constitue pas une offre d’emploi.</p>`
+            : `<p>Hello ${escapeHtml(application.first_name || applicantName)},</p>
+               <p>Thank you for your interest in Ottawa Multiservices Group Inc.</p>
+               <p>We confirm that your application has been successfully received.</p>
+               <p><strong>Position / area:</strong> ${escapeHtml(application.position_interest || "Not specified")}</p>
+               <p>Our team will review your application and contact you if your profile matches one of our current or upcoming opportunities.</p>
+               <p style="font-size:13px;color:#64748b">Please note that submitting an application does not constitute an offer of employment.</p>`
+
+        const applicantHtml = layout(
+          language === "fr" ? "Candidature reçue" : "Application received",
+          applicantBody,
+        )
+        const providerId = await sendEmail(application.email, applicantSubject, applicantHtml)
+        await logEmail({
+          event_type: body.type,
+          record_id: application.id,
+          recipient_email: application.email,
+          recipient_type: "career_applicant",
+          subject: applicantSubject,
+          provider_message_id: providerId,
+          status: "sent",
+          idempotency_key: applicantKey,
+          sent_at: new Date().toISOString(),
+        })
+      }
+
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
 
     if (body.type === "partner_application_received") {
       const { data: application, error: applicationError } = await admin

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as BlogRouteImport } from './routes/blog'
+import { Route as CareersRouteImport } from './routes/careers'
 import { Route as CommercialCleaningOttawaRouteImport } from './routes/commercial-cleaning-ottawa'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DataDeletionRouteImport } from './routes/data-deletion'
@@ -32,6 +33,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SnowRemovalOttawaRouteImport } from './routes/snow-removal-ottawa'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminCareersRouteImport } from './routes/admin/careers'
 import { Route as AdminFinanceRouteImport } from './routes/admin/finance'
 import { Route as AdminInboxRouteImport } from './routes/admin/inbox'
 import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
@@ -78,6 +80,11 @@ const AdminRoute = AdminRouteImport.update({
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersRoute = CareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CommercialCleaningOttawaRoute =
@@ -175,6 +182,11 @@ const TermsRoute = TermsRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCareersRoute = AdminCareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminFinanceRoute = AdminFinanceRouteImport.update({
@@ -320,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRoute
+  '/careers': typeof CareersRoute
   '/commercial-cleaning-ottawa': typeof CommercialCleaningOttawaRoute
   '/contact': typeof ContactRoute
   '/data-deletion': typeof DataDeletionRoute
@@ -338,6 +351,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/snow-removal-ottawa': typeof SnowRemovalOttawaRoute
   '/terms': typeof TermsRoute
+  '/admin/careers': typeof AdminCareersRoute
   '/admin/finance': typeof AdminFinanceRoute
   '/admin/inbox': typeof AdminInboxRoute
   '/admin/inventory': typeof AdminInventoryRoute
@@ -371,6 +385,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
+  '/careers': typeof CareersRoute
   '/commercial-cleaning-ottawa': typeof CommercialCleaningOttawaRoute
   '/contact': typeof ContactRoute
   '/data-deletion': typeof DataDeletionRoute
@@ -389,6 +404,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/snow-removal-ottawa': typeof SnowRemovalOttawaRoute
   '/terms': typeof TermsRoute
+  '/admin/careers': typeof AdminCareersRoute
   '/admin/finance': typeof AdminFinanceRoute
   '/admin/inbox': typeof AdminInboxRoute
   '/admin/inventory': typeof AdminInventoryRoute
@@ -424,6 +440,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRoute
+  '/careers': typeof CareersRoute
   '/commercial-cleaning-ottawa': typeof CommercialCleaningOttawaRoute
   '/contact': typeof ContactRoute
   '/data-deletion': typeof DataDeletionRoute
@@ -442,6 +459,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/snow-removal-ottawa': typeof SnowRemovalOttawaRoute
   '/terms': typeof TermsRoute
+  '/admin/careers': typeof AdminCareersRoute
   '/admin/finance': typeof AdminFinanceRoute
   '/admin/inbox': typeof AdminInboxRoute
   '/admin/inventory': typeof AdminInventoryRoute
@@ -478,6 +496,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/blog'
+    | '/careers'
     | '/commercial-cleaning-ottawa'
     | '/contact'
     | '/data-deletion'
@@ -496,6 +515,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/snow-removal-ottawa'
     | '/terms'
+    | '/admin/careers'
     | '/admin/finance'
     | '/admin/inbox'
     | '/admin/inventory'
@@ -529,6 +549,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/blog'
+    | '/careers'
     | '/commercial-cleaning-ottawa'
     | '/contact'
     | '/data-deletion'
@@ -547,6 +568,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/snow-removal-ottawa'
     | '/terms'
+    | '/admin/careers'
     | '/admin/finance'
     | '/admin/inbox'
     | '/admin/inventory'
@@ -581,6 +603,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/blog'
+    | '/careers'
     | '/commercial-cleaning-ottawa'
     | '/contact'
     | '/data-deletion'
@@ -599,6 +622,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/snow-removal-ottawa'
     | '/terms'
+    | '/admin/careers'
     | '/admin/finance'
     | '/admin/inbox'
     | '/admin/inventory'
@@ -634,6 +658,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   BlogRoute: typeof BlogRoute
+  CareersRoute: typeof CareersRoute
   CommercialCleaningOttawaRoute: typeof CommercialCleaningOttawaRoute
   ContactRoute: typeof ContactRoute
   DataDeletionRoute: typeof DataDeletionRoute
@@ -682,6 +707,13 @@ declare module '@tanstack/react-router' {
       path: '/blog'
       fullPath: '/blog'
       preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers': {
+      id: '/careers'
+      path: '/careers'
+      fullPath: '/careers'
+      preLoaderRoute: typeof CareersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/commercial-cleaning-ottawa': {
@@ -815,6 +847,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/careers': {
+      id: '/admin/careers'
+      path: '/careers'
+      fullPath: '/admin/careers'
+      preLoaderRoute: typeof AdminCareersRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/finance': {
@@ -1010,6 +1049,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminCareersRoute: typeof AdminCareersRoute
   AdminFinanceRoute: typeof AdminFinanceRoute
   AdminInboxRoute: typeof AdminInboxRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
@@ -1041,6 +1081,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminCareersRoute: AdminCareersRoute,
   AdminFinanceRoute: AdminFinanceRoute,
   AdminInboxRoute: AdminInboxRoute,
   AdminInventoryRoute: AdminInventoryRoute,
@@ -1078,6 +1119,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   BlogRoute: BlogRoute,
+  CareersRoute: CareersRoute,
   CommercialCleaningOttawaRoute: CommercialCleaningOttawaRoute,
   ContactRoute: ContactRoute,
   DataDeletionRoute: DataDeletionRoute,

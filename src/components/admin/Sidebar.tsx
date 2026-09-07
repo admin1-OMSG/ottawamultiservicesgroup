@@ -5,6 +5,7 @@ import {
   FileText,
   CircleDollarSign,
   Handshake,
+  BriefcaseBusiness,
   LayoutDashboard,
   LogOut,
   Package,
@@ -34,6 +35,7 @@ const mainNavigation = [
   { label: "Marketing", to: "/admin/marketing", icon: Megaphone },
   { label: "Settings", to: "/admin/settings", icon: Settings },
   { label: "Partners", to: "/admin/partners", icon: Handshake },
+  { label: "Careers", to: "/admin/careers", icon: BriefcaseBusiness },
   { label: "Inventory", to: "/admin/inventory", icon: Package },
 ]
 

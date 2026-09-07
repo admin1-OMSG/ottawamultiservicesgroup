@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-export type VerificationPurpose = "quote" | "partner_service_provider" | "partner_subcontracting";
+export type VerificationPurpose = "quote" | "partner_service_provider" | "partner_subcontracting" | "career";
 
 export function EmailVerification({
   email,

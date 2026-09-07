@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
     const { email, purpose, language = "en" } = await req.json()
     const normalized = String(email || "").trim().toLowerCase()
     if (!/^\S+@\S+\.\S+$/.test(normalized)) return json({ ok:false, error:"Invalid email" }, 400)
-    if (!["quote","partner_service_provider","partner_subcontracting"].includes(purpose)) return json({ ok:false, error:"Invalid purpose" }, 400)
+    if (!["quote","partner_service_provider","partner_subcontracting","career"].includes(purpose)) return json({ ok:false, error:"Invalid purpose" }, 400)
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth:{ persistSession:false } })
     const since = new Date(Date.now() - 15 * 60 * 1000).toISOString()
