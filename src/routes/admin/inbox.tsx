@@ -470,7 +470,7 @@ async function sendReply() {
     <button
       type="button"
       onClick={() => void sendReply()}
-      disabled={sendingReply || !replyText.trim()}
+      disabled={sendingReply}
       className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
     >
       {sendingReply ? "Sending..." : "Send"}
