@@ -20,6 +20,66 @@ function detectMessageType(message: any) {
   return "unknown"
 }
 
+async function getFacebookProfile(userId: string) {
+  const token = Deno.env.get("META_FACEBOOK_PAGE_ACCESS_TOKEN")
+  if (!token) return null
+
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/v24.0/${userId}?fields=first_name,last_name,name&access_token=${encodeURIComponent(token)}`
+    )
+
+    if (!res.ok) {
+      console.error("Facebook profile lookup failed:", await res.text())
+      return null
+    }
+
+    const data = await res.json()
+
+    return {
+      name:
+        data?.name ||
+        [data?.first_name, data?.last_name].filter(Boolean).join(" ") ||
+        null,
+      username: null,
+    }
+  } catch (error) {
+    console.error("Facebook profile lookup error:", error)
+    return null
+  }
+}
+
+async function getInstagramProfile(userId: string) {
+  const token = Deno.env.get("META_INSTAGRAM_ACCESS_TOKEN")
+  if (!token) return null
+
+  try {
+    const res = await fetch(
+      `https://graph.instagram.com/v24.0/${userId}?fields=id,username,name`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+
+    if (!res.ok) {
+      console.error("Instagram profile lookup failed:", await res.text())
+      return null
+    }
+
+    const data = await res.json()
+
+    return {
+      name: data?.name || null,
+      username: data?.username || null,
+    }
+  } catch (error) {
+    console.error("Instagram profile lookup error:", error)
+    return null
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders })
 
@@ -78,6 +138,14 @@ Deno.serve(async (req) => {
 
         const externalUserId = isEcho ? recipientId : senderId
         const direction = isEcho ? "outbound" : "inbound"
+
+        let profile: { name: string | null; username: string | null } | null = null
+
+        if (platform === "facebook") {
+          profile = await getFacebookProfile(externalUserId)
+        } else if (platform === "instagram") {
+          profile = await getInstagramProfile(externalUserId)
+        }
         const sentAt =
           typeof event?.timestamp === "number"
             ? new Date(event.timestamp).toISOString()
@@ -90,16 +158,24 @@ Deno.serve(async (req) => {
           attachment?.payload?.src ||
           null
 
+        const conversationValues: Record<string, unknown> = {
+          platform,
+          external_user_id: externalUserId,
+          external_conversation_id: String(entry?.id || ""),
+          status: "open",
+          updated_at: new Date().toISOString(),
+        }
+
+        // Only overwrite profile fields when Meta actually returned a value.
+        // This prevents an outbound echo or a temporary API failure from
+        // erasing a previously stored name/username.
+        if (profile?.name) conversationValues.contact_name = profile.name
+        if (profile?.username) conversationValues.contact_username = profile.username
+
         const { data: conversation, error: conversationError } = await supabase
           .from("social_conversations")
           .upsert(
-            {
-              platform,
-              external_user_id: externalUserId,
-              external_conversation_id: String(entry?.id || ""),
-              status: "open",
-              updated_at: new Date().toISOString(),
-            },
+            conversationValues,
             { onConflict: "platform,external_user_id" },
           )
           .select("id")

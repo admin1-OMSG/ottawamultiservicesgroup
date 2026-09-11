@@ -370,7 +370,7 @@ async function sendReply() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="truncate font-semibold">{c.contact_name || c.contact_username || `User ${c.external_user_id.slice(-6)}`}</p>
+                      <p className="truncate font-semibold">{getConversationDisplayName(c)}</p>
                       {c.unread_count > 0 && <span className="rounded-full bg-teal-600 px-2 py-0.5 text-xs font-bold text-white">{c.unread_count}</span>}
                     </div>
                     <p className="mt-1 truncate text-sm text-slate-600">{c.last_message_preview || "No message preview"}</p>
@@ -396,7 +396,7 @@ async function sendReply() {
                 <div className="flex items-center gap-3">
                   <div className="rounded-full bg-slate-100 p-2"><UserRound className="h-5 w-5 text-slate-600" /></div>
                   <div>
-                    <p className="font-bold">{selected.contact_name || selected.contact_username || `User ${selected.external_user_id.slice(-6)}`}</p>
+                    <p className="font-bold">{getConversationDisplayName(selected)}</p>
                     <p className="text-xs text-slate-500">{selected.platform === "facebook" ? "Facebook Messenger" : "Instagram Direct"}</p>
                   </div>
                 </div>
@@ -615,6 +615,25 @@ async function sendReply() {
       )}
     </div>
   )
+}
+
+
+function getConversationDisplayName(conversation: Conversation) {
+  if (conversation.platform === "instagram" && conversation.contact_username) {
+    return `@${conversation.contact_username}`
+  }
+
+  if (conversation.contact_name) {
+    return conversation.contact_name
+  }
+
+  if (conversation.contact_username) {
+    return `@${conversation.contact_username}`
+  }
+
+  return conversation.platform === "facebook"
+    ? "Facebook contact"
+    : "Instagram contact"
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
