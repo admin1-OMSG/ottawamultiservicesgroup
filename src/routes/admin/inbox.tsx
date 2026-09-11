@@ -52,6 +52,8 @@ function InboxPage() {
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [error, setError] = useState("")
   const [quoteOpen, setQuoteOpen] = useState(false)
+  const [replyText, setReplyText] = useState("")
+  const [sendingReply, setSendingReply] = useState(false)
   const [quoteSaving, setQuoteSaving] = useState(false)
   const [quoteForm, setQuoteForm] = useState({
     first_name: "",
@@ -166,7 +168,40 @@ function InboxPage() {
     })
     setQuoteOpen(true)
   }
+async function sendReply() {
+  if (!selectedConversationId) return
 
+  const message = replyText.trim()
+  if (!message) return
+
+  setSendingReply(true)
+  setError("")
+
+  try {
+    const { data, error } = await supabase.functions.invoke("send-meta-message", {
+      body: {
+        conversationId: selectedConversationId,
+        message,
+      },
+    })
+
+    if (error) throw error
+    if (data?.error) throw new Error(data.error)
+
+    setReplyText("")
+
+    await loadConversationMessages(selectedConversationId)
+    await loadInbox()
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Unable to send message."
+    )
+  } finally {
+    setSendingReply(false)
+  }
+}
   async function createQuoteRequest(e: React.FormEvent) {
     e.preventDefault()
     if (!selected || selected.service_request_id) return
@@ -413,10 +448,32 @@ function InboxPage() {
               </div>
 
               <footer className="border-t bg-white p-4">
-                <div className="rounded-lg border bg-slate-50 p-3 text-sm text-slate-500">
-                  Reply from CRM will be enabled after Meta messaging permissions are approved.
-                </div>
-              </footer>
+  <div className="flex gap-2">
+    <input
+      type="text"
+      value={replyText}
+      onChange={(e) => setReplyText(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault()
+          void sendReply()
+        }
+      }}
+      placeholder="Write a reply..."
+      disabled={sendingReply}
+      className="flex-1 rounded-lg border px-3 py-2 text-sm disabled:opacity-60"
+    />
+
+    <button
+      type="button"
+      onClick={() => void sendReply()}
+      disabled={sendingReply || !replyText.trim()}
+      className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+    >
+      {sendingReply ? "Sending..." : "Send"}
+    </button>
+  </div>
+</footer>
             </>
           )}
         </main>
