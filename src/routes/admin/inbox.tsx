@@ -169,7 +169,7 @@ function InboxPage() {
     setQuoteOpen(true)
   }
 async function sendReply() {
-  if (!selectedConversationId) return
+  if (!selectedId) return
 
   const message = replyText.trim()
   if (!message) return
@@ -178,25 +178,28 @@ async function sendReply() {
   setError("")
 
   try {
-    const { data, error } = await supabase.functions.invoke("send-meta-message", {
-      body: {
-        conversationId: selectedConversationId,
-        message,
+    const { data, error } = await supabase.functions.invoke(
+      "send-meta-message",
+      {
+        body: {
+          conversationId: selectedId,
+          message,
+        },
       },
-    })
+    )
 
     if (error) throw error
     if (data?.error) throw new Error(data.error)
 
     setReplyText("")
 
-    await loadConversationMessages(selectedConversationId)
-    await loadInbox()
-  } catch (error) {
+    await loadMessages(selectedId)
+    await loadConversations()
+  } catch (e) {
     setError(
-      error instanceof Error
-        ? error.message
-        : "Unable to send message."
+      e instanceof Error
+        ? e.message
+        : "Unable to send message.",
     )
   } finally {
     setSendingReply(false)
