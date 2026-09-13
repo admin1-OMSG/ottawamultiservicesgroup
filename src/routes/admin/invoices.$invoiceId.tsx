@@ -1,3 +1,4 @@
+import { FileCameraInput } from "@/components/file-camera-input"
 import { FormEvent, useEffect, useMemo, useState } from "react"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { Printer, Send, Trash2 } from "lucide-react"
@@ -83,6 +84,7 @@ function InvoiceDetail() {
   const [saving, setSaving] = useState(false)
   const [sending, setSending] = useState(false)
   const [photoFiles, setPhotoFiles] = useState<File[]>([])
+  const [preparingPhotos, setPreparingPhotos] = useState(false)
   const [invoicePhotos, setInvoicePhotos] = useState<{id:string;url:string;caption:string|null}[]>([])
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
   const [customerJobs, setCustomerJobs] = useState<{id:string;job_number:string;title:string;status:string}[]>([])
@@ -138,7 +140,7 @@ function InvoiceDetail() {
   }
 
   async function uploadInvoicePhotos() {
-    if (!inv?.job_id || photoFiles.length === 0) return
+    if (!inv?.job_id || photoFiles.length === 0 || preparingPhotos || uploadingPhotos) return
     setUploadingPhotos(true); setError(""); setNotice("")
     try {
       const user = await requireActiveAdmin(); if (!user) return
@@ -301,8 +303,8 @@ function InvoiceDetail() {
               <button type="button" onClick={()=>void linkJob()} disabled={!selectedJobId} className="rounded-lg bg-amber-700 px-4 py-2 font-semibold text-white disabled:opacity-50">Lier</button>
             </div>
           </div> : <>
-            <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple onChange={(e)=>setPhotoFiles(Array.from(e.target.files ?? []).slice(0,10))} className="mt-4 block w-full text-sm" />
-            <button type="button" onClick={()=>void uploadInvoicePhotos()} disabled={uploadingPhotos || photoFiles.length===0} className="mt-3 rounded-lg bg-emerald-600 px-4 py-2.5 font-semibold text-white disabled:opacity-50">{uploadingPhotos ? "Ajout…" : `Add ${photoFiles.length || ""} photo(s)`}</button>
+            <FileCameraInput label="Completed work photos" files={photoFiles} onFilesChange={setPhotoFiles} accept="image/jpeg,image/png,image/webp,image/heic,image/heif" maxFiles={10} maxSizeMB={8} disabled={uploadingPhotos} onBusyChange={setPreparingPhotos} className="mt-4" />
+            <button type="button" onClick={()=>void uploadInvoicePhotos()} disabled={uploadingPhotos || preparingPhotos || photoFiles.length===0} className="mt-3 rounded-lg bg-emerald-600 px-4 py-2.5 font-semibold text-white disabled:opacity-50">{uploadingPhotos ? "Ajout…" : `Add ${photoFiles.length || ""} photo(s)`}</button>
             {invoicePhotos.length > 0 && <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">{invoicePhotos.map((photo)=><a key={photo.id} href={photo.url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border"><img src={photo.url} alt={photo.caption ?? "Work completed"} className="h-40 w-full object-cover"/><div className="p-2 text-xs font-medium">After work</div></a>)}</div>}
           </>}
         </div>

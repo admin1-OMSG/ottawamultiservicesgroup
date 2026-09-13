@@ -1,6 +1,7 @@
+import { FileCameraInput } from "@/components/file-camera-input"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect, useMemo, useState } from "react"
-import { ArrowDownCircle, ArrowUpCircle, ExternalLink, Landmark, Plus, ReceiptText, Trash2, Upload, WalletCards, X } from "lucide-react"
+import { ArrowDownCircle, ArrowUpCircle, ExternalLink, Landmark, Plus, ReceiptText, Trash2, WalletCards, X } from "lucide-react"
 import { PageHeader } from "@/components/admin/PageHeader"
 import { requireActiveAdmin } from "@/features/admin/requireAdmin"
 import { formatCad } from "@/features/admin/formatters"
@@ -112,6 +113,7 @@ function FinancePage() {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<Form>(empty)
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
+  const [preparingReceipt, setPreparingReceipt] = useState(false)
   const [range, setRange] = useState("all")
 
   useEffect(() => {
@@ -217,6 +219,7 @@ function FinancePage() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault()
+    if (preparingReceipt || saving) return
     setSaving(true)
     setError("")
 
@@ -804,21 +807,7 @@ function FinancePage() {
             {form.direction === "expense" && (
               <div className="md:col-span-2 lg:col-span-3">
                 <Field label="Receipt / photo (optional)">
-                  <label className="flex cursor-pointer items-center justify-between rounded-lg border border-dashed border-teal-300 bg-teal-50 px-4 py-3">
-                    <span className="flex items-center gap-2">
-                      <Upload className="h-4 w-4 text-teal-700" />
-                      <span className="text-sm">
-                        {receiptFile ? receiptFile.name : "Upload receipt or take a photo"}
-                      </span>
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,application/pdf"
-                      capture="environment"
-                      className="hidden"
-                      onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
-                    />
-                  </label>
+                  <FileCameraInput label="Receipt or invoice" files={receiptFile ? [receiptFile] : []} onFilesChange={(files) => setReceiptFile(files[0] ?? null)} accept="image/jpeg,image/png,image/webp,application/pdf" maxSizeMB={10} disabled={saving} onBusyChange={setPreparingReceipt} />
                   <p className="mt-1 text-xs font-normal text-slate-500">
                     JPG, PNG, WebP or PDF · maximum 10 MB.
                   </p>
@@ -849,7 +838,7 @@ function FinancePage() {
               Cancel
             </button>
             <button
-              disabled={saving}
+              disabled={saving || preparingReceipt}
               className="rounded-lg bg-teal-600 px-4 py-2 font-semibold text-white"
             >
               {saving ? "Saving..." : "Save"}

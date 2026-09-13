@@ -108,6 +108,7 @@ function PartnersPage() {
               </div>
               <Card className="p-6 md:p-8">
                 <PartnerApplicationForm
+                  key={mode}
                   mode={mode}
                   onSubmitted={() => {
                     setMode(null);

@@ -1,3 +1,4 @@
+import { FileCameraInput } from "@/components/file-camera-input"
 import { useEffect, useState } from "react"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { requireActiveAdmin } from "@/features/admin/requireAdmin"
@@ -56,6 +57,7 @@ function JobDetailPage() {
   const [saving, setSaving] = useState(false)
   const [jobPhotos, setJobPhotos] = useState<{id:string;url:string;kind:string;caption:string|null}[]>([])
   const [photoFiles, setPhotoFiles] = useState<File[]>([])
+  const [preparingPhotos, setPreparingPhotos] = useState(false)
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
 
   useEffect(() => { void load() }, [jobId])
@@ -129,7 +131,7 @@ function JobDetailPage() {
   }
 
   async function uploadAfterPhotos() {
-    if (!job || photoFiles.length === 0) return
+    if (!job || photoFiles.length === 0 || preparingPhotos || uploadingPhotos) return
     setUploadingPhotos(true); setError(""); setSuccess("")
     try {
       const user = await requireActiveAdmin(); if (!user) return
@@ -172,8 +174,8 @@ function JobDetailPage() {
         <section className="rounded-xl border bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold">Job photos</h2>
           <p className="mt-1 text-sm text-slate-500">Add after-work photos. They can be shown to the customer with the invoice.</p>
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple onChange={(e)=>setPhotoFiles(Array.from(e.target.files ?? []).slice(0,10))} className="mt-4 block w-full text-sm" />
-          <button type="button" onClick={()=>void uploadAfterPhotos()} disabled={uploadingPhotos || photoFiles.length===0} className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white disabled:opacity-50">{uploadingPhotos ? "Ajout…" : `Add ${photoFiles.length || ""} photo(s)`}</button>
+          <FileCameraInput label="Completed work photos" files={photoFiles} onFilesChange={setPhotoFiles} accept="image/jpeg,image/png,image/webp,image/heic,image/heif" maxFiles={10} maxSizeMB={8} disabled={uploadingPhotos} onBusyChange={setPreparingPhotos} className="mt-4" />
+          <button type="button" onClick={()=>void uploadAfterPhotos()} disabled={uploadingPhotos || preparingPhotos || photoFiles.length===0} className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white disabled:opacity-50">{uploadingPhotos ? "Ajout…" : `Add ${photoFiles.length || ""} photo(s)`}</button>
           {jobPhotos.length > 0 && <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">{jobPhotos.map((photo)=><a key={photo.id} href={photo.url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-lg border"><img src={photo.url} alt={photo.caption ?? "Job photo"} className="h-40 w-full object-cover"/><div className="p-2 text-xs font-medium">{photo.kind === "after" ? "After work" : "Before work"}</div></a>)}</div>}
         </section>
       </div>

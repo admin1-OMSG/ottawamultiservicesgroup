@@ -15,6 +15,7 @@ import { supabase } from "@/lib/supabase";
 import { sendCrmEmail } from "@/lib/email-notifications";
 import { useLanguage } from "@/lib/language";
 import { EmailVerification } from "@/components/email-verification";
+import { FileCameraInput } from "@/components/file-camera-input";
 
 
 type ServiceKey =
@@ -422,6 +423,7 @@ function ContactForm({
   const { language } = useLanguage();
   const [pending, setPending] = useState(false);
   const [photos, setPhotos] = useState<File[]>([]);
+  const [preparingPhotos, setPreparingPhotos] = useState(false);
   const [emailValue, setEmailValue] = useState("");
   const [verificationToken, setVerificationToken] = useState<string | null>(null);
 
@@ -429,6 +431,7 @@ function ContactForm({
     <form
       onSubmit={async (e) => {
         e.preventDefault();
+        if (preparingPhotos || pending) return;
 
         const form = e.currentTarget;
         const data = new FormData(form);
@@ -535,6 +538,7 @@ function ContactForm({
           }
 
           form.reset();
+          setPhotos([]);
           setEmailValue("");
           setVerificationToken(null);
           onSubmitted();
@@ -689,15 +693,14 @@ function ContactForm({
       <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
         <Label htmlFor="quotePhotos">Job photos (optional)</Label>
         <p className="mt-1 text-xs text-muted-foreground">Add up to 8 photos to help us prepare a more accurate quote. Maximum 8 MB per photo.</p>
-        <Input id="quotePhotos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple className="mt-3 bg-white" onChange={(e) => { const selected = Array.from(e.target.files ?? []).filter((f) => f.size <= 8 * 1024 * 1024).slice(0, 8); setPhotos(selected); if ((e.target.files?.length ?? 0) > 8) toast.error("Maximum 8 photos."); }} />
-        {photos.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{photos.map((file) => <div key={`${file.name}-${file.lastModified}`} className="rounded-lg border bg-white p-2 text-xs"><div className="truncate font-medium">{file.name}</div><div className="text-muted-foreground">{(file.size/1024/1024).toFixed(1)} Mo</div></div>)}</div>}
+        <FileCameraInput id="quotePhotos" label={language === "fr" ? "Photos du travail" : "Job photos"} files={photos} onFilesChange={setPhotos} accept="image/jpeg,image/png,image/webp,image/heic,image/heif" maxFiles={8} maxSizeMB={8} disabled={pending} onBusyChange={setPreparingPhotos} className="mt-3" />
       </div>
 
       <div className="flex justify-end">
         <Button
           type="submit"
           size="lg"
-          disabled={pending}
+          disabled={pending || preparingPhotos}
           className="h-12 bg-accent px-8 text-base font-semibold text-accent-foreground hover:brightness-105"
         >
           {pending ? "Sending…" : "Get My Free Quote Now"}
@@ -723,6 +726,8 @@ const PARTNER_SERVICES = [
 export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApplicationMode; onSubmitted: () => void }) {
   const { language } = useLanguage();
   const [pending, setPending] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [preparingAttachments, setPreparingAttachments] = useState(false);
   const [emailValue, setEmailValue] = useState("");
   const [verificationToken, setVerificationToken] = useState<string | null>(null);
 
@@ -730,6 +735,7 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
     <form
       onSubmit={async (e) => {
         e.preventDefault();
+        if (preparingAttachments || pending) return;
         const form = e.currentTarget;
         const data = new FormData(form);
         const fullName = String(data.get("name") ?? "").trim();
@@ -804,9 +810,36 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
             toast.error("The application could not be submitted. Please try again.");
             return;
           }
+          const failedAttachments: string[] = [];
+          for (const file of attachments) {
+            try {
+              const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+              const storagePath = `${applicationId}/${crypto.randomUUID()}-${safeName}`;
+              const { error: uploadError } = await supabase.storage.from("partner-documents").upload(storagePath, file, { contentType: file.type, upsert: false });
+              if (uploadError) throw uploadError;
+              const { error: attachmentError } = await supabase.from("partner_application_attachments").insert({
+                application_id: applicationId,
+                file_name: file.name,
+                storage_path: storagePath,
+                mime_type: file.type,
+                file_size: file.size,
+                category: file.type.startsWith("image/") ? "images" : mode === "subcontracting_client" ? "project_details" : "other",
+              });
+              if (attachmentError) throw attachmentError;
+            } catch (attachmentError) {
+              console.error("Partner application saved, but attachment failed:", attachmentError);
+              failedAttachments.push(file.name);
+            }
+          }
+          if (failedAttachments.length) {
+            toast.warning(language === "fr"
+              ? `Votre demande est enregistrée, mais ces pièces jointes n’ont pas pu être envoyées : ${failedAttachments.join(", ")}. Veuillez nous les transmettre séparément.`
+              : `Your application was saved, but these attachments could not be sent: ${failedAttachments.join(", ")}. Please send them to us separately.`, { duration: 15000 });
+          }
           const result = await sendCrmEmail({ type: "partner_application_received", applicationId });
           if (!result.ok) console.warn("Partner application email notification failed:", result.error);
           form.reset();
+          setAttachments([]);
           setEmailValue("");
           setVerificationToken(null);
           onSubmitted();
@@ -899,8 +932,14 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
         />
       </Field>
 
+      <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
+        <Label htmlFor={`partnerAttachments-${mode}`}>{language === "fr" ? "Pièces jointes (facultatif)" : "Attachments (optional)"}</Label>
+        <p className="mt-1 text-xs text-muted-foreground">{language === "fr" ? "Photos, CV, détails du projet, certificats ou calendrier. PDF, Word, Excel, ICS, JPG, PNG ou WebP." : "Photos, resume, project details, certificates or schedule. PDF, Word, Excel, ICS, JPG, PNG or WebP."}</p>
+        <FileCameraInput id={`partnerAttachments-${mode}`} label={language === "fr" ? "Pièces jointes du partenaire" : "Partner attachments"} files={attachments} onFilesChange={setAttachments} accept="image/jpeg,image/png,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/calendar,.pdf,.doc,.docx,.xls,.xlsx,.ics" maxFiles={6} maxSizeMB={10} disabled={pending} onBusyChange={setPreparingAttachments} className="mt-3" />
+      </div>
+
       <div className="flex justify-end">
-        <Button type="submit" size="lg" disabled={pending} className="h-12 bg-accent px-8 text-accent-foreground hover:brightness-105">
+        <Button type="submit" size="lg" disabled={pending || preparingAttachments} className="h-12 bg-accent px-8 text-accent-foreground hover:brightness-105">
           {pending ? "Sending…" : mode === "service_provider" ? "Submit Partner Profile" : "Submit Subcontracting Opportunity"}
         </Button>
       </div>

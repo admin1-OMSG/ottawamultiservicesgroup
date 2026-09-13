@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { FileCameraInput } from "@/components/file-camera-input";
 import { BriefcaseBusiness, CheckCircle2, MapPin, Send, UsersRound } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -72,7 +73,7 @@ function CareersPage() {
   const [verificationToken, setVerificationToken] = useState<string | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeWarning, setResumeWarning] = useState("");
-  const resumeInputRef = useRef<HTMLInputElement | null>(null);
+  const [preparingResume, setPreparingResume] = useState(false);
 
   function updateField<K extends keyof CareerForm>(key: K, value: CareerForm[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -80,6 +81,7 @@ function CareersPage() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (preparingResume || submitting) return;
     setError("");
     setSuccess(false);
     setResumeWarning("");
@@ -176,7 +178,6 @@ function CareersPage() {
       setForm(initialForm);
       setVerificationToken(null);
       setResumeFile(null);
-      if (resumeInputRef.current) resumeInputRef.current.value = "";
       setSuccess(true);
     } catch (err) {
       console.error("Career application submission failed:", err);
@@ -359,41 +360,8 @@ function CareersPage() {
               <div>
                 <h3 className="text-lg font-semibold text-navy">Resume / CV</h3>
                 <div className="mt-4">
-                  <label className="text-sm font-medium text-foreground">
-                    Attach your resume (optional)
-                    <input
-                      ref={resumeInputRef}
-                      type="file"
-                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                      className={`${fieldClass} file:mr-4 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-foreground`}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] ?? null;
-                        setError("");
-                        setResumeFile(null);
-
-                        if (!file) return;
-
-                        const allowedTypes = new Set([
-                          "application/pdf",
-                          "application/msword",
-                          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                        ]);
-                        const allowedExtension = /\.(pdf|doc|docx)$/i.test(file.name);
-
-                        if ((!allowedTypes.has(file.type) && !allowedExtension) || file.size > 5 * 1024 * 1024) {
-                          setError(
-                            form.preferred_language === "fr"
-                              ? "Le CV doit être un fichier PDF, DOC ou DOCX de 5 Mo maximum."
-                              : "The resume must be a PDF, DOC or DOCX file no larger than 5 MB.",
-                          );
-                          e.target.value = "";
-                          return;
-                        }
-
-                        setResumeFile(file);
-                      }}
-                    />
-                  </label>
+                  <label htmlFor="careerResume" className="text-sm font-medium text-foreground">Attach your resume (optional)</label>
+                  <FileCameraInput id="careerResume" label="Resume / CV" files={resumeFile ? [resumeFile] : []} onFilesChange={(files) => { setError(""); setResumeFile(files[0] ?? null); }} accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" maxSizeMB={5} cameraOutput="pdf" disabled={submitting} onBusyChange={setPreparingResume} className="mt-2" />
                   <p className="mt-2 text-xs text-muted-foreground">
                     Your resume is stored privately and is accessible only to authorized OMSG administrators.
                   </p>
@@ -433,7 +401,7 @@ function CareersPage() {
                   </p>
                   <Button
                     type="submit"
-                    disabled={submitting || !verificationToken}
+                    disabled={submitting || preparingResume || !verificationToken}
                     className="h-11 shrink-0 bg-accent text-accent-foreground"
                   >
                     <Send className="mr-2 h-4 w-4" />
