@@ -74,6 +74,7 @@ try{
  let edge=readFileSync(new URL('../supabase/functions/send-crm-email/index.ts',import.meta.url),'utf8');
  edge=edge.replace(/import \{ createClient \} from "https:[^\n]+\n/,'const createClient = globalThis.__quoteEmailTest.createClient;\n');
  edge=edge.replace('"../_shared/quote-questionnaire.ts"',JSON.stringify(sharedUrl));
+ edge=edge.replace('"../_shared/quote-billing-summary.ts"',JSON.stringify(moduleUrl(readFileSync(new URL('../supabase/functions/_shared/quote-billing-summary.ts',import.meta.url),'utf8'))));
  await import(moduleUrl(edge));
  for(const locale of ['en','fr']){
   currentAnswers=makeAnswers(locale);

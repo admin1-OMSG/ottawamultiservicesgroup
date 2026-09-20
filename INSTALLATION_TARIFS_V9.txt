@@ -1,0 +1,92 @@
+﻿OMSG — INSTALLATION TARIFS V9
+Devis client : résumé par visite, quatrième facture réduite, calculs dépliables
+
+Base : V8 publiée, commit 4c8e794. À installer après V8.
+Archive de 14 fichiers ajoutés ou modifiés uniquement.
+
+1. COPIER
+Extraire le ZIP dans un dossier temporaire, puis copier son contenu dans :
+C:\Users\Dell\OneDrive\Desktop\OMSG-v2.5-clean\ottawamultiservicesgroup-main
+Fusionner les dossiers et accepter les remplacements ; conserver les autres fichiers.
+
+2. VÉRIFIER DANS POWERSHELL
+Depuis le dossier du projet, exécuter les commandes une par une :
+
+node scripts/test-quote-billing-summary.mjs
+node scripts/test-quote-questionnaire.mjs
+node scripts/test-cleaning-pricing.mjs
+node scripts/test-estimate-request.mjs
+npm.cmd run build
+
+Résultats attendus : 10, 9, 24 et 15 contrôles réussis ; compilation réussie.
+Utiliser npm.cmd pour éviter la restriction PowerShell sur npm.ps1.
+
+3. PRÉPARER LES FICHIERS
+
+$fichiersTarifsV9 = @(
+  'INSTALLATION_TARIFS_V9.txt'
+  'INTEGRATION_TARIFS_FR.md'
+  'VALIDATION_TARIFS.md'
+  'docs/pricing-preview/client-calculation-v9-en.png'
+  'docs/pricing-preview/client-summary-v9-en.png'
+  'docs/pricing-preview/client-summary-v9-fr-mobile.png'
+  'docs/pricing-preview/official-email-v9-fr.png'
+  'scripts/test-quote-billing-summary.mjs'
+  'scripts/test-quote-questionnaire.mjs'
+  'src/components/official-quote-details.tsx'
+  'src/components/quote-billing-summary.tsx'
+  'src/routes/portal.tsx'
+  'supabase/functions/_shared/quote-billing-summary.ts'
+  'supabase/functions/send-crm-email/index.ts'
+)
+
+git --literal-pathspecs add -- $fichiersTarifsV9
+git diff --cached --stat
+
+Vérifier que seuls les fichiers voulus sont préparés. Ne pas utiliser git add .
+Les avertissements LF/CRLF habituels ne sont pas bloquants.
+
+4. PUBLIER LE SITE
+
+git commit -m "Tarifs V9 : resume du devis client par visite et calculs depliables"
+git push origin main
+
+Attendre la réussite du déploiement habituel du site.
+
+5. PUBLIER LE COURRIEL SUPABASE
+Depuis le même dossier, avec votre accès Supabase habituel :
+
+npx.cmd supabase@latest functions deploy send-crm-email --project-ref prlkiyyjctfksmrvorqs --use-api
+
+Si la session a expiré :
+npx.cmd supabase@latest login
+Puis relancer la commande de déploiement.
+
+Le déploiement inclut index.ts, _shared/quote-questionnaire.ts et le NOUVEAU fichier _shared/quote-billing-summary.ts. Il faut copier ce dernier avant de déployer.
+Aucune migration SQL, aucun db push, aucune modification des droits ou des secrets.
+
+6. VÉRIFIER LE DEVIS CLIENT
+Actualiser le portail avec Ctrl + F5.
+Ouvrir un devis V8 contenant déjà la règle des quatre visites et l'échéancier complet. À défaut, créer une nouvelle demande V8 puis son devis officiel, le vérifier et utiliser votre propre adresse de test pour l'envoi.
+
+Exemple : hebdomadaire résidentiel, deux chambres, 3,5 heures, sans option, Ontario.
+Le tableau affiche dès l'ouverture :
+- Visite 1 : 197,75 $ TTC.
+- Visite 2 : 197,75 $ TTC.
+- Visite 3 : 197,75 $ TTC.
+- Visite 4 : 71,19 $ TTC, crédit de 84 $ avant taxes déjà déduit.
+- Visite 5 et suivantes : 166,11 $ TTC par visite.
+
+Cliquer « Voir le détail du calcul » :
+crédit 3 × (175 − 147) = 84 $ ; quatrième visite 147 − 84 = 63 $ + 8,19 $ de TVH.
+La rubrique des notes complètes reste fermée par défaut.
+Vérifier le français et l'anglais, puis le courriel nouvellement envoyé. Son bouton sécurisé ouvre le portail ; aucun nouvel envoi n'est déclenché par la simple consultation.
+
+7. DEVIS ET COURRIELS EXISTANTS
+Les devis V8 compatibles déjà enregistrés bénéficient du nouveau rendu sans recalcul des prix.
+Les anciens devis sans échéancier V8, notamment le devis Q-2026-000049 montré dans votre capture, ne peuvent pas afficher des montants de quatrième visite qui n'ont pas été enregistrés. Pour appliquer la condition, établir et faire accepter un nouveau devis avec les données V8. Ne pas réécrire un devis déjà signé.
+Si les montants d'un devis ont été modifiés, son échéancier doit être revu pour correspondre aux prix officiels ; un tableau incohérent n'est pas affiché automatiquement.
+Les courriels déjà reçus ne sont pas modifiés : un nouvel envoi utilise le nouveau modèle.
+Le contrôle des visites réellement effectuées et de l'absence de double crédit reste manuel, comme en V8.
+
+Documentation complète : INTEGRATION_TARIFS_FR.md et VALIDATION_TARIFS.md.

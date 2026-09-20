@@ -1,3 +1,4 @@
+import { renderBillingSummaryHtml } from "../_shared/quote-billing-summary.ts"
 import { questionnaireLocale, renderQuestionnaireHtml } from "../_shared/quote-questionnaire.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
@@ -342,7 +343,7 @@ Deno.serve(async (req) => {
       html = layout("A customer accepted a quote", `<p><strong>${escapeHtml(`${customer?.first_name || ""} ${customer?.last_name || ""}`)}</strong> accepted quote <strong>${escapeHtml(estimate.estimate_number)}</strong>.</p><p>Amount: <strong>${money(estimate.total)}</strong></p><p><a href="${siteUrl}/admin/estimates/${estimate.id}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Open Quote</a></p>`)
     } else if (body.type === "estimate_ready") {
       if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
-      const { data: estimate } = await admin.from("estimates").select("id,estimate_number,title,total,status,updated_at,estimated_duration_minutes,crew_size,customer_id,service_request_id,customer:customers(first_name,last_name,email,preferred_language)").eq("id", body.estimateId).maybeSingle()
+      const { data: estimate } = await admin.from("estimates").select("id,estimate_number,title,total,subtotal,discount_total,tax_rate,tax_total,currency,notes,terms,status,updated_at,estimated_duration_minutes,crew_size,customer_id,service_request_id,customer:customers(first_name,last_name,email,preferred_language)").eq("id", body.estimateId).maybeSingle()
       if (!estimate || !["sent", "viewed"].includes(estimate.status)) throw new Error("Estimate is not ready to send")
       const customer = Array.isArray(estimate.customer) ? estimate.customer[0] : estimate.customer
       if (!customer?.email) throw new Error("Customer email missing")
@@ -353,8 +354,13 @@ Deno.serve(async (req) => {
       subject = `Your quote ${estimate.estimate_number} is ready`
       const portalLink = await createDirectPortalLink(customer.email, estimate.id)
       const duration = Number(estimate.estimated_duration_minutes || 0)
-      const durationText = duration ? `${(duration / 60).toFixed(duration % 60 === 0 ? 0 : 1)} on-site hour(s) · crew of ${estimate.crew_size || 1}` : "Duration to be confirmed"
-      html = layout("Your quote is ready", `<p>Hello ${escapeHtml(customer.first_name)},</p><p>We prepared your quote <strong>${escapeHtml(estimate.estimate_number)}</strong> for ${escapeHtml(estimate.title || "the requested service")}.</p><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin:18px 0"><p style="margin:0 0 8px">Amount: <strong>${money(estimate.total)}</strong></p><p style="margin:0">Estimated duration: <strong>${escapeHtml(durationText)}</strong></p></div><p>The button below signs you in directly and securely to your quote. You can review it, choose an available appointment, and sign it.</p><p><a href="${portalLink}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">View & Sign My Quote</a></p>`)
+      const tr = (en: string, fr: string) => recipientLanguage === "fr" ? fr : en
+      const hours = new Intl.NumberFormat(recipientLanguage === "fr" ? "fr-CA" : "en-CA", { maximumFractionDigits: 1 }).format(duration / 60)
+      const durationText = duration ? tr(`${hours} on-site hour(s) · crew of ${estimate.crew_size || 1}`, `${hours} h sur place · équipe de ${estimate.crew_size || 1}`) : tr("Duration to be confirmed", "Durée à confirmer")
+      const billingSummary = renderBillingSummaryHtml(estimate, recipientLanguage)
+      const displayAmount = new Intl.NumberFormat(recipientLanguage === "fr" ? "fr-CA" : "en-CA", { style: "currency", currency: estimate.currency || "CAD" }).format(Number(estimate.total))
+      html = layout("Your quote is ready", `<p>Hello ${escapeHtml(customer.first_name)},</p><p>We prepared your quote <strong>${escapeHtml(estimate.estimate_number)}</strong> ${tr("for", "pour")} ${escapeHtml(estimate.title || tr("the requested service", "le service demandé"))}.</p><div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;margin:18px 0"><p style="margin:0 0 8px">${tr("Amount for the visit covered by this quote", "Montant de la visite couverte par ce devis")} : <strong>${escapeHtml(displayAmount)}</strong></p><p style="margin:0">Estimated duration: <strong>${escapeHtml(durationText)}</strong></p></div>${billingSummary}<p>${billingSummary ? tr('You can view the service lines, taxes and credit calculation in the portal by opening “View calculation details”.', 'Dans le portail, ouvrez « Voir le détail du calcul » pour consulter les prestations, les taxes et le calcul du crédit.') : tr('Open “View calculation details” in the portal to review the services, amounts and terms.', 'Dans le portail, ouvrez « Voir le détail du calcul » pour consulter les prestations, les montants et les conditions.')}</p><p>The button below signs you in directly and securely to your quote. You can review it, choose an available appointment, and sign it.</p><p><a href="${escapeHtml(portalLink)}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">${tr("View my quote and calculations", "Voir mon devis et les calculs")}</a></p>`)
+
     } else if (body.type === "appointment_proposed") {
       if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
       const { data: job } = await admin.from("jobs").select("id,job_number,title,status,scheduled_start,scheduled_end,address_line,city,customer_id,estimate_id,customer:customers(first_name,last_name,email,preferred_language)").eq("id", body.jobId).maybeSingle()

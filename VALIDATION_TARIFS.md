@@ -1,3 +1,22 @@
+# Validation V9 — résumé du devis client
+
+Base : V8 publiée, commit `4c8e794`.
+
+- `test-quote-billing-summary.mjs` : 10 contrôles, dont 304 échéanciers enregistrés couvrant les profils récurrents résidentiels/commerciaux, Ontario/Québec, EN/FR et quatre phases de devis. Montants et crédit identiques aux données sauvegardées ; rejet des blocs incomplets, doublons, totaux incohérents et devis modifiés.
+- Exécution simulée du vrai gestionnaire `estimate_ready` : courriel au client concerné, résumé EN/FR, lien sécurisé conservé, rôle administrateur requis, absence de double envoi. Aucun courriel réel envoyé.
+- Régressions : 24 contrôles tarifaires, 15 contrôles de transfert demande/devis (dont 1 080 combinaisons), 9 contrôles du questionnaire et de sa notification. Total : 58 contrôles réussis.
+- Compilation de production réussie. Les 47 diagnostics TypeScript préexistants sont identiques après normalisation des numéros de ligne ; aucun nouveau diagnostic introduit.
+- Navigateur : cinq lignes de résumé visibles sans ouvrir les détails ; quatrième ligne et crédit mis en évidence ; détail fermé par défaut, ouverture/fermeture au clavier, calcul exact 3 × (175 − 147) = 84 et 147 − 84 = 63 ; chargement des prestations à la demande et nouvelle tentative après échec.
+- Mobile français 390 px : aucun débordement de page, tableau détaillé défilant dans son cadre ; devise, dates et durée localisées. Conditions et notes conservées mais notes complètes repliées. Québec, devis de quatrième visite et anciens devis également contrôlés.
+- Courriels réellement produits par le gestionnaire simulé inspectés visuellement sur ordinateur et téléphone. Les captures du dossier `docs/pricing-preview` utilisent un client fictif.
+- Aucun devis, prix, rendez-vous ou facture réels modifiés. Le seul type d'écriture observé pendant les scénarios de consultation simulés est la préférence de langue déjà gérée par le portail ; aucun envoi automatique ni modification d'un devis par cette présentation.
+
+Les appels Supabase et d'envoi de courriel sont simulés. Le site et la fonction Supabase restent à publier par l'utilisateur. Vérifier ensuite un devis V8 réel contenant l'échéancier, et un nouvel envoi à votre propre adresse de test.
+
+---
+
+## Historique des validations
+
 # Validation V8 — quatre visites consécutives
 
 Base : V7 publiée, commit `cd5e3ed`.

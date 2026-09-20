@@ -1,3 +1,45 @@
+# V9 — Devis client : résumé par visite et calculs à la demande
+
+Base : V8 publiée, commit `4c8e794`. Cette version modifie la présentation du devis client. Le catalogue, les règles des quatre visites, les montants enregistrés, la création des factures et la version tarifaire V8 restent identiques.
+
+## Ce que voit le client
+
+Le devis du portail affiche immédiatement un tableau en CAD, taxes comprises : visite 1, visite 2, visite 3, visite 4 avec crédit, puis visite 5 et suivantes. La quatrième ligne est mise en évidence et le crédit avant taxes est indiqué juste en dessous. Le montant principal du devis est libellé « Pour la visite couverte par ce devis » pour éviter de le confondre avec le total de plusieurs passages.
+
+« Voir le détail du calcul » ouvre les calculs du crédit et de la quatrième facture, le tableau avant taxes/taxes/TTC, les prestations du devis et les conditions. Les notes complètes de la demande sont dans une rubrique séparée, fermée par défaut. Les détails des prestations restent chargés avec les droits Supabase du client connecté. Le changement n'ajoute aucun accès à une demande d'un autre client.
+
+Le courriel « Votre devis est prêt » reprend le même résumé. Son bouton sécurisé mène au portail, où le client peut ouvrir les calculs, choisir un horaire et signer. Le courriel ne repose pas sur un accordéon HTML, mal pris en charge par certaines messageries. Les montants, libellés et calculs du résumé sont disponibles en anglais et en français. Les dates et la durée sur la carte du devis sont aussi localisées.
+
+Exemple Ontario, deux chambres, 3,5 heures, hebdomadaire, sans options :
+
+| Visite | Avant taxes | TVH | Total TTC |
+| --- | ---: | ---: | ---: |
+| 1 | 175,00 $ | 22,75 $ | 197,75 $ |
+| 2 | 175,00 $ | 22,75 $ | 197,75 $ |
+| 3 | 175,00 $ | 22,75 $ | 197,75 $ |
+| 4, crédit déduit | 63,00 $ | 8,19 $ | 71,19 $ |
+| 5 et suivantes | 147,00 $ | 19,11 $ | 166,11 $ |
+
+Crédit : 3 × (175 − 147) = 84 $ avant taxes. Quatrième visite : 147 − 84 = 63 $, puis les taxes. Les options ponctuelles restent limitées à la première visite ; elles n'augmentent pas le crédit. Les options récurrentes suivent les montants enregistrés.
+
+## Devis existants et cohérence
+
+Aucune migration ni réécriture de données. Le module partagé lit l'échéancier V8 déjà sauvegardé dans les notes du devis, pas le catalogue actuel. Il vérifie le bloc complet, les taxes, le calcul du crédit et la concordance avec le total officiel de la visite choisie. Il n'utilise ni la fiche client ni une nouvelle demande pour recalculer un ancien prix.
+
+Un devis V8 qui contient déjà cet échéancier cohérent bénéficie immédiatement de la nouvelle présentation dans le portail après publication. Un ancien devis comme Q-2026-000049, qui n'a pas la condition et l'échéancier V8, conserve ses montants et n'acquiert pas une remise inventée. Pour proposer la nouvelle condition dans ce cas, établir un nouveau devis à partir d'une demande V8, puis le vérifier avant envoi. Un devis déjà signé n'est pas réécrit.
+
+Si les montants officiels ont été ajustés mais que les anciennes références de l'échéancier n'ont pas été mises en cohérence, le tableau est omis : le devis conserve son vrai total, ses lignes et ses conditions dans les détails. Réviser l'ensemble avant de communiquer un échéancier. La V9 n'est pas un moteur de recalcul de contrat et ne suit pas automatiquement les quatre interventions.
+
+Les courriels déjà reçus ne changent pas. Seuls les nouveaux envois utilisent le nouveau modèle ; il n'y a aucun renvoi automatique.
+
+## Installation
+
+Voir `INSTALLATION_TARIFS_V9.txt`. Publication du site puis redéploiement ciblé de `send-crm-email`, qui inclut maintenant `_shared/quote-billing-summary.ts`. Aucune migration SQL, aucun nouveau champ, aucune modification des droits Supabase ou des secrets.
+
+---
+
+## Historique V8 et versions antérieures
+
 # V8 — Tarif récurrent après quatre visites consécutives
 
 Base : V7 publiée, commit `cd5e3ed`. Version des nouvelles demandes : `2026-09-20-v8`.
