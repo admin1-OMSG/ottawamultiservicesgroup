@@ -1,3 +1,18 @@
+# Validation V7 — demande vers devis officiel
+
+- `node scripts/test-estimate-request.mjs` : **13 contrôles réussis**, dont 1 080 combinaisons forfaits/options EN/FR, Ontario/Québec, plus chaque profil de surface.
+- `node scripts/test-cleaning-pricing.mjs` : **20 contrôles réussis**.
+- `node scripts/test-quote-questionnaire.mjs` : **8 contrôles réussis** ; aucun courriel réel.
+- `npm run build` : compilation de production vérifiée.
+- Vérification navigateur avec API simulée : bouton de la vraie demande → formulaire rempli → enregistrement du brouillon et des lignes → détail CRM → détail client ; modification des prix, première/visites suivantes, Québec, français/mobile, chargement en échec, suppression du brouillon incomplet si l’insertion des lignes échoue, demande non chiffrée, demande d’un autre métier et création manuelle.
+- Les écritures de test restent locales et simulées. Aucun courriel, devis, facture, contrat ou client de production n’a été créé ou modifié.
+- Le contrôle TypeScript global conserve les diagnostics préexistants du projet ; aucune erreur supplémentaire dans les fichiers modifiés. La compilation réussie n’est pas présentée comme un contrôle TypeScript global sans erreur.
+- Aperçus : `docs/pricing-preview/official-draft-v7-en.png`, `official-draft-v7-mobile-fr.png`, `official-client-v7-en.png` (client et coordonnées fictifs).
+
+Les devis déjà enregistrés et les brouillons vides antérieurs restent inchangés. Le test en production consiste à rouvrir une demande existante puis à préparer un nouveau brouillon, sans l’envoyer au client avant révision.
+
+---
+
 # Vérifications — fréquences des options et résumé V6
 
 Base : `a541c38`. Version : `2026-09-20-v6`. Les prix unitaires restent inchangés.

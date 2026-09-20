@@ -1,3 +1,24 @@
+# V7 — Préremplissage du devis officiel
+
+Base : V6 publiée, commit `09eef47`.
+
+Le problème venait de `estimates.new.tsx` : `serviceRequestId` était utilisé à l’enregistrement sans charger la demande. V7 charge les paramètres, le client et la demande avant d’activer le formulaire ; les paramètres généraux ne peuvent plus écraser tardivement la province et les taxes importées.
+
+- Les données et les montants de la demande sont repris dans un brouillon modifiable, sans appliquer le catalogue actuel aux demandes anciennes.
+- La première visite est proposée par défaut. Le sélecteur de visite reprend séparément le tarif d’une visite suivante et ses seuls suppléments récurrents. Le budget mensuel reste une référence provisoire dans les notes.
+- La demande reste rattachée au devis par `service_request_id`. Le contact et l’adresse d’intervention sont conservés dans les notes ; la fiche client n’est pas écrasée.
+- Les lignes sont compatibles avec les contraintes existantes de `estimate_items`. La remise réfrigérateur/four est intégrée à une ligne groupée au prix net enregistré.
+- Les taxes québécoises sont arrondies séparément ; les taxes sont correctement nommées sur le nouveau formulaire, le détail du devis et le portail client.
+- Les demandes non chiffrées conservent leur questionnaire ; les prix et la durée restent à saisir. Les erreurs de chargement n’ouvrent pas un formulaire vide lié à une demande inaccessible.
+- Aucun contrat de 12 mois n’est imposé par défaut. L’enregistrement crée uniquement un brouillon ; il n’envoie aucun courriel et ne modifie pas la demande d’origine.
+- Le portail client peut afficher les lignes, notes et conditions du devis grâce à `OfficialQuoteDetails`, sous les règles d’accès Supabase existantes.
+
+Installation : `INSTALLATION_TARIFS_V7.txt`. Aucune migration SQL ni fonction Supabase à redéployer. V6 doit déjà être installée.
+
+Les brouillons vides déjà créés ne sont pas réparés rétroactivement : repartir de la demande initiale pour créer un nouveau brouillon rempli. Les prix de facturation, interventions et signatures existantes ne sont pas modifiés par cette mise à jour.
+
+---
+
 # Tarifs OMSG — options et demandes lisibles V6
 
 Base : commit publié `a541c38` (présentation V5). Version de la grille et des règles d’estimation : `2026-09-20-v6`. Les prix unitaires restent identiques ; la V6 distingue la fréquence des suppléments. Les fichiers sont préparés localement et doivent être installés puis publiés.

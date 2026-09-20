@@ -1,0 +1,90 @@
+﻿OMSG — INSTALLATION TARIFS V7
+Transfert de la demande de devis vers le devis officiel
+
+Base : V6 publiée, commit 09eef47.
+Cette archive contient uniquement les 12 fichiers ajoutés ou modifiés.
+Les prix publics, le calculateur et les courriels V6 restent inchangés.
+
+CORRECTION
+Le bouton « Create Quote officiel » transmettait l’identifiant de la demande, mais la page de création ne chargeait pas celle-ci. Elle démarrait donc avec une ligne vide.
+La page charge désormais la demande et le client, puis prépare un brouillon modifiable avec les services, quantités, prix enregistrés, taxes, adresse d’intervention, fréquence et notes.
+
+1. COPIER LES FICHIERS
+Extrayez le ZIP dans un dossier temporaire. Copiez tout son contenu dans votre dossier du projet :
+C:\Users\Dell\OneDrive\Desktop\OMSG-v2.5-clean\ottawamultiservicesgroup-main
+Fusionnez les dossiers et acceptez les remplacements. Conservez vos autres fichiers.
+Cette mise à jour s’installe après V6. Elle utilise le module de résumé déjà installé en V6.
+
+2. VÉRIFIER DANS POWERSHELL
+Depuis le dossier du projet, exécutez les commandes une par une :
+
+node scripts/test-estimate-request.mjs
+node scripts/test-cleaning-pricing.mjs
+node scripts/test-quote-questionnaire.mjs
+npm.cmd run build
+
+Résultats attendus : 13 contrôles du transfert, 20 contrôles tarifaires, 8 contrôles du résumé/courriel et compilation réussie.
+Le premier script couvre notamment 1 080 combinaisons de forfaits/options et les profils de surface dans les deux langues. Aucune demande réelle ni aucun courriel ne sont envoyés par ces scripts.
+En cas d’erreur, conservez le message pour correction avant de publier.
+
+3. PRÉPARER LES FICHIERS
+Conservez les apostrophes simples : le fichier estimates.$estimateId.tsx contient un signe dollar.
+
+$fichiersTarifsV7 = @(
+  'INSTALLATION_TARIFS_V7.txt'
+  'INTEGRATION_TARIFS_FR.md'
+  'VALIDATION_TARIFS.md'
+  'docs/pricing-preview/official-draft-v7-en.png'
+  'docs/pricing-preview/official-draft-v7-mobile-fr.png'
+  'docs/pricing-preview/official-client-v7-en.png'
+  'scripts/test-estimate-request.mjs'
+  'src/components/official-quote-details.tsx'
+  'src/lib/estimate-request.ts'
+  'src/routes/admin/estimates.new.tsx'
+  'src/routes/admin/estimates.$estimateId.tsx'
+  'src/routes/portal.tsx'
+)
+
+git --literal-pathspecs add -- $fichiersTarifsV7
+git diff --cached --stat
+
+Vérifiez que seuls les fichiers souhaités sont préparés. N’utilisez pas git add . car votre dossier contient également d’autres travaux.
+Les avertissements LF/CRLF habituels ne sont pas bloquants.
+
+4. PUBLIER
+Après les vérifications :
+
+git commit -m "Tarifs V7 : transfert de la demande vers le devis officiel"
+git push origin main
+
+Attendez la réussite du déploiement habituel du site.
+Aucune migration SQL, commande db push, modification des droits Supabase ou fonction à redéployer pour V7.
+La fonction send-crm-email déployée en V6 reste utilisée.
+
+5. TESTER DANS LE CRM
+Actualisez le site avec Ctrl + F5.
+Ouvrez la demande de devis déjà reçue (celle qui contient le bon résumé V6).
+Cliquez sur « Create Quote officiel » depuis cette demande.
+Le client, l’adresse d’intervention et les services doivent être repris automatiquement.
+
+Le devis porte par défaut sur la PREMIÈRE VISITE.
+Pour une demande récurrente chiffrée, le sélecteur « Visite couverte par ce devis » permet de préparer à la place le prix d’UNE VISITE SUIVANTE. Les options ponctuelles n’y sont pas facturées.
+Les montants mensuels sont des références de la demande initiale ; ils ne s’ajoutent pas au total du devis.
+Aucune durée de contrat de 12 mois n’est imposée automatiquement.
+
+Vérifiez les prestations, le prix, la durée sur place, l’effectif et les conditions ; ajustez-les si nécessaire.
+Les heures importées représentent les HEURES-PERSONNES DE BASE estimées. Avec l’effectif initial de 1, la durée sur place proposée correspond à ces heures. Ajustez-la selon le nombre d’employés et le temps requis pour les suppléments.
+Enregistrez le brouillon. Le bouton d’envoi habituel reste une étape distincte.
+
+Les coordonnées/adresses propres à la demande sont conservées dans les notes du devis. La fiche client existante n’est pas écrasée si son adresse est différente.
+Dans le portail client, ouvrez « Prestations, prix et conditions » pour lire les services, quantités, prix, taxes, notes et conditions du devis enregistré.
+
+6. CAS PARTICULIERS
+- Ancienne demande V4/V5 : reprise des prix enregistrés, jamais recalculés au tarif actuel ; ancienne fréquence des options conservée.
+- Réfrigérateur + four : une ligne groupée reprend les deux prestations et leur remise enregistrée, car les lignes de la base n’acceptent pas de prix négatif.
+- Devis spécialisé, gros travaux ou fréquence personnalisée non chiffrée : choix et coordonnées repris, prix et durée à renseigner après étude ; aucun prix nul n’est validé automatiquement.
+- Autres métiers (déménagement, etc.) : questionnaire et notes repris, prix à saisir.
+- Brouillon vide déjà enregistré avant V7 : il ne sera pas modifié rétroactivement. Recréez un brouillon depuis la demande initiale. Aucune nouvelle soumission par le client n’est nécessaire.
+- Une erreur de chargement de la demande bloque la création ; elle ne doit plus produire silencieusement un devis vide.
+
+La demande initiale et les devis déjà envoyés ou signés ne sont pas modifiés.
