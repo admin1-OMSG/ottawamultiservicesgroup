@@ -4,7 +4,7 @@ import {
 } from "../../supabase/functions/_shared/quote-questionnaire";
 
 export type QuoteLine = { description: string; quantity: number; unit_price: number | null };
-export type VisitBasis = "first" | "recurring";
+export type VisitBasis = "first" | "qualifying" | "fourth" | "recurring";
 export type QuoteRequest = {
   id: string;
   request_number?: string | number;
@@ -47,13 +47,14 @@ export function quoteTaxRows(subtotal: number, rate: number) {
     },
   ];
 }
-export function quoteTotals(lines: QuoteLine[], rate: number) {
+export function quoteTotals(lines: QuoteLine[], rate: number, discount = 0) {
   const subtotal = roundMoney(
     lines.reduce((sum, line) => sum + roundMoney(line.quantity * (line.unit_price ?? 0)), 0),
   );
-  const taxes = quoteTaxRows(subtotal, rate);
+  const netSubtotal = roundMoney(Math.max(0, subtotal - discount));
+  const taxes = quoteTaxRows(netSubtotal, rate);
   const tax = roundMoney(taxes.reduce((sum, row) => sum + row.amount, 0));
-  return { subtotal, taxes, tax, total: roundMoney(subtotal + tax) };
+  return { subtotal, netSubtotal, taxes, tax, total: roundMoney(netSubtotal + tax) };
 }
 export function quoteTaxLabel(rate: number) {
   return quoteTaxRows(0, rate)
@@ -140,10 +141,35 @@ export function buildEstimateDraft(
     !!answers["Selection summary"] ||
     !!answers["Selection JSON"];
   const recurring = requestHasRecurringPrice(request);
-  const recurringVisit = basis === "recurring" && recurring;
+  const fourVisitPolicy = answers["Recurring billing policy"] === "four-consecutive-v1";
+  const selectedBasis: VisitBasis =
+    recurring && (fourVisitPolicy || basis === "recurring") ? basis : "first";
+  const recurringVisit = selectedBasis !== "first" && recurring;
+  const fourth = fourVisitPolicy && selectedBasis === "fourth";
+  const qualifying = fourVisitPolicy && selectedBasis === "qualifying";
   const visit = t(
-    recurringVisit ? "Following visit" : recurring ? "First visit" : "Service visit",
-    recurringVisit ? "Visite suivante" : recurring ? "Première visite" : "Intervention",
+    fourth
+      ? "Visit 4 — after qualification credit"
+      : qualifying
+        ? "Visit 2 or 3 — full rate"
+        : recurringVisit
+          ? fourVisitPolicy
+            ? "Visit 5 onward — per visit"
+            : "Following visit"
+          : recurring
+            ? "First visit"
+            : "Service visit",
+    fourth
+      ? "Visite 4 — après crédit de récurrence"
+      : qualifying
+        ? "Visite 2 ou 3 — tarif complet"
+        : recurringVisit
+          ? fourVisitPolicy
+            ? "Dès la visite 5 — par visite"
+            : "Visite suivante"
+          : recurring
+            ? "Première visite"
+            : "Intervention",
   );
   const plan =
     asText(answers.Plan) || request.service_name || t("Requested service", "Prestation demandée");
@@ -154,9 +180,17 @@ export function buildEstimateDraft(
     : /^(on|ontario)$/i.test(province)
       ? 0.13
       : defaultTax;
-  const prefix = recurringVisit ? "Recurring visit" : "First visit";
+  const prefix = fourth
+    ? "Fourth visit"
+    : qualifying
+      ? "Qualifying visit"
+      : recurringVisit
+        ? "Recurring visit"
+        : "First visit";
   const subtotal = number(answers[`${prefix} subtotal CAD`]);
   const savedTotal = number(answers[`${prefix} total CAD`]);
+  const discount = fourth ? (number(answers["Fourth visit credit CAD"]) ?? 0) : 0;
+  const buildSubtotal = subtotal === null ? null : roundMoney(subtotal + discount);
   const hours = number(answers["Estimated base worker-hours"]);
   const warnings: string[] = [];
   let lines: QuoteLine[] = [
@@ -173,9 +207,12 @@ export function buildEstimateDraft(
   if (cleaning && subtotal !== null && !manual) {
     const legacy = !asText(answers["Add-on schedule"]) && !!answers["Selection JSON"];
     const rawExtras =
-      asText(answers[`${prefix} add-ons`]) || (legacy ? asText(answers["Selected add-ons"]) : "");
+      asText(answers[`${fourth ? "Recurring visit" : prefix} add-ons`]) ||
+      (legacy ? asText(answers["Selected add-ons"]) : "");
     let extras = savedExtraLines(rawExtras);
-    const storedExtras = number(answers[`${prefix} add-ons subtotal CAD`]);
+    const storedExtras = number(
+      answers[`${fourth ? "Recurring visit" : prefix} add-ons subtotal CAD`],
+    );
     if (extras && storedExtras !== null && quoteTotals(extras, 0).subtotal !== storedExtras)
       extras = null;
     if (!extras && storedExtras !== null) {
@@ -198,12 +235,14 @@ export function buildEstimateDraft(
     }
     if (extras) {
       const extrasTotal = quoteTotals(extras, 0).subtotal;
-      const base = roundMoney(subtotal - extrasTotal);
+      const base = roundMoney(buildSubtotal! - extrasTotal);
       let baseRate = number(
         answers[
-          recurringVisit
-            ? "Base rate CAD per worker-hour"
-            : "First visit base rate CAD per worker-hour"
+          qualifying
+            ? "Qualifying visit base rate CAD per worker-hour"
+            : recurringVisit
+              ? "Base rate CAD per worker-hour"
+              : "First visit base rate CAD per worker-hour"
         ],
       );
       if (baseRate === null && hours && base >= 0) baseRate = roundMoney(base / hours);
@@ -226,12 +265,12 @@ export function buildEstimateDraft(
         lines.push(...extras);
       } else extras = null;
     }
-    if (!extras || !lines.length || quoteTotals(lines, 0).subtotal !== subtotal) {
+    if (!extras || !lines.length || quoteTotals(lines, 0).subtotal !== buildSubtotal) {
       lines = [
         {
           description: `${plan} — ${profile} — ${visit}. ${t("Saved package; see the request detail", "Forfait enregistré ; voir le détail de la demande")}`,
           quantity: 1,
-          unit_price: subtotal,
+          unit_price: buildSubtotal,
         },
       ];
       warnings.push(
@@ -242,7 +281,7 @@ export function buildEstimateDraft(
       );
     }
     imported = true;
-    if (savedTotal !== null && quoteTotals(lines, rate).total !== savedTotal) {
+    if (savedTotal !== null && quoteTotals(lines, rate, discount).total !== savedTotal) {
       warnings.push(
         t(
           "The saved tax total does not match the province. Confirm the price and taxes before saving.",
@@ -284,6 +323,11 @@ export function buildEstimateDraft(
       : "",
     request.description ? `${t("Customer notes", "Notes du client")}: ${request.description}` : "",
     requestDetails,
+    fourVisitPolicy ? asText(answers["Recurring pricing condition"]) : "",
+    fourVisitPolicy ? asText(answers["Four-visit billing schedule"]) : "",
+    fourth
+      ? `${t("Accumulated recurring credit for visits 1–3, before tax", "Crédit de récurrence cumulé des visites 1 à 3, avant taxes")}: ${cash(discount)}. ${t("Applies only after completion of the fourth consecutive visit at the agreed frequency.", "Applicable seulement après réalisation de la quatrième visite consécutive à la fréquence convenue.")}`
+      : "",
     ...(
       [
         [
@@ -304,7 +348,11 @@ export function buildEstimateDraft(
       ] as const
     ).flatMap(([key, en, french]) => {
       const amount = number(answers[key]);
-      return amount === null ? [] : [`${t(en, french)}: ${cash(amount)}`];
+      return amount === null
+        ? []
+        : [
+            `${t(en, french)}${fourVisitPolicy ? t(" (eligible rate after qualification)", " (tarif récurrent après admissibilité)") : ""}: ${cash(amount)}`,
+          ];
     }),
     answers["Quality photos consent"] === "Yes" || answers["Quality photos consent"] === "No"
       ? `${t("Quality photos authorized", "Photos de contrôle qualité autorisées")}: ${answers["Quality photos consent"] === "Yes" ? t("Yes — private before/after report only", "Oui — rapport privé avant/après seulement") : t("No", "Non")}`
@@ -319,6 +367,9 @@ export function buildEstimateDraft(
     title: [plan, cleaning ? visit : ""].filter(Boolean).join(" — "),
     notes,
     lines,
+    discount,
+    fourVisitPolicy,
+    billingCondition: fourVisitPolicy ? asText(answers["Recurring pricing condition"]) : "",
     taxRate: rate,
     currency: cleaning ? "CAD" : null,
     hours: hours && hours <= 24 ? hours : null,
@@ -330,6 +381,6 @@ export function buildEstimateDraft(
     warnings,
     savedSubtotal: subtotal,
     savedTotal,
-    basis: recurringVisit ? ("recurring" as const) : ("first" as const),
+    basis: selectedBasis,
   };
 }

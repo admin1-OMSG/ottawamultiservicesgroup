@@ -1,3 +1,4 @@
+import { quoteTaxLabel } from "@/lib/estimate-request"
 import { FileCameraInput } from "@/components/file-camera-input"
 import { FormEvent, useEffect, useMemo, useState } from "react"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
@@ -283,7 +284,7 @@ function InvoiceDetail() {
           <div className="rounded-xl border bg-slate-50 p-5 print:bg-white">
             <p className="flex justify-between py-1.5"><span>Subtotal before tax</span><strong>{formatCad(inv.subtotal)}</strong></p>
             {Number(inv.discount_total) > 0 && <p className="flex justify-between py-1.5 text-slate-600"><span>Discount</span><strong>-{formatCad(inv.discount_total)}</strong></p>}
-            <p className="flex justify-between py-1.5"><span>HST ({taxRatePercent.toFixed(taxRatePercent % 1 === 0 ? 0 : 2)} %)</span><strong>{formatCad(inv.tax_total)}</strong></p>
+            <p className="flex justify-between py-1.5"><span>{quoteTaxLabel(Number(inv.tax_rate))}</span><strong>{formatCad(inv.tax_total)}</strong></p>
             <p className="mt-2 flex justify-between border-t pt-3 text-lg"><span>Total</span><strong>{formatCad(inv.total)}</strong></p>
             <p className="mt-2 flex justify-between text-emerald-700"><span>Amount paid</span><strong>{formatCad(inv.amount_paid)}</strong></p>
             <p className="mt-3 flex justify-between border-t pt-3 text-xl"><span>Balance due</span><strong>{formatCad(inv.balance_due)}</strong></p>

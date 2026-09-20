@@ -21,6 +21,14 @@ test('New EN/FR summaries replace raw selection JSON and show both visit totals'
   assert.match(html,locale==='fr'?/423,75/:/423\.75/);assert.match(html,locale==='fr'?/212,44/:/212\.44/);
  }
 });
+test('Readable summaries include the four-visit condition, schedule and fourth credit',()=>{
+ for(const locale of ['en','fr']) {
+  const html=renderQuestionnaireHtml(makeAnswers(locale));
+  assert.match(html,locale==='fr'?/consécutives/:/consecutive/);
+  assert.match(html,locale==='fr'?/96\s*\$/:/\$96/);
+  assert.match(html,locale==='fr'?/103,96/:/103\.96/);
+ }
+});
 const legacy={
  'Request source':'cleaning_pricing','Selection JSON':JSON.stringify({...selection,addonFrequencies:undefined}),
  'Pricing version':'2026-09-20-v4','Customer type':'residential',Plan:'Once a week',Condition:'normal',

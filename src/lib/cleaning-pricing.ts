@@ -1,5 +1,5 @@
 /** Public estimates only. Official quotes are reviewed and issued through the CRM. */
-export const PRICING_VERSION = "2026-09-20-v6";
+export const PRICING_VERSION = "2026-09-20-v8";
 export type Locale = "en" | "fr";
 export type Audience = "residential" | "commercial";
 export type PlanId =
@@ -136,6 +136,15 @@ export const SERVICE_AREA = text(
 export const FREQUENCY_NOTE = text(
   "Need two or more visits a week, daily service or another schedule? Other frequencies are available, with the price reviewed for the number of visits, tasks and time required. Request your tailored quote.",
   "Besoin de deux visites par semaine ou plus, d’un entretien quotidien ou d’un autre rythme ? D’autres fréquences sont possibles, avec un tarif révisé selon le nombre de passages, les tâches et la durée nécessaire. Demandez votre forfait personnalisé.",
+);
+
+export const RECURRING_CONDITION = text(
+  "The recurring rate requires 4 consecutive completed visits at the agreed frequency. Visits 1, 2 and 3 are invoiced at the full standard rate. Once visit 4 is completed, its invoice uses the recurring rate and deducts the accumulated difference from the first 3 visits. The recurring rate then applies to subsequent visits while the agreed frequency is maintained. If fewer than 4 consecutive visits are completed, no recurring-rate credit is earned. Extras remain separately priced; the credit applies to eligible routine cleaning only. Any change of scope or schedule is confirmed in the official quote.",
+  "Le tarif récurrent est accordé après 4 visites consécutives réalisées selon la fréquence convenue. Les visites 1, 2 et 3 sont facturées au tarif standard complet. Une fois la 4e visite réalisée, sa facture applique le tarif récurrent et déduit l’écart cumulé des 3 premières visites. Le tarif récurrent s’applique ensuite aux visites suivantes tant que la fréquence convenue est respectée. Si moins de 4 visites consécutives sont réalisées, aucun crédit de récurrence n’est acquis. Les suppléments restent facturés séparément ; le crédit concerne uniquement l’entretien courant admissible. Tout changement de périmètre ou de fréquence est confirmé au devis officiel.",
+);
+export const RECURRING_SHORT = text(
+  "Recurring rate: 4 consecutive visits required. First 3 visits at full rate; the accumulated difference is credited on invoice 4.",
+  "Tarif récurrent : 4 visites consécutives requises. Les 3 premières au tarif complet ; l’écart cumulé est déduit de la 4e facture.",
 );
 
 // Comparisons use the same scope and duration and respect the one-time minimum.
@@ -817,12 +826,21 @@ export function calculateCleaningEstimate(s: PricingSelection) {
   const extras = round(lines.reduce((sum, l) => sum + l.total, 0));
   const base = round(hours * rate),
     subtotal = round(base + (recurring ? recurringExtras : extras));
-  const firstRate = residentialRecurring ? 50 : rate;
+  const firstRate = recurring ? 50 : rate;
   const firstSubtotal = round(hours * firstRate + extras);
   const taxes = taxesFor(firstSubtotal, s.province);
   const total = round(firstSubtotal + taxes.reduce((sum, t) => sum + t.amount, 0));
   const subsequentTaxes = taxesFor(subtotal, s.province);
   const subsequentTotal = round(subtotal + subsequentTaxes.reduce((sum, t) => sum + t.amount, 0));
+  const qualifyingSubtotal = round(hours * firstRate + recurringExtras);
+  const qualifyingTaxes = taxesFor(qualifyingSubtotal, s.province);
+  const qualifyingTotal = round(
+    qualifyingSubtotal + qualifyingTaxes.reduce((sum, tax) => sum + tax.amount, 0),
+  );
+  const fourthCredit = recurring ? round(3 * round(hours * firstRate - base)) : 0;
+  const fourthSubtotal = recurring ? round(subtotal - fourthCredit) : firstSubtotal;
+  const fourthTaxes = taxesFor(fourthSubtotal, s.province);
+  const fourthTotal = round(fourthSubtotal + fourthTaxes.reduce((sum, tax) => sum + tax.amount, 0));
   const frequency =
     s.audience === "commercial"
       ? [1, 2, 3, 5].includes(s.visitsPerWeek)
@@ -847,6 +865,13 @@ export function calculateCleaningEstimate(s: PricingSelection) {
     recurringLines,
     recurringExtras,
     subsequentTaxes,
+    qualifyingSubtotal,
+    qualifyingTaxes,
+    qualifyingTotal,
+    fourthCredit,
+    fourthSubtotal,
+    fourthTaxes,
+    fourthTotal,
     base,
     subtotal,
     firstRate,
@@ -919,6 +944,13 @@ export function pricingAnswers(
     "Selection summary": summary,
     "Add-on schedule": schedule,
     "Selected add-ons": schedule,
+    ...(recurring
+      ? {
+          "Recurring eligibility visits": "4",
+          "Recurring billing policy": "four-consecutive-v1",
+          "Recurring pricing condition": RECURRING_CONDITION[locale],
+        }
+      : {}),
     "Add-on recurrence policy": recurring
       ? text(
           "First visit only unless Every visit is explicitly selected. The bundle saving applies only when both services occur at the same visit.",
@@ -950,6 +982,27 @@ export function pricingAnswers(
       "First visit total CAD": String(e.total),
       ...(e.recurring
         ? {
+            "Qualifying visit base rate CAD per worker-hour": String(e.firstRate),
+            "Qualifying visit add-ons": renderLines(e.recurringLines),
+            "Qualifying visit add-ons subtotal CAD": String(e.recurringExtras),
+            "Qualifying visit subtotal CAD": String(e.qualifyingSubtotal),
+            "Qualifying visit taxes": e.qualifyingTaxes
+              .map((tax) => `${tax.name[locale]}: ${money(tax.amount, locale)}`)
+              .join("\n"),
+            "Qualifying visit total CAD": String(e.qualifyingTotal),
+            "Fourth visit credit CAD": String(e.fourthCredit),
+            "Fourth visit subtotal CAD": String(e.fourthSubtotal),
+            "Fourth visit taxes": e.fourthTaxes
+              .map((tax) => `${tax.name[locale]}: ${money(tax.amount, locale)}`)
+              .join("\n"),
+            "Fourth visit total CAD": String(e.fourthTotal),
+            "Four-visit billing schedule": [
+              `${text("Visit 1, full rate", "Visite 1, tarif complet")[locale]}: ${money(e.total, locale)}`,
+              `${text("Visits 2 and 3, full rate, each", "Visites 2 et 3, tarif complet, chacune")[locale]}: ${money(e.qualifyingTotal, locale)}`,
+              `${text("Visit 4 after credit", "Visite 4 après crédit")[locale]}: ${money(e.fourthTotal, locale)}`,
+              `${text("Accumulated credit before tax", "Crédit cumulé avant taxes")[locale]}: ${money(e.fourthCredit, locale)}`,
+              `${text("Visit 5 onward, each", "À partir de la visite 5, chacune")[locale]}: ${money(e.subsequentTotal, locale)}`,
+            ].join("\n"),
             "Recurring visit add-ons": renderLines(e.recurringLines),
             "Recurring visit add-ons subtotal CAD": String(e.recurringExtras),
             "Recurring visit subtotal CAD": String(e.subtotal),
@@ -963,8 +1016,8 @@ export function pricingAnswers(
       "Average recurring month before tax CAD":
         e.monthly === null ? "Not applicable" : String(e.monthly),
       "Monthly budget basis": text(
-        "Average recurring visits only; excludes first-visit-only extras and the initial rate difference.",
-        "Moyenne des visites récurrentes seulement ; hors options de première visite et écart du tarif initial.",
+        "Average at the eligible recurring rate, after the four-visit condition. Actual invoices 1–3 are higher and invoice 4 includes the accumulated credit. Excludes first-visit-only extras.",
+        "Moyenne au tarif récurrent admissible, après la condition des quatre visites. Les factures 1 à 3 sont plus élevées et la facture 4 inclut le crédit cumulé. Hors options de première visite.",
       )[locale],
     });
   return result;

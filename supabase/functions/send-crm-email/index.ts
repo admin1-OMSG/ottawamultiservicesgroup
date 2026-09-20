@@ -371,7 +371,7 @@ Deno.serve(async (req) => {
       if (!(await isAdmin(user?.id))) throw new Error("Admin access required")
       const { data: invoice } = await admin
         .from("invoices")
-        .select("id,invoice_number,title,status,issue_date,due_date,subtotal,discount_total,tax_rate,tax_total,total,amount_paid,balance_due,currency,updated_at,job_id,estimate_id,customer_id,customer:customers(first_name,last_name,email,phone,address_line,city,province,postal_code,preferred_language)")
+        .select("id,invoice_number,title,status,issue_date,due_date,subtotal,discount_total,tax_rate,tax_total,total,amount_paid,balance_due,currency,terms,updated_at,job_id,estimate_id,customer_id,customer:customers(first_name,last_name,email,phone,address_line,city,province,postal_code,preferred_language)")
         .eq("id", body.invoiceId)
         .maybeSingle()
       if (!invoice) throw new Error("Invoice not found")
@@ -446,7 +446,7 @@ Deno.serve(async (req) => {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;border-spacing:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;font-size:13px">
                 <tr><td style="padding:12px 14px 5px;color:#475569">Subtotal before tax</td><td align="right" style="padding:12px 14px 5px;font-weight:700">${money(invoice.subtotal)}</td></tr>
                 ${Number(invoice.discount_total || 0) > 0 ? `<tr><td style="padding:5px 14px;color:#475569">Discount</td><td align="right" style="padding:5px 14px;font-weight:700">-${money(invoice.discount_total)}</td></tr>` : ""}
-                <tr><td style="padding:5px 14px;color:#475569">HST (${taxRate.toFixed(taxRate % 1 === 0 ? 0 : 2)} %)</td><td align="right" style="padding:5px 14px;font-weight:700">${money(invoice.tax_total)}</td></tr>
+                <tr><td style="padding:5px 14px;color:#475569">${Math.abs(Number(invoice.tax_rate) - 0.14975) < 0.000001 ? "GST / TPS 5 % + QST / TVQ 9.975 %" : Math.abs(Number(invoice.tax_rate) - 0.13) < 0.000001 ? "HST / TVH 13 %" : `Tax / Taxes (${taxRate.toFixed(taxRate % 1 === 0 ? 0 : 3)} %)`}</td><td align="right" style="padding:5px 14px;font-weight:700">${money(invoice.tax_total)}</td></tr>
                 <tr><td style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:16px;font-weight:800">Total</td><td align="right" style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:16px;font-weight:800">${money(invoice.total)}</td></tr>
                 <tr><td style="padding:5px 14px;color:#047857">Amount paid</td><td align="right" style="padding:5px 14px;color:#047857;font-weight:800">${money(invoice.amount_paid)}</td></tr>
                 <tr><td style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:15px;font-weight:800">Balance</td><td align="right" style="padding:10px 14px;border-top:1px solid #cbd5e1;font-size:15px;font-weight:800">${money(invoice.balance_due)}</td></tr>
@@ -455,6 +455,7 @@ Deno.serve(async (req) => {
           </tr>
         </table>
 
+        ${invoice.terms ? `<div style="margin:18px 0;padding:16px;background:#f8fafc;border-radius:8px;font-size:13px;line-height:1.6"><strong>Terms / Conditions</strong><p>${escapeHtml(invoice.terms).replace(/\n/g, "<br>")}</p></div>` : ""}
         ${invoicePhotoHtml}
 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 22px 0">

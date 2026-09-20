@@ -1,0 +1,99 @@
+﻿OMSG — INSTALLATION TARIFS V8
+Quatre visites consécutives et crédit sur la quatrième facture
+
+Base : V7 publiée, commit cd5e3ed.
+Cette archive contient uniquement les 20 fichiers ajoutés ou modifiés.
+
+1. COPIER
+Extraire le ZIP dans un dossier temporaire, puis copier son contenu dans :
+C:\Users\Dell\OneDrive\Desktop\OMSG-v2.5-clean\ottawamultiservicesgroup-main
+Fusionner les dossiers et accepter les remplacements. Conserver les autres fichiers.
+
+2. VÉRIFIER DANS POWERSHELL
+Exécuter chaque commande séparément depuis le dossier du projet :
+
+node scripts/test-cleaning-pricing.mjs
+node scripts/test-estimate-request.mjs
+node scripts/test-quote-questionnaire.mjs
+npm.cmd run build
+
+Résultats attendus : 24, 15 et 9 contrôles réussis, puis compilation réussie.
+Utiliser npm.cmd pour éviter la restriction PowerShell sur npm.ps1.
+
+3. PRÉPARER LES FICHIERS
+Conserver les apostrophes simples : certains noms contiennent un dollar.
+
+$fichiersTarifsV8 = @(
+  'INSTALLATION_TARIFS_V8.txt'
+  'INTEGRATION_TARIFS_FR.md'
+  'VALIDATION_TARIFS.md'
+  'docs/pricing-preview/four-visit-schedule-v8-fr.png'
+  'docs/pricing-preview/fourth-invoice-v8-en.png'
+  'scripts/test-cleaning-pricing.mjs'
+  'scripts/test-estimate-request.mjs'
+  'scripts/test-quote-questionnaire.mjs'
+  'src/components/cleaning-pricing-overview.tsx'
+  'src/components/cleaning-pricing-page.tsx'
+  'src/components/cleaning-quote-request.tsx'
+  'src/lib/cleaning-pricing.ts'
+  'src/lib/estimate-request.ts'
+  'src/routes/admin/estimates.new.tsx'
+  'src/routes/admin/invoices.$invoiceId.tsx'
+  'src/routes/admin/invoices.new.tsx'
+  'src/routes/portal.tsx'
+  'src/routes/pricing-policy.tsx'
+  'supabase/functions/_shared/quote-questionnaire.ts'
+  'supabase/functions/send-crm-email/index.ts'
+)
+
+git --literal-pathspecs add -- $fichiersTarifsV8
+git diff --cached --stat
+
+Vérifier que seuls les fichiers voulus sont préparés. Ne pas utiliser git add .
+Les avertissements LF/CRLF habituels ne sont pas bloquants.
+
+4. PUBLIER LE SITE
+
+git commit -m "Tarifs V8 : quatre visites consecutives et credit sur la quatrieme facture"
+git push origin main
+
+Attendre la réussite du déploiement habituel du site.
+
+5. PUBLIER LA FONCTION COURRIEL SUPABASE
+Cette étape est nécessaire pour que les courriels affichent la nouvelle condition.
+Depuis le même dossier du projet, avec votre accès Supabase habituel :
+
+npx.cmd supabase@latest functions deploy send-crm-email --project-ref prlkiyyjctfksmrvorqs --use-api
+
+Si la session Supabase n'est plus ouverte :
+npx.cmd supabase@latest login
+Puis relancer la commande de déploiement ci-dessus.
+
+Aucune migration SQL, aucun db push, aucune modification des droits. Le fichier partagé _shared/quote-questionnaire.ts est inclus dans le déploiement de send-crm-email.
+Ne pas désactiver la vérification JWT ni modifier les secrets pour cette mise à jour.
+
+6. CONTRÔLER LE PARCOURS
+Actualiser avec Ctrl + F5 et créer UNE NOUVELLE demande récurrente.
+Exemple sans options : résidentiel hebdomadaire, trois heures.
+Avant taxes : 150 $, 150 $, 150 $, 54 $ (126 $ moins 72 $ de crédit), puis 126 $ par visite.
+La somme des quatre premières visites est 504 $, soit 4 × 126 $.
+Le formulaire, la demande CRM, le courriel et la politique doivent mentionner les quatre visites consécutives selon la fréquence convenue.
+
+Depuis cette demande, ouvrir « Create Quote officiel ».
+Le sélecteur « Visite couverte par ce devis » propose :
+- Première visite : tarif complet et tous les suppléments initiaux.
+- Visite 2 ou 3 : tarif complet et uniquement les suppléments récurrents.
+- Visite 4 : tarif récurrent et crédit cumulé séparé.
+- Visite 5 et suivantes : tarif récurrent sans nouveau crédit.
+
+Créer la facture depuis le devis correspondant à la visite. Vérifier les lignes, le crédit, les taxes et les conditions avant tout envoi. Le bouton de création enregistre un brouillon ; l'envoi reste une action distincte.
+
+AVANT D'ACCORDER LE CRÉDIT
+Vérifier manuellement les quatre visites réellement effectuées à la fréquence convenue et les sommes facturées. Vérifier aussi qu'aucun crédit identique n'a déjà été accordé. La V8 n'automatise pas le comptage des interventions et ne bloque pas les doubles crédits.
+Si les prestations, heures ou prix ont été ajustés, adapter le crédit aux différences réelles. Le montant proposé vient du devis provisoire, pas d'une lecture de l'historique des factures.
+La condition s'applique une fois au démarrage, pas par cycles répétés de quatre factures. Les suppléments conservent leur prix propre. Moins de quatre visites consécutives ne donne pas droit au crédit.
+
+ANCIENNES DEMANDES ET DEVIS
+Les demandes antérieures à V8 conservent leur tarification enregistrée. Les factures et devis existants ne sont pas modifiés rétroactivement. Un changement pour un contrat existant doit être convenu et repris dans un nouveau devis, sans modifier un document signé.
+
+Documentation complète : INTEGRATION_TARIFS_FR.md et VALIDATION_TARIFS.md.

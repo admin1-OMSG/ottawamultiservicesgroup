@@ -24,7 +24,7 @@ test('First visit imports saved lines, contact, address, schedule, notes and exa
 test('Following visit has recurring linen only and never charges first-only extras twice',()=>{
  const d=draft(request(),'recurring');assert.equal(d.lines.length,2);assert.equal(d.lines[0].unit_price,42);assert.equal(d.serviceType,'recurring');
  assert.equal(quoteTotals(d.lines,d.taxRate).total,212.44);assert.doesNotMatch(JSON.stringify(d.lines),/refrigerator|oven|baseboards|windows/);
- assert.match(d.title,/Following visit/);assert.match(d.notes,/provisional references/);
+ assert.match(d.title,/Visit 5 onward/);assert.match(d.notes,/provisional references/);
 });
 test('Appliance bundle remains one net $65 line, with no negative database prices',()=>{
  const d=draft(request());const pair=d.lines.find(row=>row.description.includes('bundle saving'));
@@ -35,7 +35,7 @@ test('Appliance bundle remains one net $65 line, with no negative database price
 test('French numbers and Quebec taxes preserve individually rounded stored totals',()=>{
  const s={...initialSelection('commercial'),province:'Quebec',addons:{cabinets:1,linen:2},addonFrequencies:{linen:'every'}};
  const first=draft(request(s,'fr')),following=draft(request(s,'fr'),'recurring');
- assert.equal(first.taxRate,.14975);assert.equal(quoteTotals(first.lines,first.taxRate).total,143.72);assert.equal(quoteTotals(following.lines,following.taxRate).total,126.47);
+ assert.equal(first.taxRate,.14975);assert.equal(quoteTotals(first.lines,first.taxRate).total,155.22);assert.equal(quoteTotals(following.lines,following.taxRate).total,126.47);
  assert.match(first.title,/Première visite/);assert.equal(following.frequency,'weekly');assert.equal(first.lines[2].quantity,2);
  assert.deepEqual(quoteTaxRows(125,.14975).map(row=>row.amount),[6.25,12.47]);
 });
@@ -95,6 +95,22 @@ test('Non-cleaning requests keep readable questionnaire and customer notes witho
 test('Changing the official price recomputes tax from edited lines without changing original request',()=>{
  const r=request(),original=JSON.stringify(r),d=draft(r);d.lines[0].unit_price=55;
  assert.equal(quoteTotals(d.lines,d.taxRate).subtotal,395);assert.equal(quoteTotals(d.lines,d.taxRate).total,446.35);assert.equal(JSON.stringify(r),original);
+});
+test('Each qualification phase imports the saved credit, extras and exact post-credit taxes',()=>{
+ for(const province of ['Ontario','Quebec']) for(const locale of ['en','fr']) {
+  const r=request({...example,province},locale),original=JSON.stringify(r),e=estimate({...example,province});
+  for(const [basis,total,credit] of [['first',e.total,0],['qualifying',e.qualifyingTotal,0],['fourth',e.fourthTotal,e.fourthCredit],['recurring',e.subsequentTotal,0]]) {
+   const d=draft(r,basis);assert.equal(d.imported,true);assert.equal(d.fourVisitPolicy,true);assert.equal(d.discount,credit);
+   const totals=quoteTotals(d.lines,d.taxRate,d.discount);assert.equal(totals.total,total);assert.equal(totals.netSubtotal,totals.subtotal-credit);
+   assert.match(d.billingCondition,locale==='fr'?/consécutives/:/consecutive/);assert.ok(d.lines.every(l=>l.unit_price>=0));
+   if(basis==='fourth')assert.match(d.notes,locale==='fr'?/Crédit de récurrence/:/Accumulated recurring credit/);
+  }
+  assert.equal(JSON.stringify(r),original);
+ }
+});
+test('Legacy requests do not acquire a new condition or credit retroactively',()=>{
+ const r=request();delete r.questionnaire_answers['Recurring billing policy'];
+ const d=draft(r,'recurring');assert.equal(d.fourVisitPolicy,false);assert.equal(d.discount,0);assert.equal(d.billingCondition,'');assert.match(d.title,/Following visit/);
 });
 console.log(`${passed} request-to-quote checks passed.`);
 if(process.env.ESTIMATE_FIXTURE_PATH)writeFileSync(process.env.ESTIMATE_FIXTURE_PATH,JSON.stringify({request:request(),french:request({...example,province:'Quebec'},'fr'),custom:request({...example,plan:'flexible',visitsPerWeek:3}),generic:{...base,service_name:'Moving',questionnaire_answers:{stairs:2}},draft:draft(request()),following:draft(request(),'recurring')},null,2));

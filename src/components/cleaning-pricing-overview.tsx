@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/lib/language";
 import {
+  RECURRING_SHORT,
   ADDONS,
   DEEP_TASKS,
   ROUTINE_TASKS,
@@ -310,6 +311,14 @@ function PackageCard({ audience, id }: { audience: Audience; id: PlanId }) {
           </s>
         )}
       </div>
+      {["weekly", "biweekly", "monthly", "recurring"].includes(id) && (
+        <p className="mt-2 text-xs font-medium leading-5 text-teal-800">
+          {t(
+            "Subject to 4 consecutive visits · credit on invoice 4",
+            "Sous condition de 4 visites consécutives · crédit sur la facture 4",
+          )}
+        </p>
+      )}
       <p className="mt-2 text-sm text-slate-600">
         {example.hours.toLocaleString(language === "fr" ? "fr-CA" : "en-CA")}{" "}
         {t("worker-hours / visit", "heures-personnes / visite")}
@@ -721,14 +730,7 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
               "Savings compare the same standard one-time package and duration.",
               "Les économies se calculent par rapport au même forfait standard ponctuel, de durée identique.",
             )}{" "}
-            {residential && (
-              <strong className="font-medium text-slate-800">
-                {t(
-                  "Recurring rates start on the second visit. The initial visit is $50 per worker-hour, minimum $150 for 3 hours.",
-                  "Les tarifs récurrents s’appliquent dès la deuxième visite. La première visite est à 50 $ par heure-personne, minimum 150 $ pour 3 h.",
-                )}
-              </strong>
-            )}
+            <strong className="font-medium text-slate-800">{RECURRING_SHORT[language]}</strong>
           </p>
           <AllPlans audience={audience} />
           <div className="mt-7 flex flex-col justify-between gap-5 rounded-lg bg-teal-50 px-6 py-6 sm:flex-row sm:items-center">

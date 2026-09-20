@@ -9,6 +9,8 @@ import { supabase } from "@/lib/supabase";
 import { sendCrmEmail } from "@/lib/email-notifications";
 import {
   PRICING_VERSION,
+  RECURRING_SHORT,
+  isRecurringSelection,
   type Locale,
   type PricingSelection,
   type CleaningEstimate,
@@ -197,6 +199,14 @@ export function CleaningQuoteRequest({
 
   return (
     <form onSubmit={submit} className="space-y-6" data-i18n-ignore="true">
+      {isRecurringSelection(selection) && (
+        <p className="rounded-lg bg-teal-50 p-4 text-sm leading-6 text-teal-950">
+          {RECURRING_SHORT[locale]}{" "}
+          <Link to="/pricing-policy" hash="savings" className="font-semibold underline">
+            {t("See the condition", "Voir la condition")}
+          </Link>
+        </p>
+      )}
       {estimate.requiresRateReview && (
         <p className="rounded-lg bg-teal-50 p-4 text-sm leading-6 text-teal-900">
           {t(

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/language";
 import { CleaningQuoteRequest } from "@/components/cleaning-quote-request";
 import {
+  RECURRING_CONDITION,
   ADDONS,
   BUSINESS_PROFILES,
   HOME_PROFILES,
@@ -450,6 +451,11 @@ export function CleaningEstimatePage({
             </p>
             {estimate.requiresQuote ? (
               <div className="mt-4">
+                {recurringSelection && (
+                  <p className="mb-4 text-sm leading-6 text-slate-600">
+                    {RECURRING_CONDITION[language]}
+                  </p>
+                )}
                 {estimate.requiresRateReview && (
                   <p className="mb-3 text-sm font-medium text-teal-800">
                     {frequencyLabel(selection, language)}
@@ -537,9 +543,54 @@ export function CleaningEstimatePage({
                   ))}
                 </dl>
                 {estimate.recurring && (
+                  <section
+                    className="mt-5 rounded-lg bg-teal-50 p-4"
+                    aria-label={t("First four invoices", "Quatre premières factures")}
+                  >
+                    <h3 className="font-semibold text-teal-950">
+                      {t(
+                        "4 consecutive visits to qualify",
+                        "4 visites consécutives pour en bénéficier",
+                      )}
+                    </h3>
+                    <dl className="mt-3 space-y-3 text-sm">
+                      <div className="flex justify-between gap-3">
+                        <dt>{t("Visit 1 · full rate", "Visite 1 · tarif complet")}</dt>
+                        <dd className="shrink-0 font-medium">{money(estimate.total, language)}</dd>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <dt>{t("Visits 2 and 3 · each", "Visites 2 et 3 · chacune")}</dt>
+                        <dd className="shrink-0 font-medium">
+                          {money(estimate.qualifyingTotal, language)}
+                        </dd>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <dt>{t("Visit 4 · after credit", "Visite 4 · après crédit")}</dt>
+                        <dd className="shrink-0 font-bold text-teal-900">
+                          {money(estimate.fourthTotal, language)}
+                        </dd>
+                      </div>
+                    </dl>
+                    <p className="mt-3 text-xs leading-5 text-teal-950">
+                      {t(
+                        "Visit totals include taxes. The fourth invoice deducts",
+                        "Les totaux incluent les taxes. La quatrième facture déduit",
+                      )}{" "}
+                      {money(estimate.fourthCredit, language)}{" "}
+                      {t(
+                        "before tax, accumulated on the first 3 visits. Applies after 4 consecutive visits at the agreed frequency. Extras follow their selected frequency.",
+                        "avant taxes, cumulés sur les 3 premières visites. Applicable après 4 visites consécutives à la fréquence convenue. Les suppléments suivent la fréquence choisie.",
+                      )}
+                    </p>
+                  </section>
+                )}
+                {estimate.recurring && (
                   <div className="mt-5 border-t pt-5">
                     <p className="text-sm font-semibold">
-                      {t("Following visits", "Visites suivantes")}
+                      {t(
+                        "Eligible recurring rate · visit 5 onward",
+                        "Tarif récurrent admissible · dès la visite 5",
+                      )}
                     </p>
                     <p className="mt-1 text-xl font-bold text-teal-800">
                       {money(estimate.subsequentTotal, language)}{" "}
@@ -555,7 +606,10 @@ export function CleaningEstimatePage({
                     </p>
                     <details className="mt-3 text-sm">
                       <summary className="cursor-pointer font-medium text-teal-800">
-                        {t("See following-visit details", "Voir le détail des visites suivantes")}
+                        {t(
+                          "See eligible recurring-rate details",
+                          "Voir le détail du tarif récurrent admissible",
+                        )}
                       </summary>
                       <dl className="mt-3 space-y-3">
                         <div className="flex justify-between gap-3">
@@ -610,8 +664,8 @@ export function CleaningEstimatePage({
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       {money(estimate.monthly!, language)}{" "}
                       {t(
-                        "average month before tax. Based on 52 weeks/year (26 biweekly visits or 12 monthly visits). First-visit-only extras and the initial rate difference are excluded.",
-                        "par mois moyen avant taxes. Base de 52 semaines/an (26 visites aux deux semaines ou 12 visites mensuelles). Options de première visite et écart du tarif initial exclus.",
+                        "average month before tax at the eligible recurring rate. Based on 52 weeks/year (26 biweekly visits or 12 monthly visits). Invoice amounts differ during the first 4 visits; first-visit-only extras are excluded.",
+                        "par mois moyen avant taxes au tarif récurrent admissible. Base de 52 semaines/an (26 visites aux deux semaines ou 12 visites mensuelles). Les montants facturés varient sur les 4 premières visites ; options de première visite exclues.",
                       )}
                     </p>
                   </div>

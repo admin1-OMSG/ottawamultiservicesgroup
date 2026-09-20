@@ -1,3 +1,21 @@
+# Validation V8 — quatre visites consécutives
+
+Base : V7 publiée, commit `cd5e3ed`.
+
+- `node scripts/test-cleaning-pricing.mjs` : 24 contrôles, dont premier cycle, écart hebdomadaire/tous les 14 jours/mensuel, suppléments exclus du crédit, minimum commercial et taxes après crédit.
+- `node scripts/test-estimate-request.mjs` : 15 contrôles ; 1 080 combinaisons de forfaits/options conservées, quatre phases de visite EN/FR et Ontario/Québec, crédit séparé, conservation des anciennes demandes.
+- `node scripts/test-quote-questionnaire.mjs` : 9 contrôles ; échéancier et condition lisibles, échappement HTML, exécution simulée de la fonction courriel, absence d'envoi réel et protection contre les doublons conservée.
+- Compilation de production réussie. TypeScript global : les 47 diagnostics préexistants restent identiques après normalisation des numéros de ligne ; aucun nouveau diagnostic. Ces erreurs antérieures concernent les traductions, les statistiques et `navigate` sur le détail de facture.
+- Navigateur local avec Supabase simulé : import réel depuis le bouton de demande, choix des quatre phases, enregistrement du crédit du devis, copie vers la facture, calcul net, conditions visibles dans le portail et téléchargement du PDF. Le scénario conserve les contrôles de chargement, d'échec des lignes, de demandes non chiffrées et de création manuelle.
+- Parcours public en navigateur : prix, échéancier, sélection des options, vérification de courriel et enregistrement de la condition dans le CRM ; version commerciale française à 390 px, sans débordement ; politique et notifications EN/FR affichées.
+- Exemple détaillé de test : trois chambres, quatre heures, options initiales 175 $ dont deux lits récurrents 20 $. Factures Ontario TTC : 423,75 $, 248,60 $, 248,60 $, puis 103,96 $ ; crédit de quatrième visite 96 $ avant taxes, tarif suivant 212,44 $ TTC. Facture 4 : lignes 188 $, crédit 96 $, net 92 $, TVH 11,96 $.
+
+Les appels CRM et courriel sont simulés. Aucune intervention réelle, facture de production, migration Supabase, publication ni notification réelle n'a été effectuée. Après installation, contrôler le déploiement et le parcours avec une demande de test. L'admissibilité et l'unicité du crédit restent vérifiées par l'administrateur.
+
+---
+
+## Historique des validations
+
 # Validation V7 — demande vers devis officiel
 
 - `node scripts/test-estimate-request.mjs` : **13 contrôles réussis**, dont 1 080 combinaisons forfaits/options EN/FR, Ontario/Québec, plus chaque profil de surface.

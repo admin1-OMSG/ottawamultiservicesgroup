@@ -143,6 +143,7 @@ export function questionnaireSections(
   };
   const summary = plain("Selection summary") || legacySummary(answers, locale);
   const legacy = !answers["Add-on schedule"] && !!answers["Selection JSON"];
+  const fourVisits = answers["Recurring billing policy"] === "four-consecutive-v1";
   const selected = plain("Add-on schedule") || plain("Selected add-ons");
   const sections: QuestionnaireSection[] = [
     {
@@ -184,6 +185,21 @@ export function questionnaireSections(
       ],
     },
     {
+      title: t("Recurring-rate condition", "Condition du tarif récurrent"),
+      rows: [
+        ...row(
+          "Recurring pricing condition",
+          "Four consecutive visits",
+          "Quatre visites consécutives",
+        ),
+        ...row(
+          "Four-visit billing schedule",
+          "Billing schedule (visit totals include tax)",
+          "Échéancier (totaux des visites taxes comprises)",
+        ),
+      ],
+    },
+    {
       title: t("First visit · provisional estimate", "Première visite · estimation provisoire"),
       rows: [
         ...row("Estimated base worker-hours", "Base worker-hours", "Heures-personnes de base"),
@@ -210,10 +226,9 @@ export function questionnaireSections(
       ],
     },
     {
-      title: t(
-        "Following visits · provisional estimate",
-        "Visites suivantes · estimation provisoire",
-      ),
+      title: fourVisits
+        ? t("Eligible rate · visit 5 onward", "Tarif admissible · à partir de la visite 5")
+        : t("Following visits · provisional estimate", "Visites suivantes · estimation provisoire"),
       rows: [
         ...(answers["Recurring visit subtotal CAD"] &&
         answers["Recurring visit subtotal CAD"] !== "Not applicable"

@@ -68,7 +68,7 @@ test('Quebec taxes rounded individually on the pre-tax amount', () => {
   assert.deepEqual(e.taxes.map(t=>t.amount),[10.75,21.45]); assert.equal(e.total,247.2);
 });
 test('Commercial minimums, frequency, and deep-clean estimate', () => {
-  assert.equal(com().firstSubtotal,90); assert.equal(com().monthly,390);
+  assert.equal(com().firstSubtotal,100); assert.equal(com().monthly,390);
   assert.equal(com({plan:'once'}).firstSubtotal,150);
   assert.equal(com({plan:'deep',profile:'medium'}).hours,5.25);
   assert.equal(com({addons:{bedroom:2,linen:3}}).extras,30); // Linen is also offered commercially; bedroom extras remain residential.
@@ -151,8 +151,8 @@ test('The appliance bundle is recalculated independently for first and following
 });
 test('Commercial recurring extras and Quebec taxes apply separately at each visit', () => {
   const e=com({province:'Quebec',addons:{cabinets:1,linen:2},addonFrequencies:{linen:'every'}});
-  assert.equal(e.firstSubtotal,125); assert.equal(e.subtotal,110); assert.equal(e.monthly,476.67);
-  assert.deepEqual(e.taxes.map(t=>t.amount),[6.25,12.47]); assert.equal(e.total,143.72);
+  assert.equal(e.firstSubtotal,135); assert.equal(e.subtotal,110); assert.equal(e.monthly,476.67);
+  assert.deepEqual(e.taxes.map(t=>t.amount),[6.75,13.47]); assert.equal(e.total,155.22);
   assert.deepEqual(e.subsequentTaxes.map(t=>t.amount),[5.5,10.97]); assert.equal(e.subsequentTotal,126.47);
 });
 test('Single visits ignore recurring flags; returning to a recurring plan retains the explicit choice', () => {
@@ -175,5 +175,34 @@ test('Custom-rate and specialist requests retain option schedules without fabric
       assert.match(a['Add-on schedule'],/Change bed linen × 2 — Every visit/);
     }
   }
+});
+test('First three visits at full price and fourth-visit credit produce the promised four-visit average',()=>{
+ const e=res({plan:'weekly'});
+ assert.equal(e.firstSubtotal,150);assert.equal(e.qualifyingSubtotal,150);assert.equal(e.fourthCredit,72);assert.equal(e.fourthSubtotal,54);assert.equal(e.fourthTotal,61.02);
+ assert.equal(e.firstSubtotal+2*e.qualifyingSubtotal+e.fourthSubtotal,4*126);
+ for(const plan of ['weekly','biweekly','monthly']) {
+  const s={...initialSelection('residential'),plan};const result=estimate(s),a=pricingAnswers(s,result,'en');
+  assert.equal(result.firstSubtotal+2*result.qualifyingSubtotal+result.fourthSubtotal,4*result.subtotal);
+  assert.equal(a['Recurring eligibility visits'],'4');assert.match(a['Recurring pricing condition'],/consecutive/);
+  assert.equal(a['Recurring billing policy'],'four-consecutive-v1');assert.ok(a['Four-visit billing schedule']);
+ }
+});
+test('Credit excludes extras and preserves first-only, every-visit and appliance-bundle prices',()=>{
+ const e=res({plan:'weekly',profile:'three',addons:{oven:1,fridge:1,linen:2},addonFrequencies:{linen:'every'}});
+ assert.equal(e.firstSubtotal,285);assert.equal(e.qualifyingSubtotal,220);assert.equal(e.fourthCredit,96);assert.equal(e.fourthSubtotal,92);
+ assert.equal(e.firstSubtotal+2*e.qualifyingSubtotal+e.fourthSubtotal,4*168+85+3*20);
+ assert.equal(e.subtotal,188);
+});
+test('Commercial qualification uses the scheduled minimum and Quebec taxes follow the credit',()=>{
+ const e=com({province:'Quebec',addons:{cabinets:1,linen:2},addonFrequencies:{linen:'every'}});
+ assert.equal(e.firstSubtotal,135);assert.equal(e.qualifyingSubtotal,120);assert.equal(e.qualifyingTotal,137.97);
+ assert.equal(e.fourthCredit,30);assert.equal(e.fourthSubtotal,80);assert.deepEqual(e.fourthTaxes.map(t=>t.amount),[4,7.98]);assert.equal(e.fourthTotal,91.98);
+});
+test('Unpriced recurring requests carry the condition without a fabricated credit; one-time work has none',()=>{
+ for(const plan of ['flexible','once','deep','extras']) {
+  const s={...initialSelection('residential'),plan},a=pricingAnswers(s,estimate(s),'en');
+  assert.equal(a['Fourth visit credit CAD'],undefined);
+  assert.equal(Boolean(a['Recurring billing policy']),plan==='flexible');
+ }
 });
 console.log(`${passed} pricing checks passed.`);

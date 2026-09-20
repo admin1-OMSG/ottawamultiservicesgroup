@@ -1,3 +1,54 @@
+# V8 — Tarif récurrent après quatre visites consécutives
+
+Base : V7 publiée, commit `cd5e3ed`. Version des nouvelles demandes : `2026-09-20-v8`.
+
+La condition s'applique aux nouveaux forfaits récurrents résidentiels et commerciaux, selon la fréquence convenue (hebdomadaire, tous les 14 jours, mensuelle ou fréquence personnalisée au devis). Il s'agit de quatre visites réalisées, pas nécessairement de quatre semaines.
+
+- Visites 1 à 3 : tarif standard complet pour le même périmètre et les mêmes heures approuvées.
+- Visite 4 : tarif récurrent, diminué du cumul des écarts facturés lors des trois premières visites.
+- Visite 5 et suivantes : tarif récurrent tant que la fréquence convenue est respectée. La condition ne se répète pas tous les quatre passages.
+- Moins de quatre visites consécutives réalisées : aucun crédit de récurrence acquis. Les suppléments conservent leurs prix et fréquences ; ils ne donnent pas lieu à ce crédit. Les travaux spécialisés ou approfondis initiaux restent séparés.
+
+Exemple sans options, avant taxes : trois heures hebdomadaires à 126 $ au tarif récurrent, contre 150 $ au tarif complet.
+
+| Visite | Facture avant taxes |
+| --- | ---: |
+| 1 | 150 $ |
+| 2 | 150 $ |
+| 3 | 150 $ |
+| 4 | 126 $ − 72 $ = 54 $ |
+| 5 et suivantes | 126 $ |
+
+Les quatre premières totalisent 504 $, soit 4 × 126 $. Le crédit cumulé est de 3 × (150 − 126) = 72 $. La quatrième visite bénéficie déjà de son prix récurrent ; ne pas déduire une deuxième fois son économie de 24 $.
+
+Pour le commercial planifié, le minimum reste deux heures : 100 $ pour les trois premières visites, puis 90 $ − 30 $ = 60 $ à la quatrième, et 90 $ à partir de la cinquième, avant taxes et options. Le minimum ponctuel distinct reste trois heures.
+
+## Ce qui change
+
+La mention EN/FR apparaît auprès des forfaits, dans le calculateur, au formulaire de demande et dans la politique. Le résumé enregistré et le courriel affichent l'échéancier des quatre premières visites. Le budget mensuel reste une moyenne au tarif récurrent admissible, pas le montant réel des premières factures.
+
+Le devis officiel propose quatre bases : première visite, visite 2 ou 3 au plein tarif, quatrième visite avec crédit, visite 5 et suivantes. Les montants sont repris de la demande enregistrée. Le crédit est un montant séparé dans `discount_total`, avec taxes sur le montant net. La création d'une facture depuis ce devis reprend les lignes, le crédit, les taxes, les notes et les conditions. Les conditions sont visibles dans le portail, dans le PDF de facture et dans le courriel de facture.
+
+## Utilisation dans le CRM
+
+Le choix de la phase reste effectué par votre équipe. Avant la quatrième facture, vérifier les quatre interventions réellement effectuées selon la fréquence convenue, leurs montants et l'absence de crédit déjà accordé. Le logiciel ne compte pas automatiquement les visites réalisées et ne bloque pas un second crédit. Le nombre de factures créées n'est pas une preuve d'admissibilité.
+
+Pour chaque phase, préparer le devis adapté depuis la demande, puis créer la facture à partir de ce devis. Ne pas réutiliser indéfiniment le devis de quatrième visite, qui contient son crédit. Ne pas ajouter une remise de contrat en pourcentage pour simuler cette condition.
+
+Si les heures, les prestations, la fréquence ou les prix officiels diffèrent de la demande provisoire, réviser les montants et l'échéancier dans le devis ; le crédit doit refléter les écarts réellement facturés. Les prix ne sont pas recalculés à partir d'un historique de factures.
+
+Les demandes antérieures à V8 et les devis déjà enregistrés ne sont pas modifiés rétroactivement. Les anciennes demandes conservent leurs anciennes bases de prix. Pour tester le parcours V8, créer une nouvelle demande après publication. Pour un contrat existant, ajouter la condition et les montants convenus dans un nouveau devis à faire accepter ; ne pas modifier un devis déjà signé.
+
+## Installation et Supabase
+
+Voir `INSTALLATION_TARIFS_V8.txt`. Installation après V7. Deux publications : site habituel puis fonction Supabase `send-crm-email` et son fichier partagé. Aucune migration SQL ni modification de tables ou de droits ; les champs existants sont utilisés. Une publication GitHub seule ne met pas à jour la fonction courriel.
+
+---
+
+## Historique — règles des versions précédentes
+
+Les sections ci-dessous décrivent les anciennes versions ; pour les nouvelles demandes V8, la règle des quatre visites ci-dessus prévaut.
+
 # V7 — Préremplissage du devis officiel
 
 Base : V6 publiée, commit `09eef47`.

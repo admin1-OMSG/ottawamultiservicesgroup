@@ -54,6 +54,7 @@ function NewEstimatePage() {
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState("");
   const [validUntil, setValidUntil] = useState("");
+  const [discount, setDiscount] = useState(0);
   const [taxRate, setTaxRate] = useState(0.13);
   const [defaultTax, setDefaultTax] = useState(0.13);
   const [currency, setCurrency] = useState("CAD");
@@ -73,7 +74,7 @@ function NewEstimatePage() {
     () => (request ? buildEstimateDraft(request, basis, defaultTax) : null),
     [request, basis, defaultTax],
   );
-  const totals = useMemo(() => quoteTotals(lines, taxRate), [lines, taxRate]);
+  const totals = useMemo(() => quoteTotals(lines, taxRate, discount), [lines, taxRate, discount]);
   const customer = customers.find((row) => row.id === selectedCustomer);
   const money = (n: number) =>
     new Intl.NumberFormat(language === "fr" ? "fr-CA" : "en-CA", {
@@ -85,6 +86,7 @@ function NewEstimatePage() {
     setTitle(value.title);
     setNotes(value.notes);
     setLines(value.lines);
+    setDiscount(value.discount);
     setTaxRate(value.taxRate);
     setEstimatedHours(value.hours);
     setCrewSize(1);
@@ -165,15 +167,22 @@ function NewEstimatePage() {
         setTaxRate(rate);
         setCurrency(settings?.default_currency || "CAD");
         setValidUntil(date.toISOString().slice(0, 10));
+        const initialDraft = saved ? buildEstimateDraft(saved, "first", rate) : null;
         setTerms(
-          settings?.default_quote_terms ||
-            `This quote is valid for ${days} days. Additional work requires authorization.`,
+          [
+            settings?.default_quote_terms ||
+              `This quote is valid for ${days} days. Additional work requires authorization.`,
+            initialDraft?.billingCondition,
+          ]
+            .filter(Boolean)
+            .join("\n\n"),
         );
-        if (saved) applyDraft(buildEstimateDraft(saved, "first", rate));
+        if (initialDraft) applyDraft(initialDraft);
         else {
           setTitle("");
           setNotes("");
           setLines([blankLine()]);
+          setDiscount(0);
           setEstimatedHours(2);
           setCrewSize(1);
           setServiceType("one_time");
@@ -279,6 +288,15 @@ function NewEstimatePage() {
       );
       return;
     }
+    if (!Number.isFinite(discount) || discount < 0 || discount > totals.subtotal) {
+      setError(
+        t(
+          "The credit must be between zero and the subtotal.",
+          "Le crédit doit être compris entre zéro et le sous-total.",
+        ),
+      );
+      return;
+    }
     savingRef.current = true;
     setSaving(true);
     try {
@@ -300,7 +318,7 @@ function NewEstimatePage() {
           notes: notes.trim() || null,
           terms: terms.trim() || null,
           subtotal: totals.subtotal,
-          discount_total: 0,
+          discount_total: discount,
           tax_rate: taxRate,
           tax_total: totals.tax,
           total: totals.total,
@@ -415,8 +433,26 @@ function NewEstimatePage() {
                     className={input}
                   >
                     <option value="first">{t("First visit", "Première visite")}</option>
+                    {draft.fourVisitPolicy && (
+                      <>
+                        <option value="qualifying">
+                          {t("Visit 2 or 3 — full rate", "Visite 2 ou 3 — tarif complet")}
+                        </option>
+                        <option value="fourth">
+                          {t("Visit 4 — accumulated credit", "Visite 4 — crédit cumulé")}
+                        </option>
+                      </>
+                    )}
                     <option value="recurring">
-                      {t("Following visit (price per visit)", "Visite suivante (prix par visite)")}
+                      {draft.fourVisitPolicy
+                        ? t(
+                            "Visit 5 onward — eligible recurring rate",
+                            "Dès la visite 5 — tarif récurrent admissible",
+                          )
+                        : t(
+                            "Following visit (price per visit)",
+                            "Visite suivante (prix par visite)",
+                          )}
                     </option>
                   </select>
                 </label>
@@ -714,8 +750,36 @@ function NewEstimatePage() {
                     className={input}
                   />
                 </label>
+                {(discount > 0 || draft?.fourVisitPolicy) && (
+                  <label className="mt-4 block text-sm font-medium">
+                    {t("Credit before tax (CAD)", "Crédit avant taxes (CAD)")}
+                    <input
+                      type="number"
+                      min="0"
+                      max={totals.subtotal}
+                      step="0.01"
+                      value={discount}
+                      onChange={(e) => setDiscount(Number(e.target.value))}
+                      className={input}
+                    />
+                  </label>
+                )}
+                {basis === "fourth" && (
+                  <p className="mt-3 text-sm text-teal-900">
+                    {t(
+                      "The credit is conditional on four consecutive completed visits at the agreed frequency. Verify eligibility before issuing invoice 4.",
+                      "Le crédit est soumis à quatre visites consécutives réalisées à la fréquence convenue. Vérifiez l’admissibilité avant d’émettre la facture 4.",
+                    )}
+                  </p>
+                )}
                 <dl className="mt-4 space-y-3 text-sm">
                   <Row label={t("Subtotal", "Sous-total")} value={money(totals.subtotal)} />
+                  {discount > 0 && (
+                    <Row
+                      label={t("Accumulated credit", "Crédit cumulé")}
+                      value={`−${money(discount)}`}
+                    />
+                  )}
                   {totals.taxes.map((row) => (
                     <Row key={row.label} label={row.label} value={money(row.amount)} />
                   ))}
