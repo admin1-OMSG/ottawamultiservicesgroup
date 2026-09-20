@@ -17,15 +17,21 @@ test('Recurring home: initial standard rate, recurring rate and HST', () => {
   assert.equal(e.subtotal,135); assert.equal(e.subsequentTotal,152.55);
   assert.equal(e.monthly,292.5);
 });
-test('Weekly and monthly calendars use annualized visits', () => {
-  assert.equal(res({plan:'weekly'}).monthly,585);
+test('Weekly visits cost less than visits every 14 days; annualized budgets match', () => {
+  assert.equal(res({plan:'weekly'}).monthly,546);
   assert.equal(res({plan:'biweekly'}).monthly,292.5);
-  assert.equal(res({plan:'weekly'}).subtotal,res({plan:'biweekly'}).subtotal);
+  assert.equal(res({plan:'weekly'}).subtotal,126);
+  assert.ok(res({plan:'weekly'}).subtotal < res({plan:'biweekly'}).subtotal);
+  assert.equal(res({plan:'weekly'}).subsequentTotal,142.38);
+  const selection={...initialSelection('residential'),plan:'weekly'};
+  const answers=pricingAnswers(selection,estimate(selection),'fr');
+  assert.equal(answers['Recurring visit subtotal CAD'],'126');
+  assert.equal(answers['Recurring package saving before tax CAD'],'24');
   assert.equal(res({plan:'monthly'}).monthly,144);
 });
 test('Dollar savings compare equal packages and respect the one-time minimum', () => {
   const example = id => packageExample(PLANS.find(p => p.id === id));
-  assert.deepEqual(example('weekly'),{hours:3,amount:135,saving:15,reference:150,minimum:135});
+  assert.deepEqual(example('weekly'),{hours:3,amount:126,saving:24,reference:150,minimum:126});
   assert.deepEqual(example('monthly'),{hours:3,amount:144,saving:6,reference:150,minimum:144});
   assert.deepEqual(example('recurring'),{hours:3,amount:135,saving:15,reference:150,minimum:90});
   assert.equal(com().packageSaving,0); // No fictional two-hour one-time package.

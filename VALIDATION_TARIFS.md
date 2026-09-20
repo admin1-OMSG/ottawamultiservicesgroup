@@ -1,4 +1,19 @@
-# Vérifications — Tarifs V3 : ajustement de quatre options
+# Vérifications — Tarifs V4 : avantage hebdomadaire résidentiel
+
+Base : commit publié `e3a921b`. Version de la grille : `2026-09-20-v4`.
+
+- Tarif hebdomadaire : 42 $ par heure-personne, contre 45 $ pour une visite tous les 14 jours. Pour trois heures : 126 $ contre 135 $ avant taxes et options, dès la deuxième visite.
+- Économies sur le forfait ponctuel comparable de 150 $ : 24 $ pour l’hebdomadaire et 15 $ pour celui tous les 14 jours. Différence entre les deux forfaits récurrents : 9 $ par visite de trois heures.
+- Les 13 contrôles existants de `node scripts/test-cleaning-pricing.mjs` réussissent. Le contrôle des fréquences exige désormais que le forfait hebdomadaire soit moins cher. Les données destinées au CRM enregistrent le sous-total récurrent de 126 $ et l’économie de 24 $.
+- Budget mensuel moyen hebdomadaire de trois heures : 546 $ avant taxes et options (52 visites / 12 mois), hors différence de première visite. Visites tous les 14 jours : 292,50 $ (26 visites / 12 mois).
+- Compilation `npm run build` réussie.
+- Contrôle navigateur : page de choix résidentiel à 42 $ / heure-personne et dès 126 $ ; carte commerciale à 45 $ et dès 90 $ ; tableau des forfaits 126 $ / 135 $ ; économies 24 $ / 15 $ ; changement de fréquence et budgets mensuels ; visite récurrente avec TVH à 142,38 $ / 152,55 $. La première visite standard de trois heures reste à 169,50 $ avec TVH.
+- Affichage français des forfaits et de la politique contrôlé. Rendu inspecté sur ordinateur et téléphone de 390 px ; aucun débordement horizontal ni incident JavaScript pendant le scénario. Quatre captures de prévisualisation sont actualisées.
+- Aucun devis réel, courriel ou déploiement de production n’a été effectué pendant cette préparation.
+
+## Historique des versions précédentes
+
+### V3 : ajustement de quatre options
 
 Base : commit publié `91a9c1c`. Grille : `2026-09-20-v3`.
 

@@ -1,0 +1,63 @@
+﻿OMSG — INSTALLATION TARIFS V4
+
+À appliquer après la V3 publiée dans le commit e3a921b.
+Cette archive contient uniquement les fichiers modifiés ou ajoutés, avec leurs chemins d’origine.
+
+NOUVEL AVANTAGE HEBDOMADAIRE RÉSIDENTIEL
+- Une visite par semaine : 42 $ par heure-personne, soit 126 $ pour trois heures.
+- Une visite tous les 14 jours : 45 $ par heure-personne, soit 135 $ pour trois heures.
+- Une visite par mois : 48 $ par heure-personne, soit 144 $ pour trois heures.
+Le forfait hebdomadaire coûte donc 9 $ de moins par visite de trois heures que celui tous les 14 jours.
+Ces prix sont avant taxes et options, à partir de la deuxième visite. La première visite standard est à 50 $ par heure-personne, soit 150 $ pour trois heures.
+
+Le prix barré du forfait hebdomadaire est 150 $ (forfait ponctuel comparable). Le prix récurrent est 126 $ et l’économie affichée est 24 $ par visite. Le calculateur, les informations de devis CRM, la page de choix, le tableau et la politique des prix reprennent ces valeurs en EN et FR.
+Les quatre options ajustées en V3 sont conservées : armoires 15 $, draps 10 $/lit, garage 20 $, balcon 20 $.
+
+1. EXTRAIRE ET COPIER
+Extrayez le ZIP, puis copiez tout son contenu dans le dossier du projet :
+C:\Users\Dell\OneDrive\Desktop\OMSG-v2.5-clean\ottawamultiservicesgroup-main
+Acceptez le remplacement des fichiers de même nom. Conservez les autres fichiers du projet.
+
+2. VÉRIFIER
+Exécutez séparément dans PowerShell, depuis le dossier du projet :
+
+node scripts/test-cleaning-pricing.mjs
+npm.cmd run build
+
+Le premier contrôle doit annoncer 13 vérifications réussies. Si une commande échoue, corrigez le problème avant l’envoi.
+
+3. PRÉPARER LES FICHIERS
+Après réussite des vérifications :
+
+$fichiersTarifsV4 = @(
+  "INSTALLATION_TARIFS_V4.txt"
+  "INTEGRATION_TARIFS_FR.md"
+  "VALIDATION_TARIFS.md"
+  "docs/pricing-preview/estimate-desktop.png"
+  "docs/pricing-preview/packages-desktop.png"
+  "docs/pricing-preview/pricing-desktop.png"
+  "docs/pricing-preview/residential-mobile-fr.png"
+  "scripts/test-cleaning-pricing.mjs"
+  "src/components/cleaning-pricing-page.tsx"
+  "src/lib/cleaning-pricing.ts"
+  "src/routes/pricing-policy.tsx"
+)
+git --literal-pathspecs add -- $fichiersTarifsV4
+git diff --cached --stat
+
+Vérifiez que les fichiers préparés correspondent à cette liste. N’utilisez pas « git add . », afin de conserver vos autres modifications séparées.
+
+4. COMMIT ET ENVOI
+Exécutez séparément après vérification :
+
+git commit -m "Tarifs V4 : avantage hebdomadaire residentiel"
+git push origin main
+
+5. APRÈS DÉPLOIEMENT
+https://www.ottawamultiservicesgroup.com/pricing
+https://www.ottawamultiservicesgroup.com/pricing/residential
+https://www.ottawamultiservicesgroup.com/pricing-policy
+
+Vérifiez les prix 42 $ / 45 $, les forfaits 126 $ / 135 $ et les économies 24 $ / 15 $.
+Dans le calculateur, sélectionnez le plus petit logement sans options. Le budget mensuel moyen hebdomadaire est 546 $ avant taxes et celui tous les 14 jours est 292,50 $ ; il y a plus de visites dans le premier forfait. Le tarif hebdomadaire est moins élevé PAR VISITE. La première visite reste présentée séparément.
+Actualisez avec Ctrl + F5 si nécessaire. Aucun changement Supabase ni des variables d’environnement n’est requis.

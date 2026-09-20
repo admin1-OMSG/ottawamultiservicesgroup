@@ -1,5 +1,5 @@
 /** Public estimates only. Official quotes are reviewed and issued through the CRM. */
-export const PRICING_VERSION = "2026-09-20-v3";
+export const PRICING_VERSION = "2026-09-20-v4";
 export type Locale = "en" | "fr";
 export type Audience = "residential" | "commercial";
 export type PlanId =
@@ -33,7 +33,7 @@ export const PLANS: {
   {
     id: "weekly",
     name: text("Once a week", "1 visite par semaine"),
-    rate: 45,
+    rate: 42,
     minimum: 3,
     description: text(
       "Routine cleaning, one visit every 7 days (52 visits/year).",

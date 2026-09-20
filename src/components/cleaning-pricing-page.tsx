@@ -56,6 +56,8 @@ export function PricingLanding() {
         {(["residential", "commercial"] as const).map((kind) => {
           const residential = kind === "residential";
           const Icon = residential ? Home : Building2;
+          const startingPlan = plansFor(kind).find((p) => p.id === (residential ? "weekly" : "recurring"))!;
+          const startingMinimum = packageExample(startingPlan)!.minimum;
           return (
             <Link
               key={kind}
@@ -82,7 +84,7 @@ export function PricingLanding() {
                     : "Offices, shops and common areas. A schedule that fits your business."}
               </p>
               <div className="mt-7 text-3xl font-bold text-slate-900">
-                {money(45, language)}
+                {money(startingPlan.rate!, language)}
                 <span className="ml-2 text-base font-normal text-slate-600">
                   {fr ? "/ heure-personne" : "/ worker-hour"}
                 </span>
@@ -90,11 +92,11 @@ export function PricingLanding() {
               <p className="mt-2 text-sm text-slate-500">
                 {residential
                   ? fr
-                    ? "Entretien récurrent dès 135 $ par visite. Première visite au tarif ponctuel."
-                    : "Recurring maintenance from $135 per visit. Initial visit at the one-time rate."
+                    ? `Entretien hebdomadaire dès ${money(startingMinimum, language)} par visite. Première visite au tarif ponctuel.`
+                    : `Weekly maintenance from ${money(startingMinimum, language)} per visit. Initial visit at the one-time rate.`
                   : fr
-                    ? "Entretien récurrent dès 90 $ par visite. Périmètre confirmé au devis."
-                    : "Recurring maintenance from $90 per visit. Scope confirmed in your quote."}
+                    ? `Entretien récurrent dès ${money(startingMinimum, language)} par visite. Périmètre confirmé au devis.`
+                    : `Recurring maintenance from ${money(startingMinimum, language)} per visit. Scope confirmed in your quote.`}
               </p>
               <span className="mt-7 inline-flex items-center gap-2 font-semibold text-teal-800">
                 {fr ? "Voir les tarifs et estimer" : "See prices and estimate"}
@@ -431,8 +433,8 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
         {residential && (
           <p className="mb-2">
             {t(
-              "Once every 2 weeks means one visit every 14 days. The weekly and every-2-weeks rates are the same per visit; their monthly budgets differ because they include 52 and 26 visits per year respectively.",
-              "Une visite toutes les 2 semaines signifie une visite tous les 14 jours. Le prix par visite est identique à celui de l’entretien hebdomadaire ; le budget mensuel diffère, avec respectivement 26 et 52 visites par an.",
+              "Once a week means one visit every 7 days at $42 per worker-hour; once every 2 weeks means one visit every 14 days at $45 per worker-hour. A recurring three-hour visit costs $126 weekly or $135 every two weeks: $9 less per weekly visit, before tax and extras, from the second visit. Average monthly budgets reflect 52 or 26 visits per year.",
+              "Une visite par semaine correspond à un passage tous les 7 jours à 42 $ par heure-personne ; une visite toutes les 2 semaines, à un passage tous les 14 jours à 45 $ par heure-personne. Pour trois heures, le forfait récurrent coûte 126 $ chaque semaine ou 135 $ tous les 14 jours : 9 $ de moins par visite hebdomadaire, avant taxes et options, dès la deuxième visite. Les budgets mensuels moyens reposent sur 52 ou 26 visites par an.",
             )}
           </p>
         )}
