@@ -1,3 +1,4 @@
+import { questionnaireLocale, renderQuestionnaireHtml } from "../_shared/quote-questionnaire.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
@@ -125,15 +126,7 @@ async function linkedCustomerId(userId: string | undefined) {
 }
 
 function formatQuestionnaire(value: unknown) {
-  if (!value || typeof value !== "object") return ""
-  const entries = Object.entries(value as Record<string, unknown>)
-  if (!entries.length) return ""
-  const rows = entries.map(([key, raw]) => {
-    const label = key.replace(/_/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase())
-    const rendered = Array.isArray(raw) ? raw.join(", ") : typeof raw === "object" && raw !== null ? JSON.stringify(raw) : String(raw ?? "")
-    return `<tr><td style="padding:7px 0;color:#64748b;vertical-align:top">${escapeHtml(label)}</td><td style="padding:7px 0">${escapeHtml(rendered)}</td></tr>`
-  }).join("")
-  return `<h3 style="margin-top:24px">Questionnaire</h3><table style="width:100%;border-collapse:collapse">${rows}</table>`
+  return renderQuestionnaireHtml(value)
 }
 
 async function createDirectPortalLink(email: string, estimateId: string) {
@@ -327,8 +320,14 @@ Deno.serve(async (req) => {
       recipient = adminEmail
       recipientType = "admin"
       replyTo = request.email
-      subject = `New quote request — ${request.service_name || "Service"}`
-      html = layout("New Quote Request", `<p>A new quote request was submitted from the website.</p><table style="width:100%;border-collapse:collapse"><tr><td style="padding:7px 0;color:#64748b">Customer</td><td style="padding:7px 0;font-weight:700">${escapeHtml(`${request.first_name} ${request.last_name || ""}`)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Service</td><td style="padding:7px 0">${escapeHtml(request.service_name)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Email</td><td style="padding:7px 0">${escapeHtml(request.email)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Phone</td><td style="padding:7px 0">${escapeHtml(request.phone)}</td></tr><tr><td style="padding:7px 0;color:#64748b">Address</td><td style="padding:7px 0">${escapeHtml(request.address_line)}</td></tr></table>${formatQuestionnaire(request.questionnaire_answers)}<p><a href="${siteUrl}/admin/quotes/${request.id}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">Open Request</a></p>`)
+      const language = questionnaireLocale(request.questionnaire_answers)
+      const tr = (en: string, fr: string) => language === "fr" ? fr : en
+      const serviceName = language === "fr"
+        ? ({ "House Cleaning": "Nettoyage résidentiel", "Office Cleaning": "Nettoyage commercial" } as Record<string, string>)[request.service_name] || request.service_name
+        : request.service_name
+      subject = `${tr("New quote request", "Nouvelle demande de devis")} — ${serviceName || tr("Service", "Prestation")}`
+      html = layout(tr("New Quote Request", "Nouvelle demande de devis"), `<p>${tr("A new quote request was submitted from the website.", "Une nouvelle demande de devis a été transmise depuis le site web.")}</p><table style="width:100%;border-collapse:collapse"><tr><td style="padding:7px 0;color:#64748b">${tr("Customer", "Client")}</td><td style="padding:7px 0;font-weight:700">${escapeHtml(`${request.first_name} ${request.last_name || ""}`)}</td></tr><tr><td style="padding:7px 0;color:#64748b">${tr("Service", "Prestation")}</td><td style="padding:7px 0">${escapeHtml(serviceName)}</td></tr><tr><td style="padding:7px 0;color:#64748b">${tr("Email", "Courriel")}</td><td style="padding:7px 0">${escapeHtml(request.email)}</td></tr><tr><td style="padding:7px 0;color:#64748b">${tr("Phone", "Téléphone")}</td><td style="padding:7px 0">${escapeHtml(request.phone)}</td></tr><tr><td style="padding:7px 0;color:#64748b">${tr("Address", "Adresse")}</td><td style="padding:7px 0">${escapeHtml(request.address_line)}</td></tr></table>${formatQuestionnaire(request.questionnaire_answers)}<p><a href="${siteUrl}/admin/quotes/${request.id}" style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700">${tr("Open Request", "Ouvrir la demande")}</a></p>`)
+
     } else if (body.type === "estimate_accepted") {
       const customerId = await linkedCustomerId(user?.id)
       const { data: estimate } = await admin.from("estimates").select("id,estimate_number,title,total,status,customer_id,customer:customers(first_name,last_name,email)").eq("id", body.estimateId).maybeSingle()

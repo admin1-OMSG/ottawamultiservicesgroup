@@ -1,5 +1,5 @@
 /** Public estimates only. Official quotes are reviewed and issued through the CRM. */
-export const PRICING_VERSION = "2026-09-20-v4";
+export const PRICING_VERSION = "2026-09-20-v6";
 export type Locale = "en" | "fr";
 export type Audience = "residential" | "commercial";
 export type PlanId =
@@ -641,6 +641,8 @@ export const ADDONS: Addon[] = [
   },
 ];
 
+export type AddonFrequency = "first" | "every";
+
 export type PricingSelection = {
   audience: Audience;
   plan: PlanId;
@@ -651,6 +653,7 @@ export type PricingSelection = {
   customFrequency: string;
   province: "Ontario" | "Quebec";
   addons: Record<string, number>;
+  addonFrequencies?: Record<string, AddonFrequency>;
 };
 export const initialSelection = (audience: Audience): PricingSelection => ({
   audience,
@@ -662,6 +665,7 @@ export const initialSelection = (audience: Audience): PricingSelection => ({
   customFrequency: "",
   province: "Ontario",
   addons: {},
+  addonFrequencies: {},
 });
 export function frequencyLabel(s: PricingSelection, locale: Locale): string {
   if (s.plan === "flexible" || (s.audience === "commercial" && s.plan === "recurring")) {
@@ -674,6 +678,62 @@ export function frequencyLabel(s: PricingSelection, locale: Locale): string {
   }
   return PLANS.find((p) => p.id === s.plan)?.name[locale] ?? s.plan;
 }
+export const isRecurringSelection = (s: PricingSelection) =>
+  ["weekly", "biweekly", "monthly", "recurring", "flexible"].includes(s.plan);
+
+// Recurrence is explicit. Missing or unrecognized choices never create recurring extras.
+export const addonFrequency = (s: PricingSelection, id: string): AddonFrequency =>
+  isRecurringSelection(s) && s.addonFrequencies?.[id] === "every" ? "every" : "first";
+
+export function addonFrequencyLabel(s: PricingSelection, id: string, locale: Locale): string {
+  if (!isRecurringSelection(s)) return text("This visit only", "Cette visite seulement")[locale];
+  return addonFrequency(s, id) === "every"
+    ? text("Every visit", "À chaque visite")[locale]
+    : text("First visit only", "Première visite seulement")[locale];
+}
+
+function selectedAddons(s: PricingSelection) {
+  return ADDONS.flatMap((addon) => {
+    if (
+      (s.audience === "commercial" && addon.residentialOnly) ||
+      (s.plan === "deep" && addon.includedInDeep)
+    )
+      return [];
+    const raw = s.addons[addon.id];
+    const q = Number.isFinite(raw) ? Math.min(addon.max, Math.max(0, Math.floor(raw))) : 0;
+    return q
+      ? [{ addon, quantity: Math.max(addon.min ?? 1, q), frequency: addonFrequency(s, addon.id) }]
+      : [];
+  });
+}
+
+type EstimateLine = {
+  id: string;
+  label: Copy;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  frequency: AddonFrequency;
+};
+
+function withBundleSaving(lines: EstimateLine[]): EstimateLine[] {
+  if (!lines.some((l) => l.id === "fridge") || !lines.some((l) => l.id === "oven")) return lines;
+  const everyVisit = lines
+    .filter((l) => l.id === "fridge" || l.id === "oven")
+    .every((l) => l.frequency === "every");
+  return [
+    ...lines,
+    {
+      id: "bundleSaving",
+      label: text("Fridge and oven bundle saving", "Économie du forfait réfrigérateur et four"),
+      quantity: 1,
+      unitPrice: -5,
+      total: -5,
+      frequency: everyVisit ? "every" : "first",
+    },
+  ];
+}
+
 export const addonPrice = (a: Addon, s: PricingSelection, area: number) =>
   a.id === "baseboards" && area > 1000
     ? 70
@@ -722,33 +782,25 @@ export function calculateCleaningEstimate(s: PricingSelection) {
     s.plan === "extras"
       ? 0
       : Math.ceil(Math.max(plan.minimum, s.plan === "deep" ? deepHours : profile!.hours) * 4) / 4;
-  const lines: { id: string; label: Copy; quantity: number; unitPrice: number; total: number }[] =
-    [];
-  for (const a of ADDONS) {
-    if (s.audience === "commercial" && a.residentialOnly) continue;
-    if (s.plan === "deep" && a.includedInDeep) continue;
-    const raw = s.addons[a.id];
-    const q = Number.isFinite(raw) ? Math.min(a.max, Math.max(0, Math.floor(raw))) : 0;
-    if (!q) continue;
-    const quantity = Math.max(a.min ?? 1, q);
-    const unitPrice = addonPrice(a, s, profile!.area);
-    lines.push({
-      id: a.id,
-      label: a.name,
+  const selectedLines: EstimateLine[] = selectedAddons(s).map(({ addon, quantity, frequency }) => {
+    const unitPrice = addonPrice(addon, s, profile!.area);
+    return {
+      id: addon.id,
+      label: addon.name,
       quantity,
       unitPrice,
       total: round(quantity * unitPrice),
-    });
-  }
-  const bundled = lines.some((l) => l.id === "fridge") && lines.some((l) => l.id === "oven");
-  if (bundled)
-    lines.push({
-      id: "bundleSaving",
-      label: text("Fridge and oven bundle saving", "Économie du forfait réfrigérateur et four"),
-      quantity: 1,
-      unitPrice: -5,
-      total: -5,
-    });
+      frequency,
+    };
+  });
+  const lines = withBundleSaving(selectedLines);
+  const residentialRecurring =
+    s.audience === "residential" && ["weekly", "biweekly", "monthly"].includes(s.plan);
+  const recurring = residentialRecurring || s.plan === "recurring";
+  const recurringLines = recurring
+    ? withBundleSaving(selectedLines.filter((line) => line.frequency === "every"))
+    : [];
+  const recurringExtras = round(recurringLines.reduce((sum, line) => sum + line.total, 0));
   const selectedExtras = round(lines.reduce((sum, l) => sum + l.total, 0));
   if (s.plan === "extras" && selectedExtras < 150)
     lines.push({
@@ -758,15 +810,13 @@ export function calculateCleaningEstimate(s: PricingSelection) {
         "Complément au minimum de visite de 150 $",
       ),
       quantity: 1,
+      frequency: "first",
       unitPrice: round(150 - selectedExtras),
       total: round(150 - selectedExtras),
     });
   const extras = round(lines.reduce((sum, l) => sum + l.total, 0));
   const base = round(hours * rate),
-    subtotal = round(base + extras);
-  const residentialRecurring =
-    s.audience === "residential" && ["weekly", "biweekly", "monthly"].includes(s.plan);
-  const recurring = residentialRecurring || s.plan === "recurring";
+    subtotal = round(base + (recurring ? recurringExtras : extras));
   const firstRate = residentialRecurring ? 50 : rate;
   const firstSubtotal = round(hours * firstRate + extras);
   const taxes = taxesFor(firstSubtotal, s.province);
@@ -794,6 +844,9 @@ export function calculateCleaningEstimate(s: PricingSelection) {
     hours,
     lines,
     extras,
+    recurringLines,
+    recurringExtras,
+    subsequentTaxes,
     base,
     subtotal,
     firstRate,
@@ -804,7 +857,8 @@ export function calculateCleaningEstimate(s: PricingSelection) {
     recurring,
     residentialRecurring,
     monthly: recurring ? round(subtotal * frequency) : null,
-    bundleSaving: bundled ? 5 : 0,
+    bundleSaving: lines.some((line) => line.id === "bundleSaving") ? 5 : 0,
+    recurringBundleSaving: recurringLines.some((line) => line.id === "bundleSaving") ? 5 : 0,
     packageSaving: recurring ? packageSaving(hours, rate) : 0,
   };
 }
@@ -815,6 +869,28 @@ export function pricingAnswers(
   e: CleaningEstimate,
   locale: Locale,
 ): Record<string, string> {
+  const chosen = selectedAddons(s);
+  const none = text("None", "Aucun")[locale];
+  const recurring = isRecurringSelection(s);
+  const summary = [
+    `${text("Space", "Espace")[locale]}: ${text(s.audience === "residential" ? "Residential" : "Commercial", s.audience === "residential" ? "Résidentiel" : "Commercial")[locale]}`,
+    `${text("Service", "Prestation")[locale]}: ${e.plan?.name[locale] ?? s.plan}`,
+    `${text("Property", "Lieu")[locale]}: ${e.profile?.label[locale] ?? s.profile}`,
+    `${text("Schedule", "Fréquence")[locale]}: ${frequencyLabel(s, locale)}`,
+    `${text("Condition", "État")[locale]}: ${s.condition === "heavy" ? text("Heavy buildup / specialist assessment", "Encrassement important / évaluation spécialisée")[locale] : text("Normal use", "Usage normal")[locale]}`,
+    `${text("Province", "Province")[locale]}: ${s.province === "Quebec" ? "Québec" : "Ontario"}`,
+  ].join("\n");
+  const schedule =
+    chosen
+      .map(
+        ({ addon, quantity }) =>
+          `${addon.name[locale]} × ${quantity} — ${addonFrequencyLabel(s, addon.id, locale)}`,
+      )
+      .join("\n") || none;
+  const renderLines = (lines: EstimateLine[]) =>
+    lines
+      .map((line) => `${line.label[locale]} × ${line.quantity}: ${money(line.total, locale)}`)
+      .join("\n") || none;
   const result: Record<string, string> = {
     "Request source": "cleaning_pricing",
     "Pricing version": PRICING_VERSION,
@@ -825,38 +901,71 @@ export function pricingAnswers(
     "Business type": s.audience === "commercial" ? s.businessType : "Not applicable",
     "Requested frequency": frequencyLabel(s, locale),
     "Visits per week":
-      s.plan === "flexible" || (s.audience === "commercial" && s.plan === "recurring")
-        ? s.visitsPerWeek > 0
-          ? String(s.visitsPerWeek)
-          : "Custom"
-        : "See plan",
+      s.plan === "weekly"
+        ? "1"
+        : s.plan === "flexible" || (s.audience === "commercial" && s.plan === "recurring")
+          ? s.visitsPerWeek > 0
+            ? String(s.visitsPerWeek)
+            : "Custom"
+          : "See plan",
     "Custom frequency details": s.customFrequency?.trim() || "Not applicable",
     "Frequency-based rate review required": e.requiresRateReview ? "Yes" : "No",
     "Estimate province": s.province,
     "Free on-site assessment required": e.requiresVisit ? "Yes" : "No",
-    "Estimate status": "Provisional only — review required before an official quote",
-    "Selected add-ons":
-      ADDONS.filter(
-        (a) => (s.addons[a.id] ?? 0) > 0 && (!a.residentialOnly || s.audience === "residential"),
-      )
-        .map((a) => `${a.name[locale]} × ${s.addons[a.id]}`)
-        .join("; ") || "None",
-    "Selection JSON": JSON.stringify(s),
+    "Estimate status": text(
+      "Provisional only — review required before an official quote",
+      "Estimation provisoire — validation requise avant le devis officiel",
+    )[locale],
+    "Selection summary": summary,
+    "Add-on schedule": schedule,
+    "Selected add-ons": schedule,
+    "Add-on recurrence policy": recurring
+      ? text(
+          "First visit only unless Every visit is explicitly selected. The bundle saving applies only when both services occur at the same visit.",
+          "Première visite seulement, sauf choix explicite À chaque visite. La remise du forfait s’applique uniquement si les deux prestations ont lieu à la même visite.",
+        )[locale]
+      : text(
+          "Selected extras apply to this single visit.",
+          "Les suppléments choisis s’appliquent à cette visite unique.",
+        )[locale],
   };
   if (!e.requiresQuote)
     Object.assign(result, {
       "Estimated base worker-hours": String(e.hours),
+      "First visit base rate CAD per worker-hour": String(e.firstRate),
       "Base rate CAD per worker-hour": String(e.rate),
       "Selected add-ons":
-        e.lines
-          .map((l) => `${l.label[locale]} × ${l.quantity}: ${money(l.total, locale)}`)
-          .join("; ") || "None",
+        chosen
+          .map(
+            ({ addon, quantity }) =>
+              `${addon.name[locale]} × ${quantity}: ${money(quantity * addonPrice(addon, s, e.profile.area), locale)} — ${addonFrequencyLabel(s, addon.id, locale)}`,
+          )
+          .join("\n") || none,
+      "First visit add-ons": renderLines(e.lines),
+      "First visit add-ons subtotal CAD": String(e.extras),
       "First visit subtotal CAD": String(e.firstSubtotal),
+      "First visit taxes": e.taxes
+        .map((tax) => `${tax.name[locale]}: ${money(tax.amount, locale)}`)
+        .join("\n"),
       "First visit total CAD": String(e.total),
-      "Recurring visit subtotal CAD": e.recurring ? String(e.subtotal) : "Not applicable",
+      ...(e.recurring
+        ? {
+            "Recurring visit add-ons": renderLines(e.recurringLines),
+            "Recurring visit add-ons subtotal CAD": String(e.recurringExtras),
+            "Recurring visit subtotal CAD": String(e.subtotal),
+            "Recurring visit taxes": e.subsequentTaxes
+              .map((tax) => `${tax.name[locale]}: ${money(tax.amount, locale)}`)
+              .join("\n"),
+            "Recurring visit total CAD": String(e.subsequentTotal),
+          }
+        : {}),
       "Recurring package saving before tax CAD": String(e.packageSaving),
       "Average recurring month before tax CAD":
         e.monthly === null ? "Not applicable" : String(e.monthly),
+      "Monthly budget basis": text(
+        "Average recurring visits only; excludes first-visit-only extras and the initial rate difference.",
+        "Moyenne des visites récurrentes seulement ; hors options de première visite et écart du tarif initial.",
+      )[locale],
     });
   return result;
 }

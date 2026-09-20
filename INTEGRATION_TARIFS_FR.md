@@ -1,6 +1,37 @@
-# Tarifs OMSG — présentation V5
+# Tarifs OMSG — options et demandes lisibles V6
 
-Base : commit publié `0a9db75` (V4). La grille reste en version `2026-09-20-v4` : cette mise à jour modifie la présentation et le parcours, sans changer les calculs ni les prix. Les fichiers sont préparés localement et restent à publier par le processus habituel du site.
+Base : commit publié `a541c38` (présentation V5). Version de la grille et des règles d’estimation : `2026-09-20-v6`. Les prix unitaires restent identiques ; la V6 distingue la fréquence des suppléments. Les fichiers sont préparés localement et doivent être installés puis publiés.
+
+## Fréquence de chaque supplément
+
+Dans les parcours résidentiel et commercial récurrents, une option sélectionnée propose :
+
+- **Première visite seulement**, par défaut ;
+- **À chaque visite**, première visite comprise, uniquement sur choix explicite du client.
+
+Le choix apparaît seulement après sélection d’une quantité, pour conserver une page légère. Une prestation ponctuelle, approfondie ou pour options seules reste une visite unique. Le retour à une formule récurrente conserve les choix explicites dans le formulaire courant.
+
+La première visite inclut toutes les options sélectionnées. Les visites suivantes et le budget mensuel moyen incluent seulement les options « À chaque visite ». La remise réfrigérateur + four de 5 $ se calcule pour chaque visite : si seul le four se répète, les visites suivantes comportent son prix individuel de 40 $, sans remise de 5 $.
+
+Exemple contrôlé, Ontario : 3 chambres, 1,5 salle de bain, jusqu’à 1 500 pi², une visite hebdomadaire, quatre heures-personnes. Options : réfrigérateur + four 65 $, deux lits 20 $, plinthes 70 $, deux vitrages 20 $.
+
+| Choix des suppléments | Première visite TTC | Visites suivantes TTC | Mois moyen avant taxes |
+| --- | ---: | ---: | ---: |
+| Tous pour la première visite seulement | 423,75 $ | 189,84 $ | 728,00 $ |
+| Seuls les deux lits à chaque visite | 423,75 $ | 212,44 $ | 814,67 $ |
+| Toutes les options à chaque visite | 423,75 $ | 387,59 $ | 1 486,33 $ |
+
+Le budget mensuel moyen exclut les options de première visite et l’écart du tarif initial. Il ne constitue pas une facture mensuelle fixe.
+
+## Résumé lisible dans le CRM et le courriel
+
+Les nouvelles demandes remplacent `Selection JSON` par `Selection summary` (affiché « Résumé des choix » en français), complété par la fréquence de chaque option, le détail de la première visite et celui des suivantes. Les demandes non chiffrées conservent les prestations et fréquences sans afficher de total fictif.
+
+Le CRM et la notification utilisent le même module de présentation `supabase/functions/_shared/quote-questionnaire.ts`. Les textes du client sont échappés dans le HTML. Les demandes antérieures restent enregistrées telles quelles ; le module affiche leurs détails lisibles et leurs montants sauvegardés, sans appliquer rétroactivement le nouveau comportement. Les courriels déjà envoyés ne sont pas modifiés.
+
+La notification reste destinée à l’administrateur OMSG. Aucun devis officiel, rendez-vous, facture ou envoi automatique au client n’est créé par cette mise à jour. Les devis officiels restent vérifiés et établis par votre équipe.
+
+**Deux publications sont nécessaires** : le site via GitHub/Vercel et la fonction Supabase `send-crm-email`, avec son fichier partagé. Aucune migration SQL ni modification des tables n’est requise. Un push GitHub seul ne remplace pas le déploiement de cette fonction dans votre configuration actuelle. Le guide `INSTALLATION_TARIFS_V6.txt` détaille les deux étapes.
 
 ## Une présentation plus visuelle
 
@@ -87,12 +118,16 @@ Les engagements sont conservés : employés formés et vérification des antéc�
 
 ## Installation et vérifications
 
-Suivre `INSTALLATION_TARIFS_V5.txt`. L’archive contient uniquement les fichiers modifiés ou ajoutés, avec leurs chemins d’origine, sans dossier parent. Elle ne contient ni dépendances, ni sortie de compilation, ni clé ou configuration de test. Ne pas supprimer les autres fichiers du projet et ne pas réécrire l’historique Git.
+Suivre `INSTALLATION_TARIFS_V6.txt`. L’archive contient uniquement les fichiers modifiés ou ajoutés, avec leurs chemins d’origine, sans dossier parent. Elle ne contient ni dépendances, ni sortie de compilation, ni clé ou configuration de test. Ne pas supprimer les autres fichiers du projet et ne pas réécrire l’historique Git.
 
-Aucune migration Supabase, nouvelle dépendance ou modification des variables d’environnement n’est nécessaire pour cette refonte visuelle. Les fonctions de vérification du courriel, de demande de devis et de notification existantes restent requises, ainsi que les champs d’adresse déjà installés.
+Aucune migration SQL, nouvelle dépendance du site ou modification des variables d’environnement n’est nécessaire. La fonction Supabase `send-crm-email` doit cependant être redéployée avec son module partagé pour activer le nouveau courriel. Les fonctions de vérification du courriel, de demande de devis et de notification existantes restent requises, ainsi que les champs d’adresse déjà installés.
 
-Le bilan des contrôles figure dans `VALIDATION_TARIFS.md`. Après publication, vérifier les pages et effectuer une demande avec votre propre courriel pour contrôler l’arrivée réelle dans le CRM et les notifications. Les contrôles livrés utilisent un backend simulé et ne vérifient pas la configuration de votre production.
+Le bilan des 20 contrôles tarifaires, des 8 contrôles de présentation/notification et des essais navigateur figure dans `VALIDATION_TARIFS.md`. Après publication, vérifier les pages et effectuer une demande avec votre propre courriel pour contrôler l’arrivée réelle dans le CRM et les notifications. Les contrôles livrés utilisent un backend simulé et ne vérifient pas la configuration de votre production.
 
 ## Limite du devis officiel
 
 La demande et son estimation provisoire sont enregistrées par le parcours existant. Les lignes du devis officiel du CRM restent préparées et vérifiées par votre équipe ; cette refonte ne crée pas de remplissage automatique supplémentaire. Aucune intervention directe n’a été faite sur votre base Supabase de production.
+
+## Référence de déploiement
+
+Le guide utilise la commande de déploiement ciblé avec `--project-ref` et `--use-api` (assemblage côté serveur, sans Docker), conformément à la [référence officielle Supabase CLI](https://supabase.com/docs/reference/cli/supabase-functions-deploy). La connexion préalable est décrite dans le [guide officiel de déploiement](https://supabase.com/docs/guides/functions/deploy). Le fichier de configuration existant et les secrets existants sont conservés.

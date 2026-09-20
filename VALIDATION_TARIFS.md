@@ -1,3 +1,21 @@
+# Vérifications — fréquences des options et résumé V6
+
+Base : `a541c38`. Version : `2026-09-20-v6`. Les prix unitaires restent inchangés.
+
+- **20 contrôles de calcul réussis** (`node scripts/test-cleaning-pricing.mjs`) : première visite, visites récurrentes, fréquences hebdomadaire/aux deux semaines/mensuelle, Ontario/Québec, minimums, options incluses en profondeur, options ponctuelles/répétées/mixtes et remise réfrigérateur + four calculée par visite.
+- L’exemple fourni par le client est reproduit sans ses coordonnées : 423,75 $ TTC initialement ; 189,84 $ ensuite sans options récurrentes, 212,44 $ avec les deux lits seulement, 387,59 $ avec toutes les options répétées. Les budgets mensuels excluent les options initiales et l’écart du tarif initial.
+- **8 contrôles de présentation et notification réussis** (`node scripts/test-quote-questionnaire.mjs`) : nouveau résumé EN/FR, anciennes demandes non recalculées, JSON ancien invalide, demandes non chiffrées, échappement du texte, conservation des autres questionnaires et prévention d’un second envoi.
+- Le véritable gestionnaire `send-crm-email` est exécuté dans ces essais avec Supabase, Deno et le fournisseur de courriels simulés. Les notifications restent adressées à l’administrateur et leur objet suit la langue de la demande.
+- **Compilation de production réussie**. TypeScript conserve les 47 diagnostics préexistants ; aucun nouveau diagnostic. Le contrôle TypeScript global n’est pas annoncé comme entièrement réussi.
+- **Parcours navigateur réel avec backend simulé** : sélection des cinq options de l’exemple, valeurs par défaut, modification des fréquences, remise commune présente puis retirée pour les visites suivantes, passage à un service ponctuel puis retour, vérification du courriel, envoi de la demande et contrôle des champs enregistrés.
+- **Route réelle du CRM `/admin/quotes/:id`**, avec une session administrateur simulée : nouveau résumé rendu, aucune ligne « Selection JSON », fréquences et montants initiaux/récurrents visibles.
+- **Mobile français 390 px** : fréquence des draps dans le commercial, taxes du Québec, calendrier flexible, lien direct vers la politique ; absence de débordement horizontal.
+- **Courriels EN/FR inspectés visuellement**, issus du gestionnaire testé. Les blocs longs utilisent la largeur disponible ; les montants restent en tableau.
+
+Aucun courriel réel, écriture dans la base de production ou déploiement n’a été effectué pendant cette préparation. Les essais ne remplacent pas une demande de contrôle après publication du site et de la fonction Supabase. Les anciennes notifications déjà reçues ne changent pas.
+
+## Historique de la présentation V5
+
 # Vérifications — présentation V5
 
 Base : commit publié `0a9db75`. Grille conservée : `2026-09-20-v4`.

@@ -1,3 +1,4 @@
+import { QuoteQuestionnaire } from "@/components/quote-questionnaire"
 import { useCallback, useEffect, useState } from "react"
 import {
   createFileRoute,
@@ -831,58 +832,8 @@ function DetailItem({
   )
 }
 
-function QuestionnaireSection({
-  answers,
-}: {
-  answers: Record<string, unknown> | null
-}) {
-  const entries = answers
-    ? Object.entries(answers)
-    : []
-
-  return (
-    <section className="rounded-xl border bg-white p-5 shadow-sm">
-      <h2 className="text-xl font-bold text-slate-900">
-        Questionnaire responses
-      </h2>
-
-      {entries.length === 0 ? (
-        <p className="mt-4 text-slate-500">
-          No additional responses.
-        </p>
-      ) : (
-        <dl className="mt-5 grid gap-5 sm:grid-cols-2">
-          {entries.map(([key, value]) => (
-            <DetailItem
-              key={key}
-              label={formatFieldName(key)}
-              value={formatAnswer(value)}
-            />
-          ))}
-        </dl>
-      )}
-    </section>
-  )
-}
-
-function formatAnswer(value: unknown): string {
-  if (value === null || value === undefined || value === "") {
-    return "Not specified"
-  }
-
-  if (typeof value === "boolean") {
-    return value ? "Oui" : "Non"
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(formatAnswer).join(", ")
-  }
-
-  if (typeof value === "object") {
-    return JSON.stringify(value, null, 2)
-  }
-
-  return String(value)
+function QuestionnaireSection({ answers }: { answers: Record<string, unknown> | null }) {
+  return <QuoteQuestionnaire answers={answers} />
 }
 
 function formatFieldName(fieldName: string): string {

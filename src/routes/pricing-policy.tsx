@@ -64,6 +64,14 @@ function PricingPolicy() {
       title: t("Time, minimums and optional extras", "Durée, minimums et suppléments"),
       body: [
         t(
+          "For recurring cleaning, each selected extra is set to First visit only by default. Choose Every visit explicitly if it should repeat, including on the first visit. The estimate separates the initial visit from following visits. Average monthly budgets include recurring extras only, excluding initial-only extras and the initial rate difference. For a one-time service, all selected extras apply to that single visit.",
+          "Pour un entretien récurrent, chaque supplément choisi est proposé par défaut pour la première visite seulement. Sélectionnez explicitement À chaque visite pour le répéter, première visite comprise. L’estimation distingue la visite initiale des suivantes. Le budget mensuel moyen inclut uniquement les suppléments récurrents, hors options initiales et écart du tarif de première visite. Pour une prestation ponctuelle, toutes les options concernent cette visite unique.",
+        ),
+        t(
+          "The fridge-and-oven saving applies only to visits where both services are selected. If only one repeats, its individual price applies to following visits. The official quote confirms the scope and frequency of each extra before work.",
+          "La remise réfrigérateur et four s’applique uniquement aux visites où les deux prestations sont choisies. Si une seule se répète, son prix individuel s’applique aux visites suivantes. Le devis officiel confirme le périmètre et la fréquence de chaque option avant le travail.",
+        ),
+        t(
           "A worker-hour is one person working for one hour. Two cleaners for two hours represent four worker-hours. Residential standard visits have a three-worker-hour minimum; recurring commercial visits have a two-worker-hour minimum. One-time commercial standard cleaning has a three-worker-hour minimum. Deep cleaning has a 4.5-worker-hour minimum.",
           "Une heure-personne correspond à une personne pendant une heure. Deux intervenants pendant deux heures représentent quatre heures-personnes. Le minimum résidentiel standard est de trois heures-personnes ; le commercial récurrent, deux heures-personnes. Le commercial ponctuel standard a un minimum de trois heures-personnes. Le nettoyage en profondeur a un minimum de 4,5 heures-personnes.",
         ),

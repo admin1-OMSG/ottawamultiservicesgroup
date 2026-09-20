@@ -535,8 +535,8 @@ function AddonCatalogue({ audience }: { audience: Audience }) {
           </h2>
           <p className="mt-4 text-sm leading-7 text-slate-600">
             {t(
-              "Add only what you need. Every option has a clear price and scope, and can be selected in your estimate.",
-              "Ajoutez seulement ce qui vous est utile. Chaque option précise son prix et son contenu, puis se sélectionne dans le calculateur.",
+              "Add only what you need. Each option has a clear price and scope. In your estimate, choose First visit only or Every visit for recurring cleaning.",
+              "Ajoutez seulement ce qui vous est utile. Chaque option précise son prix et son contenu. Pour un entretien récurrent, choisissez Première visite seulement ou À chaque visite dans le calculateur.",
             )}
           </p>
           <p className="mt-4 text-sm font-semibold text-teal-800">

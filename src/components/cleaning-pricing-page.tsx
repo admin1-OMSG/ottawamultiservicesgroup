@@ -10,6 +10,9 @@ import {
   HOME_PROFILES,
   frequencyLabel,
   addonPrice,
+  addonFrequency,
+  isRecurringSelection,
+  type AddonFrequency,
   calculateCleaningEstimate,
   initialSelection,
   money,
@@ -64,6 +67,7 @@ export function CleaningEstimatePage({
   };
   const area = profiles.find((p) => p.id === selection.profile)?.area ?? 0;
   const planList = plansFor(audience);
+  const recurringSelection = isRecurringSelection(selection);
   useEffect(() => {
     if (confirmation) window.scrollTo({ top: 0, behavior: "instant" });
   }, [confirmation]);
@@ -298,6 +302,17 @@ export function CleaningEstimatePage({
                   "Options facultatives pour votre devis provisoire au forfait. Sélectionnez réfrigérateur et four pour 65 $ au lieu de 70 $ séparément.",
                 )}
               </p>
+              <p className="mt-3 text-sm font-medium leading-6 text-teal-900">
+                {recurringSelection
+                  ? t(
+                      "Extras are for the first visit only by default. For each selected extra, choose whether you want it at every visit.",
+                      "Par défaut, les suppléments concernent uniquement la première visite. Pour chaque option choisie, indiquez si vous la souhaitez à chaque visite.",
+                    )
+                  : t(
+                      "These extras apply to this single visit.",
+                      "Ces suppléments concernent cette visite unique.",
+                    )}
+              </p>
               <div className="mt-4 flex items-center gap-3 rounded-lg bg-teal-50 p-3 text-sm">
                 <Sparkles className="h-5 w-5 text-teal-800" />
                 <span>
@@ -342,6 +357,33 @@ export function CleaningEstimatePage({
                                   )
                                 : `${money(addonPrice(a, selection, area), language)} / ${a.unit[language]}`}
                             </p>
+                            {quantity > 0 && !included && recurringSelection && (
+                              <label className="mt-3 grid max-w-full gap-1 text-xs font-medium text-slate-600">
+                                {t("When?", "Quand ?")}
+                                <select
+                                  id={`frequency-${a.id}`}
+                                  aria-label={`${t("Frequency for", "Fréquence pour")} ${a.name[language]}`}
+                                  className="min-h-11 w-full min-w-0 rounded-lg border bg-white px-2 text-sm text-slate-900"
+                                  value={addonFrequency(selection, a.id)}
+                                  onChange={(event) =>
+                                    setSelection((current) => ({
+                                      ...current,
+                                      addonFrequencies: {
+                                        ...current.addonFrequencies,
+                                        [a.id]: event.target.value as AddonFrequency,
+                                      },
+                                    }))
+                                  }
+                                >
+                                  <option value="first">
+                                    {t("First visit only", "Première visite seulement")}
+                                  </option>
+                                  <option value="every">
+                                    {t("Every visit", "À chaque visite")}
+                                  </option>
+                                </select>
+                              </label>
+                            )}
                           </div>
                           <select
                             id={`addon-${a.id}`}
@@ -472,6 +514,13 @@ export function CleaningEstimatePage({
                       <dt>
                         {line.label[language]}
                         {line.quantity > 1 ? ` × ${line.quantity}` : ""}
+                        {estimate.recurring && (
+                          <span className="mt-1 block text-xs font-normal text-slate-500">
+                            {line.frequency === "every"
+                              ? t("Every visit", "À chaque visite")
+                              : t("First visit only", "Première visite seulement")}
+                          </span>
+                        )}
                       </dt>
                       <dd className="shrink-0">{money(line.total, language)}</dd>
                     </div>
@@ -490,10 +539,7 @@ export function CleaningEstimatePage({
                 {estimate.recurring && (
                   <div className="mt-5 border-t pt-5">
                     <p className="text-sm font-semibold">
-                      {t(
-                        "Following visits with these options",
-                        "Visites suivantes avec ces options",
-                      )}
+                      {t("Following visits", "Visites suivantes")}
                     </p>
                     <p className="mt-1 text-xl font-bold text-teal-800">
                       {money(estimate.subsequentTotal, language)}{" "}
@@ -501,6 +547,54 @@ export function CleaningEstimatePage({
                         {t("incl. tax / visit", "TTC / visite")}
                       </span>
                     </p>
+                    <p className="mt-2 text-xs leading-5 text-slate-600">
+                      {t(
+                        "Only extras marked Every visit are included below.",
+                        "Seules les options À chaque visite sont comprises ci-dessous.",
+                      )}
+                    </p>
+                    <details className="mt-3 text-sm">
+                      <summary className="cursor-pointer font-medium text-teal-800">
+                        {t("See following-visit details", "Voir le détail des visites suivantes")}
+                      </summary>
+                      <dl className="mt-3 space-y-3">
+                        <div className="flex justify-between gap-3">
+                          <dt>
+                            {estimate.hours} {t("worker-hours", "heures-personnes")} ×{" "}
+                            {money(estimate.rate, language)}
+                          </dt>
+                          <dd className="shrink-0">{money(estimate.base, language)}</dd>
+                        </div>
+                        {estimate.recurringLines.map((line) => (
+                          <div key={line.id} className="flex justify-between gap-3">
+                            <dt>
+                              {line.label[language]}
+                              {line.quantity > 1 ? ` × ${line.quantity}` : ""}
+                            </dt>
+                            <dd className="shrink-0">{money(line.total, language)}</dd>
+                          </div>
+                        ))}
+                        {estimate.recurringLines.length === 0 && (
+                          <div className="text-slate-500">
+                            <dt>{t("No recurring extras", "Aucun supplément récurrent")}</dt>
+                            <dd className="sr-only">0</dd>
+                          </div>
+                        )}
+                        <div className="flex justify-between gap-3 border-t pt-3 font-medium">
+                          <dt>{t("Before tax", "Avant taxes")}</dt>
+                          <dd>{money(estimate.subtotal, language)}</dd>
+                        </div>
+                        {estimate.subsequentTaxes.map((tax) => (
+                          <div
+                            key={tax.name.en}
+                            className="flex justify-between gap-3 text-slate-600"
+                          >
+                            <dt>{tax.name[language]}</dt>
+                            <dd>{money(tax.amount, language)}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </details>
                     {estimate.packageSaving > 0 && (
                       <p className="mt-2 text-sm font-semibold leading-6 text-teal-800">
                         {money(estimate.packageSaving, language)}{" "}
@@ -516,8 +610,8 @@ export function CleaningEstimatePage({
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       {money(estimate.monthly!, language)}{" "}
                       {t(
-                        "average month before tax. Based on 52 weeks/year (26 biweekly visits or 12 monthly visits); initial visit differences excluded.",
-                        "par mois moyen avant taxes. Base de 52 semaines/an (26 visites aux deux semaines ou 12 visites mensuelles) ; écart de première visite exclu.",
+                        "average month before tax. Based on 52 weeks/year (26 biweekly visits or 12 monthly visits). First-visit-only extras and the initial rate difference are excluded.",
+                        "par mois moyen avant taxes. Base de 52 semaines/an (26 visites aux deux semaines ou 12 visites mensuelles). Options de première visite et écart du tarif initial exclus.",
                       )}
                     </p>
                   </div>

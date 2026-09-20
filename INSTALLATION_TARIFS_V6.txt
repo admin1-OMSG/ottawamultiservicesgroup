@@ -1,0 +1,109 @@
+﻿OMSG — INSTALLATION TARIFS V6
+Options ponctuelles/récurrentes et demandes lisibles
+
+Base : V5 publiée dans le commit a541c38.
+Le ZIP contient uniquement les fichiers ajoutés ou modifiés. Les prix unitaires ne changent pas.
+
+DEUX ÉTAPES DE PUBLICATION
+A. Site web et CRM : envoi GitHub, puis déploiement habituel Vercel.
+B. Courriel : redéploiement ciblé de la fonction Supabase send-crm-email.
+Aucune migration SQL, modification de table ou nouvelle variable secrète n’est nécessaire.
+
+1. COPIER LES FICHIERS
+Extrayez l’archive dans un dossier temporaire, puis copiez tout son contenu dans :
+C:\Users\Dell\OneDrive\Desktop\OMSG-v2.5-clean\ottawamultiservicesgroup-main
+
+Fusionnez les dossiers et acceptez le remplacement des fichiers de même nom. Conservez les autres fichiers.
+Le nouveau fichier supabase\functions\_shared\quote-questionnaire.ts est nécessaire AU SITE ET À LA FONCTION SUPABASE. Copiez bien le dossier _shared.
+
+2. VÉRIFIER LOCALEMENT
+Dans PowerShell, depuis le dossier du projet, exécutez séparément :
+
+node scripts/test-cleaning-pricing.mjs
+node scripts/test-quote-questionnaire.mjs
+npm.cmd run build
+
+Résultats attendus : 20 contrôles tarifaires, 8 contrôles du résumé/courriel et compilation réussie.
+Les deux scripts utilisent des données de test. Le second simule les services externes ; il n’envoie aucun courriel réel.
+En cas d’erreur, résolvez-la avant la publication.
+
+3. PRÉPARER LES FICHIERS POUR GITHUB
+Gardez les apostrophes simples ci-dessous : le nom quotes.$requestId.tsx contient un signe dollar.
+
+$fichiersTarifsV6 = @(
+  'INSTALLATION_TARIFS_V6.txt'
+  'INTEGRATION_TARIFS_FR.md'
+  'VALIDATION_TARIFS.md'
+  'docs/pricing-preview/addon-frequency-mobile-fr.png'
+  'docs/pricing-preview/crm-summary-v6-en.png'
+  'docs/pricing-preview/quote-email-v6-en.html'
+  'docs/pricing-preview/quote-email-v6-en.png'
+  'docs/pricing-preview/quote-email-v6-fr.html'
+  'docs/pricing-preview/quote-email-v6-mobile-fr.png'
+  'scripts/test-cleaning-pricing.mjs'
+  'scripts/test-quote-questionnaire.mjs'
+  'src/components/cleaning-pricing-overview.tsx'
+  'src/components/cleaning-pricing-page.tsx'
+  'src/components/quote-questionnaire.tsx'
+  'src/lib/cleaning-pricing.ts'
+  'src/routes/admin/quotes.$requestId.tsx'
+  'src/routes/pricing-policy.tsx'
+  'supabase/functions/_shared/quote-questionnaire.ts'
+  'supabase/functions/send-crm-email/index.ts'
+)
+git --literal-pathspecs add -- $fichiersTarifsV6
+git diff --cached --stat
+
+Vérifiez que la liste préparée correspond à celle ci-dessus. N’utilisez pas git add . pour éviter d’inclure vos autres travaux.
+
+4. ENVOYER LE SITE ET LE CRM
+Après réussite des vérifications :
+
+git commit -m "Tarifs V6 : frequence des options et resume lisible"
+git push origin main
+
+Attendez ensuite la réussite du déploiement Vercel.
+
+5. METTRE À JOUR LE COURRIEL DANS SUPABASE
+Le push GitHub ne déploie pas automatiquement cette fonction dans la configuration du projet examinée. Depuis le même dossier PowerShell :
+
+npx.cmd supabase@latest login
+
+Suivez la connexion dans votre navigateur. Il n’est pas nécessaire de transmettre votre jeton ou vos clés dans le chat.
+Pour retrouver les projets accessibles :
+
+npx.cmd supabase@latest projects list
+
+Repérez la référence du projet SUPABASE UTILISÉ PAR LE SITE OMSG. Elle correspond aussi à la partie après /project/ dans l’adresse de votre tableau de bord Supabase.
+Remplacez VOTRE_REFERENCE_PROJET par cette référence exacte dans la commande suivante :
+
+npx.cmd supabase@latest functions deploy send-crm-email --project-ref VOTRE_REFERENCE_PROJET --use-api
+
+Cette commande déploie uniquement send-crm-email et assemble son module partagé, sans Docker. Attendez la confirmation de réussite.
+Conservez le fichier supabase/config.toml et les secrets déjà en place ; cette livraison ne demande pas de les remplacer.
+Ne lancez pas de migration SQL ni de déploiement de toutes les fonctions.
+
+Documentation officielle :
+https://supabase.com/docs/guides/functions/deploy
+https://supabase.com/docs/reference/cli/supabase-functions-deploy
+
+6. VÉRIFIER UNE NOUVELLE DEMANDE
+Ouvrez :
+https://www.ottawamultiservicesgroup.com/pricing/estimate?audience=residential&plan=weekly
+
+Sélectionnez le profil 3 chambres, 1,5 salle de bain, jusqu’à 1 500 pi², Ontario.
+Ajoutez réfrigérateur 1, four 1, plinthes 1, vitres intérieures 2, draps 2.
+Par défaut, chaque option est pour la première visite seulement.
+Résultat attendu : première visite 423,75 $ TTC ; suivantes 189,84 $ TTC.
+Choisissez À chaque visite uniquement pour les draps : suivantes 212,44 $ TTC ; budget mensuel moyen 814,67 $ avant taxes. La première visite reste à 423,75 $ TTC.
+
+Envoyez une nouvelle demande avec votre propre courriel, puis vérifiez :
+- la réception de la notification administrateur ;
+- le Résumé des choix / Selection summary, sans Selection JSON ;
+- la fréquence de chaque option et les deux totaux ;
+- les mêmes données lisibles dans la fiche de demande du CRM.
+
+Les courriels déjà reçus ne sont pas modifiés. Les anciennes demandes du CRM conservent leurs montants et sont affichées lisiblement, sans recalcul rétroactif.
+Si le site est à jour mais que le courriel garde l’ancienne présentation, vérifiez l’étape 5 et créez une nouvelle demande de contrôle.
+
+Les aperçus docs/pricing-preview/quote-email-v6-*.html utilisent des coordonnées fictives et illustrent une notification ADMINISTRATEUR, pas un devis officiel envoyé au client.

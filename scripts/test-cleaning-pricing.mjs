@@ -95,7 +95,9 @@ test('CRM retains custom schedules without a fabricated price or mandatory site 
   assert.equal(a['Estimate province'],'Quebec');
   assert.equal(a['First visit total CAD'],undefined);
   assert.match(a['Selected add-ons'],/refrigerator/i);
-  assert.deepEqual(JSON.parse(a['Selection JSON']),s);
+  assert.equal(a['Selection JSON'],undefined);
+  assert.ok(a['Selection summary']);
+  assert.ok(a['Add-on schedule']);
   const standard=initialSelection('residential');
   assert.equal(pricingAnswers(standard,estimate(standard),'fr')['Recurring package saving before tax CAD'],'15');
 });
@@ -108,7 +110,70 @@ test('CRM answers preserve options and provenance for custom and priced requests
   const s={...initialSelection('residential'),condition:'heavy',addons:{oven:1}};
   const a=pricingAnswers(s,estimate(s),'fr');
   assert.match(a['Selected add-ons'],/four/); assert.equal(a['Free on-site assessment required'],'Yes');
-  assert.deepEqual(JSON.parse(a['Selection JSON']),s);
+  assert.equal(a['Selection JSON'],undefined);
+  assert.ok(a['Selection summary']);
+  assert.ok(a['Add-on schedule']);
   assert.equal(a['First visit total CAD'],undefined);
+});
+test('First-visit-only extras: the supplied 3-bedroom example has no recurring extras by default', () => {
+  const e=res({plan:'weekly',profile:'three',addons:{oven:1,fridge:1,baseboards:1,windows:2,linen:2}});
+  assert.equal(e.extras,175); assert.equal(e.firstSubtotal,375); assert.equal(e.total,423.75);
+  assert.equal(e.recurringExtras,0); assert.deepEqual(e.recurringLines,[]);
+  assert.equal(e.subtotal,168); assert.equal(e.subsequentTotal,189.84); assert.equal(e.monthly,728);
+});
+test('Every-visit extras preserve the former example only when explicitly selected', () => {
+  const addons={oven:1,fridge:1,baseboards:1,windows:2,linen:2};
+  const e=res({plan:'weekly',profile:'three',addons,addonFrequencies:Object.fromEntries(Object.keys(addons).map(k=>[k,'every']))});
+  assert.equal(e.firstSubtotal,375); assert.equal(e.recurringExtras,175);
+  assert.equal(e.subtotal,343); assert.equal(e.subsequentTotal,387.59); assert.equal(e.monthly,1486.33);
+  assert.equal(e.recurringBundleSaving,5);
+});
+test('Mixed extras: only recurring linen is included in following visits and monthly budgets', () => {
+  const s={...initialSelection('residential'),plan:'weekly',profile:'three',addons:{oven:1,fridge:1,baseboards:1,windows:2,linen:2},addonFrequencies:{linen:'every'}};
+  const e=estimate(s), a=pricingAnswers(s,e,'fr');
+  assert.equal(e.firstSubtotal,375); assert.equal(e.recurringExtras,20); assert.equal(e.subtotal,188);
+  assert.equal(e.subsequentTotal,212.44); assert.equal(e.monthly,814.67);
+  assert.deepEqual(e.recurringLines.map(l=>l.id),['linen']);
+  assert.match(a['Add-on schedule'],/réfrigérateur × 1 — Première visite seulement/);
+  assert.match(a['Add-on schedule'],/Changer les draps × 2 — À chaque visite/);
+  assert.equal(a['Recurring visit add-ons subtotal CAD'],'20');
+  assert.equal(a['Recurring visit total CAD'],'212.44'); assert.equal(a['Selection JSON'],undefined);
+});
+test('The appliance bundle is recalculated independently for first and following visits', () => {
+  for (const recurringId of ['oven','fridge']) {
+    const e=res({addons:{oven:1,fridge:1},addonFrequencies:{[recurringId]:'every'}});
+    assert.equal(e.extras,65); assert.equal(e.bundleSaving,5); assert.equal(e.recurringBundleSaving,0);
+    assert.equal(e.recurringExtras,recurringId==='oven'?40:30);
+    assert.equal(e.recurringLines.filter(l=>l.id==='bundleSaving').length,0);
+  }
+  const both=res({addons:{oven:1,fridge:1},addonFrequencies:{oven:'every',fridge:'every'}});
+  assert.equal(both.recurringExtras,65); assert.equal(both.recurringLines.filter(l=>l.id==='bundleSaving').length,1);
+});
+test('Commercial recurring extras and Quebec taxes apply separately at each visit', () => {
+  const e=com({province:'Quebec',addons:{cabinets:1,linen:2},addonFrequencies:{linen:'every'}});
+  assert.equal(e.firstSubtotal,125); assert.equal(e.subtotal,110); assert.equal(e.monthly,476.67);
+  assert.deepEqual(e.taxes.map(t=>t.amount),[6.25,12.47]); assert.equal(e.total,143.72);
+  assert.deepEqual(e.subsequentTaxes.map(t=>t.amount),[5.5,10.97]); assert.equal(e.subsequentTotal,126.47);
+});
+test('Single visits ignore recurring flags; returning to a recurring plan retains the explicit choice', () => {
+  for (const plan of ['once','deep','extras']) {
+    const e=res({plan,addons:{linen:2},addonFrequencies:{linen:'every'}});
+    assert.equal(e.recurring,false); assert.equal(e.monthly,null); assert.equal(e.recurringExtras,0);
+    assert.ok(e.lines.every(l=>l.frequency==='first')); assert.equal(e.extras,plan==='extras'?150:20);
+  }
+  assert.equal(res({addons:{linen:2},addonFrequencies:{linen:'every'}}).recurringExtras,20);
+  assert.equal(res({addons:{linen:2},addonFrequencies:{linen:'unrecognized'}}).recurringExtras,0);
+});
+test('Custom-rate and specialist requests retain option schedules without fabricated amounts', () => {
+  for (const audience of ['residential','commercial']) {
+    for (const patch of [{plan:'flexible',visitsPerWeek:3},{plan:'weekly',condition:'heavy'}]) {
+      const s={...initialSelection(audience),...patch,addons:{oven:1,linen:2},addonFrequencies:{linen:'every'}};
+      const e=estimate(s), a=pricingAnswers(s,e,'en');
+      assert.equal(e.requiresQuote,true); assert.equal(a['First visit total CAD'],undefined);
+      assert.equal(a['Recurring visit total CAD'],undefined); assert.equal(a['Selection JSON'],undefined);
+      assert.match(a['Add-on schedule'],/Inside oven × 1 — First visit only/);
+      assert.match(a['Add-on schedule'],/Change bed linen × 2 — Every visit/);
+    }
+  }
 });
 console.log(`${passed} pricing checks passed.`);
