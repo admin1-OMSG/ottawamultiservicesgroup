@@ -65,7 +65,7 @@ test('Commercial minimums, frequency, and deep-clean estimate', () => {
   assert.equal(com().firstSubtotal,90); assert.equal(com().monthly,390);
   assert.equal(com({plan:'once'}).firstSubtotal,150);
   assert.equal(com({plan:'deep',profile:'medium'}).hours,5.25);
-  assert.equal(com({addons:{bedroom:2,linen:3}}).extras,0);
+  assert.equal(com({addons:{bedroom:2,linen:3}}).extras,30); // Linen is also offered commercially; bedroom extras remain residential.
 });
 test('Multiple weekly visits require a revised price, without requiring a site visit', () => {
   for (const visitsPerWeek of [2,3,4,5,6,7]) {

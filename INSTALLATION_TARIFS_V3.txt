@@ -1,0 +1,57 @@
+﻿OMSG — MISE À JOUR TARIFS V3
+
+À appliquer après la V2 publiée dans le commit 91a9c1c.
+Cette archive contient uniquement 5 fichiers à ajouter ou remplacer.
+
+NOUVEAUX TARIFS RÉSIDENTIEL ET COMMERCIAL, AVANT TAXES
+- Intérieur des armoires : 15 $ pour le forfait décrit, jusqu’à 20 ouvertures au total, armoires et tiroirs vidés.
+- Changer les draps : 10 $ par lit, linge propre fourni par le client.
+- Garage vide : 20 $, jusqu’à 300 pi², balayage à sec.
+- Balcon : 20 $, jusqu’à 100 pi², balayage et garde-corps accessibles, sans pression.
+Ces montants sont des suppléments. Le minimum total de la formule « options seules » reste de 150 $.
+
+1. EXTRAIRE ET COPIER
+Extrayez le ZIP, puis copiez son contenu (src, scripts et les guides) à la racine de :
+C:\Users\Dell\OneDrive\Desktop\OMSG-v2.5-clean\ottawamultiservicesgroup-main
+Acceptez le remplacement des fichiers existants. Conservez les autres fichiers du projet.
+
+2. VÉRIFIER DANS POWERSHELL
+Exécutez séparément dans le dossier du projet :
+
+node scripts/test-cleaning-pricing.mjs
+npm.cmd run build
+
+Le premier contrôle doit afficher « 13 pricing checks passed. ».
+Si une commande échoue, corrigez le problème avant de publier.
+
+3. PRÉPARER LES FICHIERS
+Si les contrôles réussissent, copiez le bloc suivant :
+
+$fichiersTarifsV3 = @(
+  "INSTALLATION_TARIFS_V3.txt"
+  "INTEGRATION_TARIFS_FR.md"
+  "VALIDATION_TARIFS.md"
+  "scripts/test-cleaning-pricing.mjs"
+  "src/lib/cleaning-pricing.ts"
+)
+git --literal-pathspecs add -- $fichiersTarifsV3
+git diff --cached --stat
+
+Vérifiez que seuls les cinq fichiers prévus sont préparés pour ce commit. Ne faites pas « git add . », car vous aviez d’autres modifications locales sans rapport avec les tarifs.
+
+4. ENVOYER SUR GITHUB
+Exécutez séparément après vérification de la liste :
+
+git commit -m "Tarifs V3 : ajustement armoires, draps, garage et balcon"
+git push origin main
+
+5. APRÈS DÉPLOIEMENT
+Contrôlez les deux pages, en anglais et en français :
+https://www.ottawamultiservicesgroup.com/pricing/residential
+https://www.ottawamultiservicesgroup.com/pricing/commercial
+
+Dans les options, développez « Pièces, linge et rangement » pour les draps et « Vitres et tâches détaillées » pour garage et balcon. Le prix des armoires est dans « Cuisine et appareils ».
+Sélectionnez une visite standard ponctuelle, le plus petit profil et les quatre options (deux lits) : les suppléments totalisent 75 $, la visite 225 $ avant taxes et 254,25 $ en Ontario.
+Actualisez avec Ctrl + F5 si nécessaire. La version des demandes CRM est désormais 2026-09-20-v3.
+
+Aucune migration Supabase ni changement des variables d’environnement n’est requis.

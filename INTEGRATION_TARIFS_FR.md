@@ -1,8 +1,21 @@
-# Tarifs OMSG — mise à jour V2
+# Tarifs OMSG — mise à jour V3
 
-Version des tarifs : `2026-09-20-v2`. Cette mise à jour s’applique au dépôt existant après le commit `6103ade` (première livraison des pages de tarifs). Les modifications sont préparées et vérifiées localement ; elles restent à publier avec le processus habituel du site.
+Version des tarifs : `2026-09-20-v3`. Cette mise à jour s’applique au dépôt existant après le commit `91a9c1c` (tarifs V2 publiés). Les modifications sont préparées et vérifiées localement ; elles restent à publier avec le processus habituel du site.
 
-## Changements visibles
+## Ajustement V3 des options
+
+Les mêmes prix s’appliquent aux parcours résidentiel et commercial, en anglais et en français :
+
+| Option | Nouveau prix avant taxes | Périmètre |
+| --- | ---: | --- |
+| Intérieur des armoires | 15 $ par forfait | Armoires et tiroirs vidés, jusqu’à 20 ouvertures de porte ou de tiroir au total |
+| Changer les draps | 10 $ par lit | Linge propre fourni par le client |
+| Balayage du garage vide | 20 $ par unité | Jusqu’à 300 pi², balayage à sec sans dégraissage, pression ni évacuation |
+| Balcon | 20 $ par unité | Jusqu’à 100 pi², balayage et garde-corps accessibles, sans pression |
+
+Le changement des draps est désormais sélectionnable dans le parcours commercial également. Les tarifs affichés, les calculs et le détail envoyé au CRM utilisent la même grille centrale. Ces montants sont des options ajoutées à une prestation ; la formule « options seules » conserve son minimum total de visite de 150 $.
+
+## Fonctionnalités de la V2 conservées
 
 - Ottawa **et Gatineau** figurent sur les pages de tarifs, dans la politique et dans les pages de nettoyage résidentiel et commercial. L’accueil, le contact et le pied de page mentionnaient déjà Gatineau.
 - Les prix barrés et les économies concernent le **forfait**, et non le tarif horaire. Les économies promotionnelles sont exprimées en dollars, sans pourcentage.
@@ -58,7 +71,7 @@ Les engagements sont conservés : employés formés et vérification des antéc�
 
 ## Installation et vérifications
 
-Suivre `INSTALLATION_TARIFS_V2.txt`. L’archive contient uniquement les fichiers modifiés ou ajoutés, avec leurs chemins d’origine, sans dossier parent. Elle ne contient ni dépendances, ni sortie de compilation, ni clé ou configuration de test. Ne pas supprimer les autres fichiers du projet et ne pas réécrire l’historique Git.
+Suivre `INSTALLATION_TARIFS_V3.txt`. L’archive contient uniquement les fichiers modifiés ou ajoutés, avec leurs chemins d’origine, sans dossier parent. Elle ne contient ni dépendances, ni sortie de compilation, ni clé ou configuration de test. Ne pas supprimer les autres fichiers du projet et ne pas réécrire l’historique Git.
 
 Aucune migration Supabase, nouvelle dépendance ou modification des variables d’environnement n’est nécessaire. Les fonctions de vérification du courriel, de demande de devis et de notification existantes restent requises, ainsi que les champs d’adresse déjà installés.
 

@@ -1,5 +1,5 @@
 /** Public estimates only. Official quotes are reviewed and issued through the CRM. */
-export const PRICING_VERSION = "2026-09-20-v2";
+export const PRICING_VERSION = "2026-09-20-v3";
 export type Locale = "en" | "fr";
 export type Audience = "residential" | "commercial";
 export type PlanId =
@@ -346,7 +346,7 @@ export const ADDONS: Addon[] = [
       "Emptied cabinets and drawers, up to 20 door or drawer openings.",
       "Armoires et tiroirs vidés, jusqu’à 20 ouvertures de porte ou de tiroir.",
     ),
-    price: 45,
+    price: 15,
     unit: each,
     max: 1,
     group: "kitchen",
@@ -394,11 +394,10 @@ export const ADDONS: Addon[] = [
       "Make one bed using clean linen supplied by the client.",
       "Refaire un lit avec le linge propre fourni par le client.",
     ),
-    price: 15,
+    price: 10,
     unit: text("bed", "lit"),
     max: 10,
     group: "rooms",
-    residentialOnly: true,
   },
   {
     id: "laundry",
@@ -623,7 +622,7 @@ export const ADDONS: Addon[] = [
       "Up to 300 sq. ft.; dry sweeping, no degreasing, pressure washing or hauling.",
       "Jusqu’à 300 pi² ; balayage à sec, sans dégraissage, pression ni évacuation.",
     ),
-    price: 60,
+    price: 20,
     unit: each,
     max: 1,
     group: "detail",
@@ -635,7 +634,7 @@ export const ADDONS: Addon[] = [
       "Up to 100 sq. ft.; sweep and wipe accessible railings, no pressure washing.",
       "Jusqu’à 100 pi² ; balayage et essuyage des garde-corps accessibles, sans pression.",
     ),
-    price: 40,
+    price: 20,
     unit: each,
     max: 2,
     group: "detail",

@@ -1,4 +1,16 @@
-# Vérifications — mise à jour Tarifs V2
+# Vérifications — Tarifs V3 : ajustement de quatre options
+
+Base : commit publié `91a9c1c`. Grille : `2026-09-20-v3`.
+
+- Prix centralisés : armoires 15 $, draps 10 $ par lit, garage 20 $, balcon 20 $, avant taxes.
+- Les quatre options sont proposées en résidentiel et en commercial. La restriction résidentielle du changement de draps a été retirée.
+- Les 13 contrôles existants de `node scripts/test-cleaning-pricing.mjs` réussissent. Le contrôle commercial a été adapté à la disponibilité des draps : trois lits coûtent désormais 30 $ ; les chambres supplémentaires restent réservées au résidentiel.
+- Contrôle ciblé du module de calcul et des données destinées au CRM en anglais et en français : armoires + deux lits + garage + balcon donnent 75 $ de suppléments, puis 225 $ avant taxes et 254,25 $ avec TVH pour une visite standard ponctuelle de trois heures. Les deux parcours produisent ces mêmes montants et la version V3 de la grille.
+- `npm run build` réussit. Aucun changement de dépendance ou de base de données n’est nécessaire.
+- Aucun envoi réel au CRM, courriel ou déploiement de production n’a été effectué pour cette livraison. L’interface utilise directement la grille centrale pour afficher les montants ; les captures du dossier de prévisualisation proviennent de la V2.
+
+## Historique : contrôles de la V2
+
 
 Base : commit `6103ade`. Version de la grille : `2026-09-20-v2`.
 
