@@ -15,6 +15,8 @@ const LanguageContext = createContext<LanguageContextValue>({
 });
 
 const FR: Record<string, string> = {
+  "Cleaning Prices": "Tarifs nettoyage",
+  "Pricing Policy": "Politique des prix",
   "Become a Partner": "Devenir partenaire",
   "Choose a service": "Choisissez un service",
   "Home, vehicle & everyday services": "Services résidentiels, automobiles et courants",

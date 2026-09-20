@@ -8,6 +8,7 @@ import { LanguageSwitcher } from "@/lib/language";
 const NAV = [
   { to: "/", label: "Home" },
   { to: "/services", label: "Services" },
+  { to: "/pricing", label: "Cleaning Prices" },
   { to: "/about", label: "About" },
   { to: "/partners", label: "Partners" },
   { to: "/careers", label: "Careers" },
@@ -44,7 +45,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-4 text-[13px] font-medium lg:flex xl:gap-5 2xl:text-sm">
+        <nav className="hidden items-center gap-4 text-[13px] font-medium xl:flex xl:gap-3 2xl:text-sm">
           {NAV.map((n) => (
             <Link
               key={n.to}
@@ -78,7 +79,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             onClick={() => setOpen((o) => !o)}
-            className="lg:hidden text-navy hover:bg-secondary"
+            className="xl:hidden text-navy hover:bg-secondary"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -86,7 +87,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
       </div>
 
       {open && (
-        <div className="border-t border-border bg-background shadow-xl lg:hidden">
+        <div className="border-t border-border bg-background shadow-xl xl:hidden">
           <div className="mx-auto flex max-w-7xl flex-col px-4 py-4 sm:px-6">
             {NAV.map((n) => (
               <Link

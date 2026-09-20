@@ -58,6 +58,7 @@ export function SiteFooter() {
         </div>
         <FooterCol title="Quick Links" links={[
           { label: "Services", to: "/services" },
+          { label: "Cleaning Prices", to: "/pricing" },
           { label: "About", to: "/about" },
           { label: "FAQ", to: "/faq" },
           { label: "Blog", to: "/blog" },
@@ -70,7 +71,7 @@ export function SiteFooter() {
           { label: "Become a Partner", to: "/partners" },
         ]} />
         <FooterCol title="Legal" links={[
-          { label: "Privacy Policy", to: "/privacy" },
+          { label: "Privacy Policy", to: "/privacy" }, { label: "Pricing Policy", to: "/pricing-policy" },
           { label: "Terms & Conditions", to: "/terms" },
         ]} />
       </div>

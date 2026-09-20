@@ -1,0 +1,214 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { useLanguage } from "@/lib/language";
+import { seoHead } from "@/lib/seo";
+import { PRICING_VERSION } from "@/lib/cleaning-pricing";
+
+export const Route = createFileRoute("/pricing-policy")({
+  head: () =>
+    seoHead({
+      title: "Cleaning Pricing and Quality Policy | OMSG",
+      description:
+        "What is included, how estimates work, staff screening, quality checklists and optional before-and-after photographs.",
+      path: "/pricing-policy",
+    }),
+  component: PricingPolicy,
+});
+
+function PricingPolicy() {
+  const { language } = useLanguage();
+  const t = (en: string, fr: string) => (language === "fr" ? fr : en);
+  const sections = [
+    {
+      id: "included",
+      title: t("What our prices include", "Ce que nos prix comprennent"),
+      body: [
+        t(
+          "Our prices include the agreed cleaning work, suitable cleaning products and everyday equipment: cloths, vacuum, mop and small tools. Usual travel within urban Ottawa, Nepean, Orléans, Gloucester, Barrhaven, Kanata and Stittsville is included. We confirm service availability and any extra travel or paid parking costs before you agree.",
+          "Nos prix comprennent le travail convenu, les produits adaptés et le matériel courant : chiffons, aspirateur, vadrouille et petits outils. Le déplacement habituel dans les secteurs urbains d’Ottawa, Nepean, Orléans, Gloucester, Barrhaven, Kanata et Stittsville est inclus. Disponibilité, déplacement exceptionnel et stationnement payant sont confirmés avant votre accord.",
+        ),
+        t(
+          "Commercial washroom supplies such as toilet paper, paper towels, user soap and bin liners are client-supplied or priced separately. Replenishing accessible dispensers is included. Please tell us about allergies, delicate surfaces or requested products.",
+          "Les consommables commerciaux — papier hygiénique, essuie-mains, savon des usagers et sacs — sont fournis par le client ou chiffrés séparément. Le réapprovisionnement des distributeurs accessibles est inclus. Signalez les allergies, surfaces délicates ou produits souhaités.",
+        ),
+      ],
+    },
+    {
+      id: "estimate",
+      title: t("Your estimate and official quote", "Votre estimation et le devis officiel"),
+      body: [
+        t(
+          "The online calculator provides a provisional fixed-price estimate using your selected property profile, estimated worker-hours and options. These planning times are estimates, not guaranteed completion times. Large or unusual premises, heavy soil or specialist work require a free on-site assessment.",
+          "Le calculateur fournit une estimation provisoire au forfait selon le profil choisi, les heures-personnes estimées et les options. Ces durées sont indicatives ; elles ne garantissent pas un délai d’exécution. Les lieux importants ou atypiques, l’encrassement exceptionnel et les travaux spécialisés nécessitent une visite gratuite.",
+        ),
+        t(
+          "Book now opens a request for an official quote. We review your information and confirm the rooms, tasks, products, price, taxes, access and schedule. Submitting the form does not accept a quote, reserve a time slot or take payment. Your appointment is confirmed after you accept the official quote and agree on a date.",
+          "Réserver maintenant ouvre une demande de devis officiel. Nous vérifions les renseignements et confirmons pièces, tâches, produits, prix, taxes, accès et calendrier. Le formulaire ne vaut ni acceptation d’un devis, ni réservation de créneau, ni paiement. Le rendez-vous est confirmé après acceptation du devis officiel et accord sur la date.",
+        ),
+      ],
+    },
+    {
+      id: "billing",
+      title: t("Time, minimums and optional extras", "Durée, minimums et suppléments"),
+      body: [
+        t(
+          "A worker-hour is one person working for one hour. Two cleaners for two hours represent four worker-hours. Residential standard visits have a three-worker-hour minimum; recurring commercial visits have a two-worker-hour minimum. One-time commercial standard cleaning has a three-worker-hour minimum. Deep cleaning has a 4.5-worker-hour minimum.",
+          "Une heure-personne correspond à une personne pendant une heure. Deux intervenants pendant deux heures représentent quatre heures-personnes. Le minimum résidentiel standard est de trois heures-personnes ; le commercial récurrent, deux heures-personnes. Le commercial ponctuel standard a un minimum de trois heures-personnes. Le nettoyage en profondeur a un minimum de 4,5 heures-personnes.",
+        ),
+        t(
+          "Choose an agreed fixed quote or hourly cleaning with an approved time budget. Fixed prices stay fixed for the agreed scope. Hourly work is billed in 15-minute increments per person after the minimum. Flat add-on fees apply to fixed-price visits; for hourly service, these tasks count toward approved working time instead. No task is charged twice. We seek approval before any extra work or charge.",
+          "Choisissez un forfait convenu ou une prestation horaire avec un budget de temps accepté. Le forfait reste fixe pour le périmètre convenu. À l’heure, le temps est décompté par tranches de 15 minutes par personne après le minimum. Les options forfaitaires s’appliquent aux visites à prix fixe ; à l’heure, elles sont comptées dans le temps accepté. Aucune double facturation. Votre accord est demandé avant tout travail ou frais supplémentaire.",
+        ),
+        t(
+          "Add-on-only visits have a minimum total price of $150 before tax, including selected tasks. Dimensions and quantities beyond the published limits are quoted separately. Access to running water and electricity must be available; please clear work areas and keep pets safely away.",
+          "Une visite limitée aux options a un minimum total de 150 $ avant taxes, prestations choisies comprises. Dimensions et quantités hors limites publiées : devis séparé. L’eau et l’électricité doivent être accessibles ; dégagez les zones de travail et gardez les animaux à l’écart.",
+        ),
+      ],
+    },
+    {
+      id: "savings",
+      title: t(
+        "Recurring prices and clear savings",
+        "Tarifs récurrents et économies transparentes",
+      ),
+      body: [
+        t(
+          "Residential recurring rates begin with the second visit. The initial visit is charged at the one-time standard rate, or an agreed deep-clean price if needed. For commercial contracts, any initial restoration clean is assessed and quoted separately.",
+          "Les tarifs résidentiels récurrents commencent à la deuxième visite. La première est au tarif standard ponctuel, ou à un prix de nettoyage en profondeur convenu si nécessaire. Pour les contrats commerciaux, une remise en état initiale est évaluée et chiffrée séparément.",
+        ),
+        t(
+          "Where $50 is crossed out beside a recurring hourly rate, it is our current one-time standard hourly rate for comparison. Weekly, biweekly and recurring commercial rates of $45 are 10% lower per worker-hour; monthly residential rates of $48 are 4% lower. These comparisons exclude extras and do not discount the initial residential visit.",
+          "Le prix de 50 $ barré à côté d’un tarif horaire récurrent désigne notre tarif standard ponctuel actuel à titre de comparaison. Les tarifs hebdomadaire, aux deux semaines et commercial récurrent de 45 $ sont inférieurs de 10 % par heure-personne ; le mensuel résidentiel de 48 $, de 4 %. Ces comparaisons excluent les options et ne réduisent pas la première visite résidentielle.",
+        ),
+        t(
+          "The fridge-and-oven bundle is $65, compared with $70 for the two services separately at the same visit. This is a $5 bundle saving. Deep and specialist services are priced for their specific scope. Monthly budgets use 52 weeks, 26 biweekly visits or 12 monthly visits per year; the actual commercial calendar and billing terms are agreed in writing.",
+          "Le forfait réfrigérateur et four est à 65 $, contre 70 $ pour les deux prestations séparées lors d’une même visite : une économie de 5 $. Les prestations approfondies ou spécialisées sont chiffrées selon leur périmètre particulier. Les budgets mensuels utilisent 52 semaines, 26 visites aux deux semaines ou 12 visites mensuelles par an ; calendrier commercial et facturation sont convenus par écrit.",
+        ),
+      ],
+    },
+    {
+      id: "specialist",
+      title: t("Free on-site assessments", "Visites gratuites sur site"),
+      body: [
+        t(
+          "For services outside the standard packages or requiring specialized equipment, a free on-site visit is necessary to provide a precise quote. This includes major construction and renovation cleaning, mould, flooding and water damage, carpet or upholstery extraction, machine floor care, high or exterior windows, production kitchens, clinical areas and custom move-in, move-out or rental-turnover services.",
+          "Pour les prestations hors forfait standard ou nécessitant du matériel spécialisé, une visite gratuite sur site est nécessaire afin de fournir un devis précis. Cela comprend les gros travaux de construction et rénovation, moisissures, inondations et dégâts d’eau, extraction des tapis ou tissus, entretien mécanisé des sols, vitres en hauteur ou extérieures, cuisines de production, zones de soins et forfaits sur mesure d’entrée, sortie ou rotation locative.",
+        ),
+        t(
+          "Photos can help prepare the visit but do not replace it for these services. We confirm service availability, the appropriate team and equipment, the scope and price after assessment.",
+          "Les photos peuvent préparer la visite mais ne la remplacent pas pour ces services. Disponibilité, équipe et matériel adaptés, périmètre et prix sont confirmés après évaluation.",
+        ),
+      ],
+    },
+    {
+      id: "quality",
+      title: t("Our team and quality follow-up", "Notre équipe et le suivi qualité"),
+      body: [
+        t(
+          "All OMSG employees assigned to cleaning services are trained for their tasks and have undergone criminal background checks.",
+          "Tous les employés d’OMSG affectés aux prestations de nettoyage sont formés à leurs tâches et ont fait l’objet d’une vérification des antécédents judiciaires.",
+        ),
+        t(
+          "A follow-up checklist is completed after each intervention. It records the agreed tasks, completed work and any observations or items requiring attention. The completed checklist is sent to the client.",
+          "Une checklist de suivi est remplie après chaque intervention. Elle indique les tâches convenues, les travaux réalisés et les observations ou points à suivre. La checklist complétée est transmise au client.",
+        ),
+        t(
+          "With your prior authorization, before-and-after photos are taken to document the work and included in the private report sent to you. If you do not authorize photos, the checklist is still completed and sent. Declining photos does not prevent you from receiving our cleaning service.",
+          "Avec votre autorisation préalable, des photos avant et après documentent le travail et accompagnent le rapport privé qui vous est envoyé. Sans autorisation de photos, la checklist est tout de même remplie et transmise. Refuser les photos ne vous empêche pas de bénéficier du nettoyage.",
+        ),
+      ],
+    },
+    {
+      id: "photos",
+      title: t("Photos, consent and your information", "Photos, consentement et renseignements"),
+      body: [
+        t(
+          "Photos submitted with a quote request are recommended but optional. Authorization for photos during the intervention is separate, optional and not preselected. You may change your choice before photos are taken. Quality photos are used for the service record and your report; advertising or public sharing requires separate permission.",
+          "Les photos jointes à une demande de devis sont recommandées mais facultatives. L’autorisation des prises de vue pendant l’intervention est distincte, facultative et non présélectionnée. Vous pouvez changer votre choix avant les photos. Les photos qualité servent au dossier de prestation et à votre rapport ; publicité ou partage public nécessitent un accord distinct.",
+        ),
+        t(
+          "We use your contact details, service address, selections and consent choices to prepare the quote and manage your service in our customer system. Our privacy policy explains how to request access, correction or deletion of your information.",
+          "Nous utilisons vos coordonnées, adresse de service, choix et consentements pour préparer le devis et gérer la prestation dans notre système client. Notre politique de confidentialité explique comment demander l’accès, la correction ou la suppression de vos renseignements.",
+        ),
+      ],
+    },
+    {
+      id: "tax",
+      title: t("Taxes, payment and changes", "Taxes, paiement et modifications"),
+      body: [
+        t(
+          "Published rates are in Canadian dollars before tax. The calculator shows Ontario HST at 13%, or Quebec GST at 5% and QST at 9.975%, according to the selected service province. Applicable taxes and the final total are confirmed in the official quote. Payment, rescheduling and cancellation terms are provided before booking.",
+          "Les tarifs publiés sont en dollars canadiens avant taxes. Le calculateur affiche la TVH ontarienne de 13 %, ou la TPS de 5 % et la TVQ de 9,975 % au Québec, selon la province de l’intervention. Les taxes applicables et le total final sont confirmés au devis officiel. Paiement, report et annulation sont précisés avant réservation.",
+        ),
+      ],
+    },
+  ];
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <SiteHeader />
+      <main data-i18n-ignore="true" className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+        <Link
+          to="/pricing"
+          className="text-sm font-semibold text-teal-800 underline underline-offset-4"
+        >
+          ← {t("Cleaning prices", "Tarifs de nettoyage")}
+        </Link>
+        <h1 className="mt-6 text-3xl font-bold text-slate-900 sm:text-4xl">
+          {t("Pricing and quality policy", "Politique des prix et de la qualité")}
+        </h1>
+        <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
+          {t(
+            "Know what is included, how your quote is confirmed and how we follow up after your service.",
+            "Découvrez ce qui est inclus, comment votre devis est confirmé et comment nous assurons le suivi de votre prestation.",
+          )}
+        </p>
+        <nav
+          aria-label={t("Policy sections", "Rubriques de la politique")}
+          className="mt-7 flex flex-wrap gap-2"
+        >
+          {sections.map((s) => (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              className="rounded-full border bg-white px-3 py-2 text-sm text-teal-900 hover:border-teal-600"
+            >
+              {s.title}
+            </a>
+          ))}
+        </nav>
+        <div className="mt-9 space-y-5">
+          {sections.map((section) => (
+            <section
+              key={section.id}
+              id={section.id}
+              className="scroll-mt-28 rounded-xl border bg-white p-6 sm:p-8"
+            >
+              <h2 className="text-xl font-semibold text-slate-900">{section.title}</h2>
+              {section.body.map((body, i) => (
+                <p key={i} className="mt-4 text-base leading-8 text-slate-600">
+                  {body}
+                </p>
+              ))}
+            </section>
+          ))}
+        </div>
+        <div className="mt-8 flex flex-wrap gap-5 text-sm">
+          <Link to="/privacy" className="font-semibold text-teal-800 underline">
+            {t("Privacy policy", "Politique de confidentialité")}
+          </Link>
+          <Link to="/pricing" className="font-semibold text-teal-800 underline">
+            {t("Build my estimate", "Calculer mon estimation")}
+          </Link>
+          <a href="tel:+16134076699" className="font-semibold text-teal-800">
+            (613) 407-6699
+          </a>
+        </div>
+        <p className="mt-6 text-xs text-slate-500">
+          {t("Policy version", "Version de la politique")} {PRICING_VERSION}
+        </p>
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}

@@ -26,6 +26,8 @@ import { Route as MobileTireChangeOttawaRouteImport } from './routes/mobile-tire
 import { Route as MovingServicesOttawaRouteImport } from './routes/moving-services-ottawa'
 import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PricingPolicyRouteImport } from './routes/pricing-policy'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as ServicesRouteImport } from './routes/services'
@@ -43,6 +45,9 @@ import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminResetPasswordRouteImport } from './routes/admin/reset-password'
 import { Route as AdminScheduleRouteImport } from './routes/admin/schedule'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as PricingIndexRouteImport } from './routes/pricing.index'
+import { Route as PricingCommercialRouteImport } from './routes/pricing.commercial'
+import { Route as PricingResidentialRouteImport } from './routes/pricing.residential'
 import { Route as AdminContractsIndexRouteImport } from './routes/admin/contracts.index'
 import { Route as AdminCustomersIndexRouteImport } from './routes/admin/customers.index'
 import { Route as AdminCustomersCustomerIdRouteImport } from './routes/admin/customers.$customerId'
@@ -149,6 +154,16 @@ const PortalRoute = PortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingPolicyRoute = PricingPolicyRouteImport.update({
+  id: '/pricing-policy',
+  path: '/pricing-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -233,6 +248,21 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => AdminRoute,
+} as any)
+const PricingIndexRoute = PricingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PricingRoute,
+} as any)
+const PricingCommercialRoute = PricingCommercialRouteImport.update({
+  id: '/commercial',
+  path: '/commercial',
+  getParentRoute: () => PricingRoute,
+} as any)
+const PricingResidentialRoute = PricingResidentialRouteImport.update({
+  id: '/residential',
+  path: '/residential',
+  getParentRoute: () => PricingRoute,
 } as any)
 const AdminContractsIndexRoute = AdminContractsIndexRouteImport.update({
   id: '/contracts/',
@@ -345,6 +375,8 @@ export interface FileRoutesByFullPath {
   '/moving-services-ottawa': typeof MovingServicesOttawaRoute
   '/partners': typeof PartnersRoute
   '/portal': typeof PortalRoute
+  '/pricing': typeof PricingRouteWithChildren
+  '/pricing-policy': typeof PricingPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
@@ -361,7 +393,10 @@ export interface FileRoutesByFullPath {
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/pricing/commercial': typeof PricingCommercialRoute
+  '/pricing/residential': typeof PricingResidentialRoute
   '/admin/': typeof AdminIndexRoute
+  '/pricing/': typeof PricingIndexRoute
   '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin/customers/new': typeof AdminCustomersNewRoute
   '/admin/estimates/$estimateId': typeof AdminEstimatesEstimateIdRoute
@@ -398,6 +433,7 @@ export interface FileRoutesByTo {
   '/moving-services-ottawa': typeof MovingServicesOttawaRoute
   '/partners': typeof PartnersRoute
   '/portal': typeof PortalRoute
+  '/pricing-policy': typeof PricingPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
@@ -414,7 +450,10 @@ export interface FileRoutesByTo {
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/pricing/commercial': typeof PricingCommercialRoute
+  '/pricing/residential': typeof PricingResidentialRoute
   '/admin': typeof AdminIndexRoute
+  '/pricing': typeof PricingIndexRoute
   '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin/customers/new': typeof AdminCustomersNewRoute
   '/admin/estimates/$estimateId': typeof AdminEstimatesEstimateIdRoute
@@ -453,6 +492,8 @@ export interface FileRoutesById {
   '/moving-services-ottawa': typeof MovingServicesOttawaRoute
   '/partners': typeof PartnersRoute
   '/portal': typeof PortalRoute
+  '/pricing': typeof PricingRouteWithChildren
+  '/pricing-policy': typeof PricingPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
@@ -469,7 +510,10 @@ export interface FileRoutesById {
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/pricing/commercial': typeof PricingCommercialRoute
+  '/pricing/residential': typeof PricingResidentialRoute
   '/admin/': typeof AdminIndexRoute
+  '/pricing/': typeof PricingIndexRoute
   '/admin/customers/$customerId': typeof AdminCustomersCustomerIdRoute
   '/admin/customers/new': typeof AdminCustomersNewRoute
   '/admin/estimates/$estimateId': typeof AdminEstimatesEstimateIdRoute
@@ -509,6 +553,8 @@ export interface FileRouteTypes {
     | '/moving-services-ottawa'
     | '/partners'
     | '/portal'
+    | '/pricing'
+    | '/pricing-policy'
     | '/privacy'
     | '/quote'
     | '/services'
@@ -525,7 +571,10 @@ export interface FileRouteTypes {
     | '/admin/reset-password'
     | '/admin/schedule'
     | '/admin/settings'
+    | '/pricing/commercial'
+    | '/pricing/residential'
     | '/admin/'
+    | '/pricing/'
     | '/admin/customers/$customerId'
     | '/admin/customers/new'
     | '/admin/estimates/$estimateId'
@@ -562,6 +611,7 @@ export interface FileRouteTypes {
     | '/moving-services-ottawa'
     | '/partners'
     | '/portal'
+    | '/pricing-policy'
     | '/privacy'
     | '/quote'
     | '/services'
@@ -578,7 +628,10 @@ export interface FileRouteTypes {
     | '/admin/reset-password'
     | '/admin/schedule'
     | '/admin/settings'
+    | '/pricing/commercial'
+    | '/pricing/residential'
     | '/admin'
+    | '/pricing'
     | '/admin/customers/$customerId'
     | '/admin/customers/new'
     | '/admin/estimates/$estimateId'
@@ -616,6 +669,8 @@ export interface FileRouteTypes {
     | '/moving-services-ottawa'
     | '/partners'
     | '/portal'
+    | '/pricing'
+    | '/pricing-policy'
     | '/privacy'
     | '/quote'
     | '/services'
@@ -632,7 +687,10 @@ export interface FileRouteTypes {
     | '/admin/reset-password'
     | '/admin/schedule'
     | '/admin/settings'
+    | '/pricing/commercial'
+    | '/pricing/residential'
     | '/admin/'
+    | '/pricing/'
     | '/admin/customers/$customerId'
     | '/admin/customers/new'
     | '/admin/estimates/$estimateId'
@@ -671,6 +729,8 @@ export interface RootRouteChildren {
   MovingServicesOttawaRoute: typeof MovingServicesOttawaRoute
   PartnersRoute: typeof PartnersRoute
   PortalRoute: typeof PortalRoute
+  PricingRoute: typeof PricingRouteWithChildren
+  PricingPolicyRoute: typeof PricingPolicyRoute
   PrivacyRoute: typeof PrivacyRoute
   QuoteRoute: typeof QuoteRoute
   ServicesRoute: typeof ServicesRoute
@@ -800,6 +860,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing-policy': {
+      id: '/pricing-policy'
+      path: '/pricing-policy'
+      fullPath: '/pricing-policy'
+      preLoaderRoute: typeof PricingPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -918,6 +992,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/pricing/': {
+      id: '/pricing/'
+      path: '/'
+      fullPath: '/pricing/'
+      preLoaderRoute: typeof PricingIndexRouteImport
+      parentRoute: typeof PricingRoute
+    }
+    '/pricing/commercial': {
+      id: '/pricing/commercial'
+      path: '/commercial'
+      fullPath: '/pricing/commercial'
+      preLoaderRoute: typeof PricingCommercialRouteImport
+      parentRoute: typeof PricingRoute
+    }
+    '/pricing/residential': {
+      id: '/pricing/residential'
+      path: '/residential'
+      fullPath: '/pricing/residential'
+      preLoaderRoute: typeof PricingResidentialRouteImport
+      parentRoute: typeof PricingRoute
     }
     '/admin/contracts/': {
       id: '/admin/contracts/'
@@ -1114,6 +1209,21 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface PricingRouteChildren {
+  PricingCommercialRoute: typeof PricingCommercialRoute
+  PricingResidentialRoute: typeof PricingResidentialRoute
+  PricingIndexRoute: typeof PricingIndexRoute
+}
+
+const PricingRouteChildren: PricingRouteChildren = {
+  PricingCommercialRoute: PricingCommercialRoute,
+  PricingResidentialRoute: PricingResidentialRoute,
+  PricingIndexRoute: PricingIndexRoute,
+}
+
+const PricingRouteWithChildren =
+  PricingRoute._addFileChildren(PricingRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -1132,6 +1242,8 @@ const rootRouteChildren: RootRouteChildren = {
   MovingServicesOttawaRoute: MovingServicesOttawaRoute,
   PartnersRoute: PartnersRoute,
   PortalRoute: PortalRoute,
+  PricingRoute: PricingRouteWithChildren,
+  PricingPolicyRoute: PricingPolicyRoute,
   PrivacyRoute: PrivacyRoute,
   QuoteRoute: QuoteRoute,
   ServicesRoute: ServicesRoute,
