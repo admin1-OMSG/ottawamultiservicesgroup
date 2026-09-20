@@ -4,9 +4,9 @@ import { seoHead } from "@/lib/seo";
 export const Route = createFileRoute("/pricing/commercial")({
   head: () =>
     seoHead({
-      title: "Commercial Cleaning Prices and Estimate | OMSG Ottawa",
+      title: "Commercial Cleaning Prices | Ottawa & Gatineau | OMSG",
       description:
-        "Scheduled office and commercial cleaning from $45 per worker-hour. See included tasks, estimate a recurring budget and request an official quote.",
+        "Office cleaning in Ottawa and Gatineau. See package savings and included tasks. Other weekly frequencies are available with a tailored rate and quote.",
       path: "/pricing/commercial",
     }),
   component: () => <CleaningPricingPage audience="commercial" />,

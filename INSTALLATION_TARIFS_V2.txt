@@ -1,0 +1,90 @@
+﻿OMSG — INSTALLATION DE LA MISE À JOUR TARIFS V2
+
+Cette archive contient UNIQUEMENT les fichiers modifiés ou ajoutés.
+Elle s’applique à votre projet existant après le commit 6103ade déjà envoyé sur GitHub.
+Elle ne remplace pas le dossier complet du projet.
+
+1. COPIER LES FICHIERS
+
+- Si vous avez modifié les fichiers concernés depuis 6103ade, gardez-en une copie avant remplacement.
+- Extrayez le ZIP dans un dossier temporaire avec l’Explorateur Windows.
+- Copiez TOUT son contenu (src, scripts, docs et les guides) dans :
+  C:\Users\Dell\OneDrive\Desktop\OMSG-v2.5-clean\ottawamultiservicesgroup-main
+- Acceptez le remplacement des fichiers portant le même nom.
+- Conservez tous les autres fichiers du projet.
+- Il ne faut pas créer un dossier supplémentaire entre la racine du projet et src.
+
+2. VÉRIFIER DANS POWERSHELL
+
+Ouvrez PowerShell dans le dossier du projet, puis exécutez séparément :
+
+node scripts/test-cleaning-pricing.mjs
+npm.cmd run build
+
+Le premier contrôle doit annoncer 13 vérifications réussies.
+Si une commande échoue, conservez son message et corrigez le problème avant de publier.
+Cette version ne nécessite ni migration Supabase, ni nouvelle dépendance, ni changement de variables.
+
+3. PRÉPARER UNIQUEMENT LES FICHIERS DE CETTE MISE À JOUR
+
+Si les vérifications réussissent, copiez ce bloc complet dans PowerShell :
+
+$fichiersTarifsV2 = @(
+  "INSTALLATION_TARIFS_V2.txt",
+  "INTEGRATION_TARIFS_FR.md",
+  "VALIDATION_TARIFS.md",
+  "docs/pricing-preview/calculator-mobile-fr.png",
+  "docs/pricing-preview/estimate-desktop.png",
+  "docs/pricing-preview/packages-desktop.png",
+  "docs/pricing-preview/policy-mobile-fr.png",
+  "docs/pricing-preview/pricing-desktop.png",
+  "docs/pricing-preview/residential-mobile-fr.png",
+  "scripts/test-cleaning-pricing.mjs",
+  "src/components/cleaning-pricing-page.tsx",
+  "src/components/cleaning-quote-request.tsx",
+  "src/components/quote-funnel.tsx",
+  "src/components/service-seo-page.tsx",
+  "src/lib/cleaning-pricing.ts",
+  "src/lib/language.tsx",
+  "src/routes/commercial-cleaning-ottawa.tsx",
+  "src/routes/faq.tsx",
+  "src/routes/house-cleaning-ottawa.tsx",
+  "src/routes/pricing-policy.tsx",
+  "src/routes/pricing.commercial.tsx",
+  "src/routes/pricing.index.tsx",
+  "src/routes/pricing.residential.tsx"
+)
+git --literal-pathspecs add -- $fichiersTarifsV2
+git diff --cached --stat
+
+Vérifiez que les fichiers préparés correspondent à cette liste. Si d’autres fichiers étaient déjà préparés, ne les incluez dans ce commit que si vous le souhaitez. N’utilisez pas « git add . » : vous aviez d’autres modifications sans rapport avec les tarifs.
+Les avertissements LF/CRLF de Git sous Windows ne sont pas des erreurs de compilation.
+
+4. ENVOYER SUR GITHUB
+
+Après vérification de la liste, exécutez séparément :
+
+git commit -m "Tarifs V2 : Gatineau, economies par forfait et frequences personnalisees"
+git push origin main
+
+Un push réussi confirme la mise à jour de GitHub. Vérifiez ensuite que le déploiement de votre hébergeur réussit pour ce commit avant de contrôler le site public.
+
+5. CONTRÔLER LE SITE APRÈS DÉPLOIEMENT
+
+https://www.ottawamultiservicesgroup.com/pricing
+https://www.ottawamultiservicesgroup.com/pricing/residential
+https://www.ottawamultiservicesgroup.com/pricing/commercial
+https://www.ottawamultiservicesgroup.com/pricing-policy
+https://www.ottawamultiservicesgroup.com/house-cleaning-ottawa
+https://www.ottawamultiservicesgroup.com/commercial-cleaning-ottawa
+https://www.ottawamultiservicesgroup.com/faq
+https://www.ottawamultiservicesgroup.com/quote
+
+- Vérifiez EN et FR, puis l’affichage sur téléphone.
+- Les économies de 15 $ / 6 $ se trouvent à côté des forfaits de trois heures, avant taxes et options. Le prix horaire n’a plus de remise en pourcentage.
+- Une visite par semaine et une visite tous les 14 jours ont le même prix par visite, mais des budgets mensuels différents.
+- Deux visites par semaine ou plus et les autres calendriers affichent une demande de tarif personnalisé. Un état lourd ou des travaux spécialisés demandent toujours une visite gratuite.
+- Sélectionnez Québec pour une adresse à Gatineau : la TPS et la TVQ s’appliquent aux estimations chiffrées.
+- Envoyez une demande avec votre propre adresse courriel et vérifiez les coordonnées, la fréquence, les options et les consentements dans le CRM. Contrôlez aussi les courriels reçus.
+
+Les contrôles locaux utilisent un CRM simulé ; aucune demande réelle n’a été créée lors de la préparation. Les captures et le détail des vérifications sont inclus dans l’archive.

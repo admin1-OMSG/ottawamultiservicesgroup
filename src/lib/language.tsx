@@ -15,6 +15,19 @@ const LanguageContext = createContext<LanguageContextValue>({
 });
 
 const FR: Record<string, string> = {
+  "How often can you clean?": "À quelle fréquence pouvez-vous intervenir ?",
+  "Weekly cleaning means one visit every 7 days; every two weeks means one visit every 14 days. Two or more visits per week, daily cleaning and other schedules are also available. The rate and package are reviewed for your requested frequency and tasks.": "Le nettoyage hebdomadaire correspond à une visite tous les 7 jours ; toutes les deux semaines, à une visite tous les 14 jours. Deux passages par semaine ou plus, un entretien quotidien et d’autres rythmes sont aussi possibles. Le tarif et le forfait sont révisés selon la fréquence et les tâches demandées.",
+  "Rates depend on the service, size and frequency. Our cleaning pricing pages show included tasks, package prices and savings in dollars for comparable visits. Custom weekly schedules receive a revised quote.": "Les tarifs dépendent du service, de la superficie et de la fréquence. Nos pages de tarifs de nettoyage indiquent les tâches incluses, les forfaits et les économies en dollars pour des visites comparables. Les fréquences hebdomadaires personnalisées font l’objet d’un devis révisé.",
+  "See cleaning prices and build your estimate": "Voir les tarifs de nettoyage et calculer votre estimation",
+  "Once a week": "1 visite par semaine",
+  "Once every 2 weeks": "1 visite toutes les 2 semaines",
+  "2 visits per week": "2 visites par semaine",
+  "3 visits per week": "3 visites par semaine",
+  "4 visits per week": "4 visites par semaine",
+  "5 visits per week": "5 visites par semaine",
+  "6 visits per week": "6 visites par semaine",
+  "Other schedule": "Autre fréquence",
+
   "Cleaning Prices": "Tarifs nettoyage",
   "Pricing Policy": "Politique des prix",
   "Become a Partner": "Devenir partenaire",

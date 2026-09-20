@@ -3,14 +3,14 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { useLanguage } from "@/lib/language";
 import { seoHead } from "@/lib/seo";
-import { PRICING_VERSION } from "@/lib/cleaning-pricing";
+import { PRICING_VERSION, FREQUENCY_NOTE, SERVICE_AREA } from "@/lib/cleaning-pricing";
 
 export const Route = createFileRoute("/pricing-policy")({
   head: () =>
     seoHead({
       title: "Cleaning Pricing and Quality Policy | OMSG",
       description:
-        "What is included, how estimates work, staff screening, quality checklists and optional before-and-after photographs.",
+        "Cleaning in Ottawa and Gatineau: package savings, tailored frequencies, included tasks, quality checklists and optional photographs.",
       path: "/pricing-policy",
     }),
   component: PricingPolicy,
@@ -25,8 +25,8 @@ function PricingPolicy() {
       title: t("What our prices include", "Ce que nos prix comprennent"),
       body: [
         t(
-          "Our prices include the agreed cleaning work, suitable cleaning products and everyday equipment: cloths, vacuum, mop and small tools. Usual travel within urban Ottawa, Nepean, Orléans, Gloucester, Barrhaven, Kanata and Stittsville is included. We confirm service availability and any extra travel or paid parking costs before you agree.",
-          "Nos prix comprennent le travail convenu, les produits adaptés et le matériel courant : chiffons, aspirateur, vadrouille et petits outils. Le déplacement habituel dans les secteurs urbains d’Ottawa, Nepean, Orléans, Gloucester, Barrhaven, Kanata et Stittsville est inclus. Disponibilité, déplacement exceptionnel et stationnement payant sont confirmés avant votre accord.",
+          "Our prices include the agreed cleaning work, suitable cleaning products and everyday equipment: cloths, vacuum, mop and small tools. Usual travel within urban Ottawa, Gatineau, Nepean, Orléans, Gloucester, Barrhaven, Kanata and Stittsville is included. We confirm service availability and any extra travel or paid parking costs before you agree.",
+          "Nos prix comprennent le travail convenu, les produits adaptés et le matériel courant : chiffons, aspirateur, vadrouille et petits outils. Le déplacement habituel dans les secteurs urbains d’Ottawa, de Gatineau, de Nepean, d’Orléans, de Gloucester, de Barrhaven, de Kanata et de Stittsville est inclus. Disponibilité, déplacement exceptionnel et stationnement payant sont confirmés avant votre accord.",
         ),
         t(
           "Commercial washroom supplies such as toilet paper, paper towels, user soap and bin liners are client-supplied or priced separately. Replenishing accessible dispensers is included. Please tell us about allergies, delicate surfaces or requested products.",
@@ -78,12 +78,27 @@ function PricingPolicy() {
           "Les tarifs résidentiels récurrents commencent à la deuxième visite. La première est au tarif standard ponctuel, ou à un prix de nettoyage en profondeur convenu si nécessaire. Pour les contrats commerciaux, une remise en état initiale est évaluée et chiffrée séparément.",
         ),
         t(
-          "Where $50 is crossed out beside a recurring hourly rate, it is our current one-time standard hourly rate for comparison. Weekly, biweekly and recurring commercial rates of $45 are 10% lower per worker-hour; monthly residential rates of $48 are 4% lower. These comparisons exclude extras and do not discount the initial residential visit.",
-          "Le prix de 50 $ barré à côté d’un tarif horaire récurrent désigne notre tarif standard ponctuel actuel à titre de comparaison. Les tarifs hebdomadaire, aux deux semaines et commercial récurrent de 45 $ sont inférieurs de 10 % par heure-personne ; le mensuel résidentiel de 48 $, de 4 %. Ces comparaisons excluent les options et ne réduisent pas la première visite résidentielle.",
+          "Savings appear in dollars beside the package price. For the same three-worker-hour standard visit, $135 instead of $150 saves $15; the monthly residential package at $144 saves $6. The reference is the current one-time package with the same tasks and duration. These amounts are before tax and extras; residential recurring savings begin at the second visit. The commercial comparison also uses three hours. A smaller commercial contract can start at $90 for two hours, without claiming a saving against a one-time package below its three-hour minimum.",
+          "Les économies sont affichées en dollars à côté du forfait. Pour une même visite standard de trois heures-personnes, 135 $ au lieu de 150 $ représente 15 $ économisés ; le forfait résidentiel mensuel à 144 $ économise 6 $. La référence est le forfait ponctuel actuel avec les mêmes tâches et la même durée. Montants avant taxes et options ; les économies récurrentes résidentielles commencent à la deuxième visite. La comparaison commerciale porte également sur trois heures. Un petit contrat commercial peut commencer à 90 $ pour deux heures, sans annoncer d’économie par rapport à un forfait ponctuel inférieur à son minimum de trois heures.",
         ),
         t(
           "The fridge-and-oven bundle is $65, compared with $70 for the two services separately at the same visit. This is a $5 bundle saving. Deep and specialist services are priced for their specific scope. Monthly budgets use 52 weeks, 26 biweekly visits or 12 monthly visits per year; the actual commercial calendar and billing terms are agreed in writing.",
           "Le forfait réfrigérateur et four est à 65 $, contre 70 $ pour les deux prestations séparées lors d’une même visite : une économie de 5 $. Les prestations approfondies ou spécialisées sont chiffrées selon leur périmètre particulier. Les budgets mensuels utilisent 52 semaines, 26 visites aux deux semaines ou 12 visites mensuelles par an ; calendrier commercial et facturation sont convenus par écrit.",
+        ),
+      ],
+    },
+    {
+      id: "frequency",
+      title: t("Choose your cleaning frequency", "Choisir votre fréquence de nettoyage"),
+      body: [
+        t(
+          "Once a week means one visit every seven days (52 per year). Once every two weeks means one visit every 14 days (26 per year). These residential plans currently share a per-visit rate; the monthly budget reflects the different number of visits. A monthly plan has 12 visits per year.",
+          "Une visite par semaine correspond à un passage tous les sept jours (52 par an). Une visite toutes les deux semaines correspond à un passage tous les 14 jours (26 par an). Ces formules résidentielles ont actuellement le même tarif par visite ; le budget mensuel reflète le nombre de passages. Le forfait mensuel compte 12 visites par an.",
+        ),
+        FREQUENCY_NOTE[language],
+        t(
+          "For commercial maintenance, the published $45 worker-hour rate is the reference for one visit per week. Two or more visits per week and custom schedules receive a tailored quote. The calculator records your requested schedule and options without assigning a fixed total before that rate review. A schedule change alone does not require an on-site visit; a free visit is still required when the property or the work needs assessment.",
+          "En entretien commercial, le tarif publié de 45 $ par heure-personne sert de référence pour une visite par semaine. Deux passages par semaine ou plus et les rythmes personnalisés font l’objet d’un devis adapté. Le calculateur transmet la fréquence et les options demandées sans attribuer de total fixe avant révision du tarif. Un changement de fréquence seul n’impose pas de visite sur site ; la visite gratuite reste nécessaire si les lieux ou les travaux doivent être évalués.",
         ),
       ],
     },
@@ -163,6 +178,7 @@ function PricingPolicy() {
             "Découvrez ce qui est inclus, comment votre devis est confirmé et comment nous assurons le suivi de votre prestation.",
           )}
         </p>
+        <p className="mt-4 text-sm font-medium text-teal-800">{SERVICE_AREA[language]}</p>
         <nav
           aria-label={t("Policy sections", "Rubriques de la politique")}
           className="mt-7 flex flex-wrap gap-2"

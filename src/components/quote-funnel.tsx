@@ -16,7 +16,10 @@ import { sendCrmEmail } from "@/lib/email-notifications";
 import { useLanguage } from "@/lib/language";
 import { EmailVerification } from "@/components/email-verification";
 import { FileCameraInput } from "@/components/file-camera-input";
+import { FREQUENCY_NOTE } from "@/lib/cleaning-pricing";
 
+
+const CLEANING_FREQUENCIES = ["One-Time", "Once a week", "Once every 2 weeks", "2 visits per week", "3 visits per week", "4 visits per week", "5 visits per week", "6 visits per week", "Daily", "Monthly", "Other schedule"];
 
 type ServiceKey =
   | "cleaning" | "detailing" | "lawn" | "moving" | "snow" | "tire" | "handyman"
@@ -184,9 +187,12 @@ function ServiceTile({ icon: Icon, title, blurb, onClick }: { icon: React.Elemen
 
 function ServiceQuestions({ serviceKey, answers, setA }: { serviceKey: ServiceKey; answers: Record<string, AnswerValue>; setA: (k: string, v: AnswerValue) => void; }) {
   const q = questionsFor(serviceKey, answers);
+  const { language } = useLanguage();
+  const cleaning = ["cleaning", "office", "janitorial"].includes(serviceKey);
   return (
     <div className="grid gap-6">
       {q.map((item) => <QuestionField key={item.id} item={item} value={answers[item.id] ?? ""} onChange={(v) => setA(item.id, v)} />)}
+      {cleaning && <div data-i18n-ignore="true" className="space-y-3 text-sm leading-6 text-slate-600"><p>{FREQUENCY_NOTE[language]}</p>{answers.frequency === "Other schedule" && <label className="grid gap-2 font-medium">{language === "fr" ? "Précisez la fréquence souhaitée" : "Describe your preferred schedule"}<Input value={String(answers.frequencyDetails ?? "")} onChange={e => setA("frequencyDetails", e.target.value)} maxLength={240}/></label>}</div>}
     </div>
   );
 }
@@ -197,9 +203,9 @@ function QuestionField({ item, value, onChange }: { item: QItem; value: AnswerVa
   if (item.kind === "select") {
     return (
       <div>
-        <Label className="text-sm font-semibold text-navy">{item.label}</Label>
+        <Label htmlFor={`quote-question-${item.id}`} className="text-sm font-semibold text-navy">{item.label}</Label>
         <Select value={typeof value === "string" ? value : ""} onValueChange={onChange}>
-          <SelectTrigger className="mt-2 h-11"><SelectValue placeholder="Select an option" /></SelectTrigger>
+          <SelectTrigger id={`quote-question-${item.id}`} className="mt-2 h-11"><SelectValue placeholder="Select an option" /></SelectTrigger>
           <SelectContent>{item.options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
         </Select>
       </div>
@@ -312,8 +318,8 @@ function questionsFor(key: ServiceKey, a: Record<string, AnswerValue>): QItem[] 
           { id: "livingRooms",label: "How many living rooms?", kind: "select", options: ["1","2","3+"] },
         );
       }
-      base.push({ id: "frequency", label: "How often do you need this service?", kind: "radio",
-        options: ["One-Time","Daily","Weekly","Bi-Weekly","Monthly"] });
+      base.push({ id: "frequency", label: "How often do you need this service?", kind: "select",
+        options: CLEANING_FREQUENCIES });
       return base;
     }
     case "detailing":
@@ -387,7 +393,7 @@ function questionsFor(key: ServiceKey, a: Record<string, AnswerValue>): QItem[] 
     case "office":
       return [
         { id: "sqft", label: "Approximate size of your space?", kind: "select", options: ["Under 1,000 sq ft","1,000–3,000 sq ft","3,000–10,000 sq ft","10,000+ sq ft"] },
-        { id: "frequency", label: "How often?", kind: "radio", options: ["Daily","3× per week","Weekly","Bi-Weekly"] },
+        { id: "frequency", label: "How often?", kind: "select", options: CLEANING_FREQUENCIES },
       ];
     case "commercial-snow":
       return [
@@ -406,7 +412,7 @@ function questionsFor(key: ServiceKey, a: Record<string, AnswerValue>): QItem[] 
     case "janitorial":
       return [
         { id: "industry", label: "Industry", kind: "radio", options: ["Office","Retail","Medical","Industrial","Other"] },
-        { id: "frequency", label: "Frequency", kind: "radio", options: ["Daily","Weekdays","Weekly","Bi-Weekly"] },
+        { id: "frequency", label: "Frequency", kind: "select", options: CLEANING_FREQUENCIES },
       ];
   }
 }

@@ -1,12 +1,16 @@
-# Vérification des pages de tarifs
+# Vérifications — mise à jour Tarifs V2
 
-- Installation : `npm ci` exécuté avec le verrou de dépendances existant.
-- Calculs : 10 contrôles ciblés réussis avec `node scripts/test-cleaning-pricing.mjs` : première visite, récurrence, calendrier, forfait appareils, absence de double facturation, visite spécialisée, options seules, taxes, commercial, quantités invalides et données CRM.
-- TypeScript global : l’archive d’origine et la version modifiée présentent les mêmes 47 diagnostics, après normalisation des numéros de ligne. Aucun diagnostic supplémentaire n’est introduit par les pages de tarifs. Les anomalies existantes concernent notamment les clés du dictionnaire de traduction, les types des statistiques et `navigate` dans la page de facture administrateur.
-- Compilation finale : `npm run build` réussit (code de sortie 0).
-- Navigateur Chromium : parcours anglais résidentiel et commercial, calcul instantané, vérification de courriel, échec CRM puis nouvelle tentative avec le même identifiant, confirmation après enregistrement et conservation des choix validés.
-- Champs CRM contrôlés : montant, options choisies, consentement de contact, refus des photos par défaut, absence d’inscription marketing, version de la grille et coordonnées.
-- Autres parcours contrôlés : fréquence commerciale, visite spécialisée sans faux montant de 0 $, formule options seules, pages et politique françaises, sitemap.
-- Affichage : aperçus inspectés sur ordinateur (1 440 px) et téléphone (390 px). Le tableau peut défiler dans son cadre sur téléphone ; la page ne déborde pas horizontalement.
-- Aucun incident JavaScript détecté pendant le scénario final.
-- La vérification CRM locale utilise des réponses simulées et n’envoie ni demande ni courriel réels.
+Base : commit `6103ade`. Version de la grille : `2026-09-20-v2`.
+
+- **Calculs : 13 contrôles ciblés réussis** avec `node scripts/test-cleaning-pricing.mjs`. Ils couvrent les prix initiaux et récurrents, budgets hebdomadaires et tous les 14 jours, économies en dollars à durée comparable, minimums commerciaux, options, taxes québécoises, prestations spécialisées et données de demande CRM.
+- **Fréquences personnalisées** : les demandes de 2 à 7 passages par semaine nécessitent une révision du prix. Aucun total fixe n’est inventé. La fréquence seule n’impose pas de visite sur site ; un état des lieux ou des travaux spécialisés continue de l’exiger.
+- **Comparaisons de prix** : aucune remise en pourcentage ni prix barré à côté du tarif horaire. Les forfaits de trois heures montrent 15 $ d’économie, ou 6 $ pour le mensuel résidentiel. Le minimum commercial de deux heures reste à 90 $ et n’est pas comparé à un forfait ponctuel fictif de deux heures.
+- **TypeScript global** : les 47 diagnostics existants sont identiques à ceux de la base, après normalisation des numéros de ligne. Ils concernent notamment les clés du dictionnaire de traduction, les types des statistiques et `navigate` dans la facture administrateur. Aucun nouveau diagnostic dans les modifications de tarifs.
+- **Compilation de production** : `npm run build` réussit.
+- **Navigateur Chromium** : zones desservies, tableau de forfaits, budgets hebdomadaires et tous les 14 jours, passage Ontario/Québec, total de 247,20 $ pour une première visite avec réfrigérateur et four au Québec, fréquences commerciales 1/2/4/6/7, formulaire de devis personnalisé, validation du calendrier libre, vérification du courriel, échec d’enregistrement puis nouvelle tentative et confirmation après succès.
+- **Données CRM contrôlées avec réponses simulées** : ville Gatineau, province Québec, fréquence libre, besoin de révision tarifaire, options, absence de montant avant révision, consentement de contact, photos décochées par défaut et identifiant de demande conservé lors d’une nouvelle tentative.
+- **Formulaire général `/quote`** : choix « Other schedule », saisie du calendrier et conservation des précisions après passage aux coordonnées puis retour aux détails ; libellé du sélecteur associé au champ pour l’accessibilité. Aucun incident JavaScript détecté dans le scénario final.
+- **Pages liées** : versions françaises des tarifs, de la politique, des pages de services et de la FAQ ; liens vers les parcours résidentiel et commercial.
+- **Affichage** : rendu sur ordinateur 1 440 px et téléphone 390 px. Le tableau défile dans son cadre ; les pages contrôlées ne débordent pas horizontalement. Les captures figurent dans `docs/pricing-preview/`.
+
+Les appels CRM, de vérification du courriel et de notification ont été simulés localement. Aucun courriel ni demande réelle n’a été envoyé. L’intégration Supabase de production doit être contrôlée après publication avec une demande utilisant votre propre adresse courriel.

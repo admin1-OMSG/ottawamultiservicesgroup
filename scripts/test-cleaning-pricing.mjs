@@ -5,7 +5,7 @@ import ts from 'typescript';
 // Exercise the production calculation module, with the existing TypeScript dependency.
 const source = readFileSync(new URL('../src/lib/cleaning-pricing.ts', import.meta.url), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
-const { calculateCleaningEstimate: estimate, initialSelection, pricingAnswers } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
+const { calculateCleaningEstimate: estimate, initialSelection, pricingAnswers, PLANS, packageExample } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
 const res = (patch={}) => estimate({ ...initialSelection('residential'), ...patch });
 const com = (patch={}) => estimate({ ...initialSelection('commercial'), ...patch });
 let passed = 0;
@@ -19,7 +19,19 @@ test('Recurring home: initial standard rate, recurring rate and HST', () => {
 });
 test('Weekly and monthly calendars use annualized visits', () => {
   assert.equal(res({plan:'weekly'}).monthly,585);
+  assert.equal(res({plan:'biweekly'}).monthly,292.5);
+  assert.equal(res({plan:'weekly'}).subtotal,res({plan:'biweekly'}).subtotal);
   assert.equal(res({plan:'monthly'}).monthly,144);
+});
+test('Dollar savings compare equal packages and respect the one-time minimum', () => {
+  const example = id => packageExample(PLANS.find(p => p.id === id));
+  assert.deepEqual(example('weekly'),{hours:3,amount:135,saving:15,reference:150,minimum:135});
+  assert.deepEqual(example('monthly'),{hours:3,amount:144,saving:6,reference:150,minimum:144});
+  assert.deepEqual(example('recurring'),{hours:3,amount:135,saving:15,reference:150,minimum:90});
+  assert.equal(com().packageSaving,0); // No fictional two-hour one-time package.
+  assert.equal(com({profile:'medium'}).packageSaving,17.5);
+  assert.equal(res({plan:'monthly'}).packageSaving,6);
+  assert.equal(example('flexible'),null);
 });
 test('Fridge and oven: exactly one genuine $5 bundle saving', () => {
   const e=res({addons:{fridge:1,oven:1}});
@@ -51,10 +63,35 @@ test('Quebec taxes rounded individually on the pre-tax amount', () => {
 });
 test('Commercial minimums, frequency, and deep-clean estimate', () => {
   assert.equal(com().firstSubtotal,90); assert.equal(com().monthly,390);
-  assert.equal(com({visitsPerWeek:3}).monthly,1170);
   assert.equal(com({plan:'once'}).firstSubtotal,150);
   assert.equal(com({plan:'deep',profile:'medium'}).hours,5.25);
   assert.equal(com({addons:{bedroom:2,linen:3}}).extras,0);
+});
+test('Multiple weekly visits require a revised price, without requiring a site visit', () => {
+  for (const visitsPerWeek of [2,3,4,5,6,7]) {
+    for (const e of [res({plan:'flexible',visitsPerWeek}),com({visitsPerWeek})]) {
+      assert.equal(e.requiresQuote,true); assert.equal(e.requiresRateReview,true);
+      assert.equal(e.requiresVisit,false); assert.equal('total' in e,false);
+      assert.equal('monthly' in e,false);
+    }
+  }
+  assert.equal(com({visitsPerWeek:2,condition:'heavy'}).requiresVisit,true);
+  assert.equal(res({plan:'flexible',profile:'custom'}).requiresVisit,true);
+});
+test('CRM retains custom schedules without a fabricated price or mandatory site visit', () => {
+  const s={...initialSelection('residential'),plan:'flexible',visitsPerWeek:0,customFrequency:'Three mornings every 10 days',province:'Quebec',addons:{fridge:1}};
+  const a=pricingAnswers(s,estimate(s),'en');
+  assert.equal(a['Requested frequency'],s.customFrequency);
+  assert.equal(a['Custom frequency details'],s.customFrequency);
+  assert.equal(a['Visits per week'],'Custom');
+  assert.equal(a['Frequency-based rate review required'],'Yes');
+  assert.equal(a['Free on-site assessment required'],'No');
+  assert.equal(a['Estimate province'],'Quebec');
+  assert.equal(a['First visit total CAD'],undefined);
+  assert.match(a['Selected add-ons'],/refrigerator/i);
+  assert.deepEqual(JSON.parse(a['Selection JSON']),s);
+  const standard=initialSelection('residential');
+  assert.equal(pricingAnswers(standard,estimate(standard),'fr')['Recurring package saving before tax CAD'],'15');
 });
 test('Invalid quantities cannot create negative, infinite or excessive charges', () => {
   assert.equal(res({addons:{oven:-4,fridge:NaN,windows:Infinity}}).extras,0);

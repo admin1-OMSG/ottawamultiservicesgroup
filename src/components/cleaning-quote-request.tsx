@@ -102,6 +102,19 @@ export function CleaningQuoteRequest({
       );
       return;
     }
+    if (
+      estimate.requiresRateReview &&
+      selection.visitsPerWeek === 0 &&
+      !selection.customFrequency?.trim()
+    ) {
+      setError(
+        t(
+          "Please describe your preferred schedule in step 1 so we can revise your rate.",
+          "Précisez votre fréquence souhaitée à l’étape 1 afin que nous puissions réviser le tarif.",
+        ),
+      );
+      return;
+    }
     setBusy(true);
     const id = requestId.current ?? crypto.randomUUID();
     requestId.current = id;
@@ -184,6 +197,14 @@ export function CleaningQuoteRequest({
 
   return (
     <form onSubmit={submit} className="space-y-6" data-i18n-ignore="true">
+      {estimate.requiresRateReview && (
+        <p className="rounded-lg bg-teal-50 p-4 text-sm leading-6 text-teal-900">
+          {t(
+            "Your requested frequency will be reviewed to prepare a tailored rate and package. Your selected tasks will be included in the request.",
+            "Votre fréquence souhaitée sera examinée pour établir un tarif et un forfait adaptés. Les tâches choisies seront jointes à la demande.",
+          )}
+        </p>
+      )}
       <p className="text-sm leading-6 text-slate-600">
         {t(
           "No payment now. We will review your selection and send an official quote. Your appointment is confirmed after you accept the quote and agree on a date.",
@@ -226,7 +247,13 @@ export function CleaningQuoteRequest({
         </label>
         <label className="grid gap-2 text-sm font-medium">
           {t("City", "Ville")} *
-          <Input name="city" autoComplete="address-level2" required maxLength={100} />
+          <Input
+            name="city"
+            autoComplete="address-level2"
+            required
+            maxLength={100}
+            placeholder="Ottawa / Gatineau"
+          />
         </label>
         <label className="grid gap-2 text-sm font-medium">
           {t("Province", "Province")} *
@@ -236,8 +263,8 @@ export function CleaningQuoteRequest({
             onChange={(e) => onProvinceChange(e.target.value as "Ontario" | "Quebec")}
             className="h-11 rounded-lg border bg-white px-3"
           >
-            <option value="Ontario">Ontario</option>
-            <option value="Quebec">Québec</option>
+            <option value="Ontario">Ontario · Ottawa</option>
+            <option value="Quebec">Québec · Gatineau</option>
           </select>
         </label>
         <label className="grid gap-2 text-sm font-medium">

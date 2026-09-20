@@ -1,93 +1,65 @@
-# Pages de tarifs et devis OMSG
+# Tarifs OMSG — mise à jour V2
 
-Cette version reprend l’archive `ottawamultiservicesgroup-main (43).zip` et ajoute le parcours de tarification au site React / TanStack Start existant. Elle utilise le CRM Supabase déjà présent. Elle n’a pas été publiée sur le domaine public.
+Version des tarifs : `2026-09-20-v2`. Cette mise à jour s’applique au dépôt existant après le commit `6103ade` (première livraison des pages de tarifs). Les modifications sont préparées et vérifiées localement ; elles restent à publier avec le processus habituel du site.
 
-## Pages livrées
+## Changements visibles
 
-| Adresse | Contenu |
-| --- | --- |
-| `/pricing` | Choix résidentiel ou commercial dès l’arrivée |
-| `/pricing/residential` | Tarifs, inclusions, options, estimation et demande résidentielle |
-| `/pricing/commercial` | Tarifs, fréquence, options, estimation et demande commerciale |
-| `/pricing-policy` | Prix, minimums, devis, qualité, photos et consentements |
+- Ottawa **et Gatineau** figurent sur les pages de tarifs, dans la politique et dans les pages de nettoyage résidentiel et commercial. L’accueil, le contact et le pied de page mentionnaient déjà Gatineau.
+- Les prix barrés et les économies concernent le **forfait**, et non le tarif horaire. Les économies promotionnelles sont exprimées en dollars, sans pourcentage.
+- « 1 visite par semaine » et « 1 visite toutes les 2 semaines » sont explicitement distinguées : un passage tous les 7 jours ou tous les 14 jours. Il ne s’agit pas de deux passages par semaine.
+- Plusieurs visites par semaine et les autres calendriers peuvent être demandés dans les parcours résidentiel et commercial. Leur tarif sera révisé selon la fréquence, les tâches et la durée. Le calculateur n’attribue pas de montant fixe avant cette révision.
+- Le formulaire général `/quote`, la FAQ, les pages de services, les descriptions de référencement et la politique reprennent ces explications en anglais et en français.
 
-Le menu principal, le pied de page et le sitemap incluent ces pages. L’anglais est affiché par défaut ; le sélecteur EN / FR existant donne accès au français. Le menu compact reste accessible sur tablette.
+## Tarifs conservés
 
-## Tarifs utilisés
+Montants en CAD avant taxes. Produits et matériel courant inclus ; déplacement urbain habituel à Ottawa et Gatineau inclus. Aucune majoration destinée aux partenaires n’est ajoutée.
 
-Tous les montants sont en CAD avant taxes. Produits et matériel courant sont inclus. Aucune majoration destinée aux partenaires n’est ajoutée.
+| Prestation | Tarif par heure-personne | Minimum / forfait de référence |
+| --- | ---: | --- |
+| Résidentiel : 1 visite par semaine | 45 $ | 3 h : 135 $ |
+| Résidentiel : 1 visite tous les 14 jours | 45 $ | 3 h : 135 $ |
+| Résidentiel : 1 visite par mois | 48 $ | 3 h : 144 $ |
+| Commercial : 1 visite par semaine | 45 $ | Minimum 2 h : 90 $ ; exemple comparable de 3 h : 135 $ |
+| Plusieurs visites par semaine / autre calendrier | Tarif à réviser au devis | Forfait personnalisé |
+| Standard ponctuel résidentiel ou commercial | 50 $ | 3 h : 150 $ |
+| Nettoyage en profondeur | 55 $ | 4,5 h : 247,50 $ |
+| Options seules | Prix des tâches choisies | Minimum total 150 $, options comprises |
+| Travaux spécialisés / hors grille | Sur devis | Visite gratuite obligatoire |
 
-| Prestation | Tarif par heure-personne | Minimum |
-| --- | ---: | ---: |
-| Résidentiel chaque semaine / toutes les deux semaines | 45 $ | 3 h, soit 135 $ |
-| Résidentiel mensuel | 48 $ | 3 h, soit 144 $ |
-| Commercial récurrent | 45 $ | 2 h, soit 90 $ |
-| Standard ponctuel résidentiel ou commercial | 50 $ | 3 h, soit 150 $ |
-| Nettoyage en profondeur | 55 $ | 4,5 h, soit 247,50 $ |
-| Options seules | Par tâche sélectionnée | Total minimum de 150 $, options comprises |
-| Spécialisé, gros chantier, moisissures, dégât d’eau ou configuration hors grille | Sur devis | Visite gratuite obligatoire |
+Le résidentiel récurrent est facturé au tarif ponctuel pour la première visite, puis au tarif récurrent dès la deuxième. Le calculateur affiche ces deux montants. Pour un forfait courant de trois heures sans options, le budget mensuel moyen est de 585 $ avec une visite par semaine, contre 292,50 $ avec une visite tous les 14 jours. Ces budgets avant taxes reposent sur 52 ou 26 visites par an et excluent l’écart de la première visite.
 
-Le résidentiel récurrent commence au tarif ponctuel pour la première visite, puis bénéficie du tarif récurrent à partir de la deuxième. Les deux montants sont indiqués dans l’estimation. Les durées par superficie et configuration sont des hypothèses de planification, à confirmer avant le devis officiel. Le budget mensuel moyen utilise 52 semaines, 26 visites aux deux semaines ou 12 visites mensuelles par an ; le calendrier et le montant final restent à convenir.
+Les prix des options restent centralisés dans `src/lib/cleaning-pricing.ts` : réfrigérateur 30 $, four 40 $, ensemble 65 $. Les tâches comprises en nettoyage en profondeur ne sont pas facturées une deuxième fois. La formule « options seules » complète le total des tâches jusqu’au minimum de 150 $, sans y ajouter un forfait standard.
 
-Les prix des options, leurs limites et les textes EN / FR sont centralisés dans `src/lib/cleaning-pricing.ts`. Réfrigérateur : 30 $ ; four : 40 $ ; les deux : 65 $. Les tâches déjà comprises dans un nettoyage en profondeur ne sont pas refacturées comme options. La visite « options seules » applique le maximum entre la valeur des options et 150 $, sans ajouter un forfait de nettoyage standard.
+## Économies affichées
 
-### Prix barrés
+| Même visite standard de trois heures-personnes | Ponctuel comparable | Forfait récurrent | Économie par visite |
+| --- | ---: | ---: | ---: |
+| Résidentiel chaque semaine ou tous les 14 jours | 150 $ | 135 $ | 15 $ dès la deuxième visite |
+| Résidentiel chaque mois | 150 $ | 144 $ | 6 $ dès la deuxième visite |
+| Commercial chaque semaine | 150 $ | 135 $ | 15 $ |
 
-Les comparaisons portent sur des prix OMSG effectivement affichés dans cette grille :
+Comparaisons avant taxes et options, à tâches et durée identiques. Les références sont les prix ponctuels OMSG affichés, pas d’anciens prix inventés ni un maximum supposé du marché. Le commercial conserve un minimum de deux heures à 90 $ ; aucune économie n’est calculée face à un forfait ponctuel de deux heures inexistant. L’exemple comparatif commercial utilise donc trois heures. Le forfait réfrigérateur + four conserve son économie de 5 $ par rapport aux deux prestations séparées lors de la même visite.
 
-- 50 $ / heure-personne ponctuelle comparé à 45 $ récurrent : 10 %.
-- 50 $ / heure-personne ponctuelle comparé à 48 $ mensuel : 4 %.
-- 70 $ pour le réfrigérateur et le four séparément comparé au forfait de 65 $ : économie de 5 $.
+## Demande et CRM
 
-Il ne s’agit pas d’anciens prix OMSG ni d’un maximum du marché. Aucun ancien tarif fictif n’a été créé pour les prestations sans prix de comparaison. Le Bureau de la concurrence explique les règles de justification des prix habituels : https://competition-bureau.canada.ca/en/deceptive-marketing-practices/types-deceptive-marketing-practices/ordinary-selling-price
+1. Le client choisit résidentiel ou commercial, prestation, province et options.
+2. Pour les formules standard, le calculateur affiche l’estimation et les taxes : Ontario, TVH 13 % ; Québec, TPS 5 % et TVQ 9,975 %, arrondies séparément.
+3. Pour plusieurs passages hebdomadaires ou un calendrier personnalisé, il choisit une fréquence de 2 à 7 visites par semaine ou décrit un autre rythme. Le tarif et le forfait sont à réviser au devis officiel. Aucun faux total de 0 $ n’est affiché ou enregistré.
+4. « Book now / Réserver maintenant » ouvre le formulaire. Les coordonnées, la vérification du courriel et les consentements utilisent le parcours existant. Les photos sont recommandées mais facultatives.
+5. La fonction `submit_verified_quote_request` reçoit la demande. `service_requests.questionnaire_answers` conserve notamment la fréquence demandée, ses précisions, le besoin de révision tarifaire, les options, la province et la version des tarifs. Les montants provisoires ne sont joints que lorsqu’une estimation chiffrée est disponible.
+6. Le consentement facultatif aux photos de suivi est distinct du consentement de contact et reste décoché par défaut. Les pièces jointes utilisent `service-photos` et `service_request_photos` ; la notification utilise `send-crm-email`.
+7. La confirmation s’affiche après enregistrement confirmé. L’équipe vérifie ensuite le périmètre et émet le devis officiel. Aucun paiement, facture ou rendez-vous ferme n’est créé automatiquement.
 
-## Parcours du client et CRM
+Un calendrier personnalisé seul n’impose pas de visite sur place. Une **visite gratuite demeure nécessaire** pour les gros chantiers, moisissures, dégâts d’eau, matériel spécialisé, lieux hors grille et autres travaux nécessitant une évaluation.
 
-1. Le client choisit son espace, la prestation, la province, la fréquence et les options.
-2. Le calculateur affiche le montant provisoire détaillé et les taxes (Ontario : TVH 13 % ; Québec : TPS 5 % et TVQ 9,975 %, chacune arrondie séparément).
-3. « Book now / Réserver maintenant » ouvre le formulaire. Il ne prend aucun paiement et ne confirme aucun créneau.
-4. Le client saisit ses coordonnées et peut ajouter des photos, recommandées mais facultatives. Il vérifie son courriel avec le mécanisme déjà utilisé par le site.
-5. La demande est transmise à `submit_verified_quote_request`, puis à `service_requests`. Les choix, montants provisoires, langue, version des tarifs et consentements sont conservés dans `questionnaire_answers`.
-6. Les pièces jointes utilisent le stockage `service-photos` et la table `service_request_photos` existants. La notification utilise `send-crm-email`.
-7. La confirmation apparaît uniquement après une réponse positive du CRM. Un échec de photo n’annule pas la demande déjà enregistrée. Le client peut communiquer les photos plus tard.
+## Politique de qualité
 
-Les informations arrivent dans les demandes de devis de l’administration existante. Aucun paiement, facture ni prix officiel n’est créé automatiquement à partir d’un calcul navigateur : les montants doivent être revus et le devis officiel émis par l’équipe.
+Les engagements sont conservés : employés formés et vérification des antécédents judiciaires ; checklist après chaque intervention ; envoi au client de cette checklist et des photos avant/après uniquement avec son autorisation préalable. L’envoi du rapport qualité relève du processus de suivi de votre équipe ; cette mise à jour n’ajoute pas un nouveau module d’envoi automatique.
 
-### Conditions techniques existantes
+## Installation et vérifications
 
-Aucune nouvelle migration de base de données n’est ajoutée. Le déploiement doit conserver :
+Suivre `INSTALLATION_TARIFS_V2.txt`. L’archive contient uniquement les fichiers modifiés ou ajoutés, avec leurs chemins d’origine, sans dossier parent. Elle ne contient ni dépendances, ni sortie de compilation, ni clé ou configuration de test. Ne pas supprimer les autres fichiers du projet et ne pas réécrire l’historique Git.
 
-- `VITE_SUPABASE_URL` et `VITE_SUPABASE_PUBLISHABLE_KEY` dans l’environnement d’hébergement ;
-- la fonction SQL `submit_verified_quote_request` avec les champs d’adresse, province et code postal (migration existante `202609050002_v3_quote_location_fields.sql`) ;
-- les fonctions `request-email-verification`, `verify-email-code`, `send-crm-email` et leur configuration d’envoi existante ;
-- les tables et règles de stockage des photos déjà prévues dans les migrations du projet.
+Aucune migration Supabase, nouvelle dépendance ou modification des variables d’environnement n’est nécessaire. Les fonctions de vérification du courriel, de demande de devis et de notification existantes restent requises, ainsi que les champs d’adresse déjà installés.
 
-Aucune clé serveur ni variable de test n’est ajoutée au code livré. L’archive ne contient ni `node_modules`, ni sorties de compilation, ni fichier d’environnement de test.
-
-## Qualité et consentements
-
-La politique reprend vos engagements : personnel formé et vérification des antécédents judiciaires ; checklist après chaque intervention ; envoi au client de la checklist et, avec son autorisation préalable, des photos avant/après.
-
-L’autorisation des photos pendant l’intervention est facultative, décochée par défaut et enregistrée avec sa date et son périmètre. Elle ne vaut pas autorisation publicitaire. Le consentement à être contacté pour le devis est distinct ; aucune inscription marketing n’est ajoutée.
-
-Cette mise à jour ajoute les mentions de politique et l’enregistrement des consentements. Elle ne crée pas un nouveau module de génération ou d’envoi automatique des rapports qualité. La checklist et les photos autorisées doivent être complétées et envoyées par votre équipe dans votre processus de suivi.
-
-## Intégration
-
-Conserver une copie de la version actuellement publiée, puis intégrer les fichiers de cette archive dans le projet existant par un commit normal. Ne pas réécrire l’historique du dépôt connecté à Lovable.
-
-```sh
-npm ci
-node scripts/test-cleaning-pricing.mjs
-npm run build
-```
-
-Publier ensuite avec le déploiement habituel du projet. La configuration d’hébergement d’origine est conservée. Aucun accès de publication au domaine ou à la base de production n’a été utilisé pour cette livraison.
-
-Les fichiers ajoutés sont les composants `cleaning-pricing-page.tsx` et `cleaning-quote-request.tsx`, le module `cleaning-pricing.ts`, les cinq fichiers de routes `pricing*.tsx`, le test de calcul et ce guide. Les fichiers existants modifiés sont le menu, le pied de page, les deux libellés de traduction, le sitemap et le fichier de routes généré.
-
-## Vérifications
-
-Le bilan exact des vérifications accompagne cette livraison dans `VALIDATION_TARIFS.md`. Après publication sur votre environnement de prévisualisation connecté à Supabase, envoyer une demande de contrôle avec une adresse courriel que vous possédez, puis vérifier sa présence dans le CRM et la réception des courriels. Cette vérification réelle n’a pas été exécutée depuis cet environnement.
-
-Des captures du rendu testé sont incluses dans `docs/pricing-preview/`.
+Le bilan des contrôles figure dans `VALIDATION_TARIFS.md`. Après publication, vérifier les pages et effectuer une demande avec votre propre courriel pour contrôler l’arrivée réelle dans le CRM et les notifications. Les contrôles livrés utilisent un backend simulé et ne vérifient pas la configuration de votre production.

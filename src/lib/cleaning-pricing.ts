@@ -1,9 +1,17 @@
 /** Public estimates only. Official quotes are reviewed and issued through the CRM. */
-export const PRICING_VERSION = "2026-09-20-v1";
+export const PRICING_VERSION = "2026-09-20-v2";
 export type Locale = "en" | "fr";
 export type Audience = "residential" | "commercial";
 export type PlanId =
-  "weekly" | "biweekly" | "monthly" | "once" | "deep" | "recurring" | "extras" | "specialist";
+  | "weekly"
+  | "biweekly"
+  | "monthly"
+  | "once"
+  | "deep"
+  | "recurring"
+  | "flexible"
+  | "extras"
+  | "specialist";
 export type Copy = { en: string; fr: string };
 export const text = (en: string, fr: string): Copy => ({ en, fr });
 export const money = (value: number, locale: Locale) =>
@@ -24,19 +32,22 @@ export const PLANS: {
 }[] = [
   {
     id: "weekly",
-    name: text("Weekly", "Chaque semaine"),
-    rate: 45,
-    minimum: 3,
-    description: text("Routine cleaning, every week.", "Entretien courant, chaque semaine."),
-  },
-  {
-    id: "biweekly",
-    name: text("Every two weeks", "Toutes les deux semaines"),
+    name: text("Once a week", "1 visite par semaine"),
     rate: 45,
     minimum: 3,
     description: text(
-      "Routine cleaning, every other week.",
-      "Entretien courant, une semaine sur deux.",
+      "Routine cleaning, one visit every 7 days (52 visits/year).",
+      "Entretien courant, une visite tous les 7 jours (52 visites/an).",
+    ),
+  },
+  {
+    id: "biweekly",
+    name: text("Once every 2 weeks", "1 visite toutes les 2 semaines"),
+    rate: 45,
+    minimum: 3,
+    description: text(
+      "Routine cleaning, one visit every 14 days (26 visits/year).",
+      "Entretien courant, une visite tous les 14 jours (26 visites/an).",
     ),
   },
   {
@@ -52,8 +63,21 @@ export const PLANS: {
     rate: 45,
     minimum: 2,
     description: text(
-      "An agreed checklist and visit schedule.",
-      "Une liste de tâches et un calendrier convenus.",
+      "Reference rate for one visit per week. Other weekly frequencies receive a revised quote.",
+      "Tarif de référence pour une visite par semaine. Autres fréquences hebdomadaires : tarif révisé au devis.",
+    ),
+  },
+  {
+    id: "flexible",
+    name: text(
+      "Multiple visits per week / custom schedule",
+      "Plusieurs visites par semaine / sur mesure",
+    ),
+    rate: null,
+    minimum: 0,
+    description: text(
+      "Two or more visits a week, or another schedule. Price reviewed for your frequency and tasks.",
+      "Deux visites par semaine ou plus, ou un autre rythme. Prix révisé selon la fréquence et les tâches.",
     ),
   },
   {
@@ -100,10 +124,36 @@ export const PLANS: {
 export const plansFor = (audience: Audience) =>
   PLANS.filter((p) =>
     (audience === "residential"
-      ? ["weekly", "biweekly", "monthly", "once", "deep", "extras", "specialist"]
-      : ["recurring", "once", "deep", "extras", "specialist"]
+      ? ["weekly", "biweekly", "monthly", "flexible", "once", "deep", "extras", "specialist"]
+      : ["recurring", "flexible", "once", "deep", "extras", "specialist"]
     ).includes(p.id),
   );
+
+export const SERVICE_AREA = text(
+  "Serving Ottawa & Gatineau · usual urban travel included",
+  "Ottawa et Gatineau desservies · déplacement urbain habituel inclus",
+);
+export const FREQUENCY_NOTE = text(
+  "Need two or more visits a week, daily service or another schedule? Other frequencies are available, with the price reviewed for the number of visits, tasks and time required. Request your tailored quote.",
+  "Besoin de deux visites par semaine ou plus, d’un entretien quotidien ou d’un autre rythme ? D’autres fréquences sont possibles, avec un tarif révisé selon le nombre de passages, les tâches et la durée nécessaire. Demandez votre forfait personnalisé.",
+);
+
+// Comparisons use the same scope and duration and respect the one-time minimum.
+export const packageSaving = (hours: number, rate: number) =>
+  hours >= 3 && rate > 0 && rate < 50 ? round(hours * (50 - rate)) : 0;
+export function packageExample(plan: (typeof PLANS)[number]) {
+  if (plan.rate === null) return null;
+  const hours = plan.id === "recurring" ? 3 : plan.minimum;
+  const amount = plan.id === "extras" ? 150 : round(hours * plan.rate);
+  const saving = packageSaving(hours, plan.rate);
+  return {
+    hours,
+    amount,
+    saving,
+    reference: round(amount + saving),
+    minimum: plan.id === "extras" ? 150 : round(plan.minimum * plan.rate),
+  };
+}
 
 export const HOME_PROFILES = [
   {
@@ -599,6 +649,7 @@ export type PricingSelection = {
   condition: "normal" | "heavy";
   businessType: "office" | "retail" | "common" | "specialist";
   visitsPerWeek: number;
+  customFrequency: string;
   province: "Ontario" | "Quebec";
   addons: Record<string, number>;
 };
@@ -609,9 +660,21 @@ export const initialSelection = (audience: Audience): PricingSelection => ({
   condition: "normal",
   businessType: "office",
   visitsPerWeek: 1,
+  customFrequency: "",
   province: "Ontario",
   addons: {},
 });
+export function frequencyLabel(s: PricingSelection, locale: Locale): string {
+  if (s.plan === "flexible" || (s.audience === "commercial" && s.plan === "recurring")) {
+    if (Number.isInteger(s.visitsPerWeek) && s.visitsPerWeek >= 1 && s.visitsPerWeek <= 7)
+      return `${s.visitsPerWeek} ${locale === "fr" ? "visite(s) par semaine" : "visit(s) per week"}`;
+    return (
+      s.customFrequency?.trim() ||
+      (locale === "fr" ? "Autre fréquence à préciser" : "Other schedule to specify")
+    );
+  }
+  return PLANS.find((p) => p.id === s.plan)?.name[locale] ?? s.plan;
+}
 export const addonPrice = (a: Addon, s: PricingSelection, area: number) =>
   a.id === "baseboards" && area > 1000
     ? 70
@@ -635,13 +698,23 @@ export function calculateCleaningEstimate(s: PricingSelection) {
   const requiresVisit =
     !plan ||
     !profile ||
-    plan.rate === null ||
+    (plan.rate === null && plan.id !== "flexible") ||
     !profile.hours ||
     s.condition === "heavy" ||
     (s.audience === "commercial" && s.businessType === "specialist") ||
     (s.plan !== "deep" && (s.addons.baseboards ?? 0) > 0 && profile.area > 2500);
-  if (requiresVisit)
-    return { requiresVisit: true as const, version: PRICING_VERSION, plan, profile };
+  const requiresRateReview =
+    s.plan === "flexible" ||
+    (s.audience === "commercial" && s.plan === "recurring" && s.visitsPerWeek !== 1);
+  if (requiresVisit || requiresRateReview)
+    return {
+      requiresQuote: true as const,
+      requiresVisit: Boolean(requiresVisit),
+      requiresRateReview,
+      version: PRICING_VERSION,
+      plan,
+      profile,
+    };
   const rate = plan.rate!;
   const deepHours =
     HOME_PROFILES.find((p) => s.audience === "residential" && p.id === s.profile)?.deepHours ??
@@ -712,7 +785,9 @@ export function calculateCleaningEstimate(s: PricingSelection) {
           ? 26 / 12
           : 1;
   return {
+    requiresQuote: false as const,
     requiresVisit: false as const,
+    requiresRateReview: false as const,
     version: PRICING_VERSION,
     plan: plan!,
     profile: profile!,
@@ -731,6 +806,7 @@ export function calculateCleaningEstimate(s: PricingSelection) {
     residentialRecurring,
     monthly: recurring ? round(subtotal * frequency) : null,
     bundleSaving: bundled ? 5 : 0,
+    packageSaving: recurring ? packageSaving(hours, rate) : 0,
   };
 }
 export type CleaningEstimate = ReturnType<typeof calculateCleaningEstimate>;
@@ -748,8 +824,15 @@ export function pricingAnswers(
     "Property profile": e.profile?.label[locale] ?? s.profile,
     Condition: s.condition,
     "Business type": s.audience === "commercial" ? s.businessType : "Not applicable",
+    "Requested frequency": frequencyLabel(s, locale),
     "Visits per week":
-      s.audience === "commercial" && s.plan === "recurring" ? String(s.visitsPerWeek) : "See plan",
+      s.plan === "flexible" || (s.audience === "commercial" && s.plan === "recurring")
+        ? s.visitsPerWeek > 0
+          ? String(s.visitsPerWeek)
+          : "Custom"
+        : "See plan",
+    "Custom frequency details": s.customFrequency?.trim() || "Not applicable",
+    "Frequency-based rate review required": e.requiresRateReview ? "Yes" : "No",
     "Estimate province": s.province,
     "Free on-site assessment required": e.requiresVisit ? "Yes" : "No",
     "Estimate status": "Provisional only — review required before an official quote",
@@ -761,7 +844,7 @@ export function pricingAnswers(
         .join("; ") || "None",
     "Selection JSON": JSON.stringify(s),
   };
-  if (!e.requiresVisit)
+  if (!e.requiresQuote)
     Object.assign(result, {
       "Estimated base worker-hours": String(e.hours),
       "Base rate CAD per worker-hour": String(e.rate),
@@ -772,6 +855,7 @@ export function pricingAnswers(
       "First visit subtotal CAD": String(e.firstSubtotal),
       "First visit total CAD": String(e.total),
       "Recurring visit subtotal CAD": e.recurring ? String(e.subtotal) : "Not applicable",
+      "Recurring package saving before tax CAD": String(e.packageSaving),
       "Average recurring month before tax CAD":
         e.monthly === null ? "Not applicable" : String(e.monthly),
     });

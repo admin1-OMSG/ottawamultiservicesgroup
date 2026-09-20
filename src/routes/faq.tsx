@@ -1,12 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PageHero } from "@/components/page-hero";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const FAQS = [
+  { q: "How often can you clean?", a: "Weekly cleaning means one visit every 7 days; every two weeks means one visit every 14 days. Two or more visits per week, daily cleaning and other schedules are also available. The rate and package are reviewed for your requested frequency and tasks." },
   { q: "Are you insured and bonded?", a: "Yes. Ottawa Multi Services Group carries full liability insurance and every crew member is bonded. Certificates are available on request." },
-  { q: "What are your rates?", a: "Rates depend on the service, size and frequency. Use our free online quote for an accurate estimate — most clients receive a quote within one business day." },
+  { q: "What are your rates?", a: "Rates depend on the service, size and frequency. Our cleaning pricing pages show included tasks, package prices and savings in dollars for comparable visits. Custom weekly schedules receive a revised quote." },
   { q: "Do you work on weekends?", a: "Yes. We schedule Monday to Saturday 7am–8pm, with Sunday service available by appointment for existing clients and commercial contracts." },
   { q: "Which areas do you serve?", a: "The entire National Capital Region: Ottawa (downtown, Kanata, Orleans, Barrhaven, Nepean, Stittsville) and Gatineau." },
   { q: "Do I need to be home during the service?", a: "Not at all. Many of our recurring clients provide access instructions — our teams are background-checked and fully insured." },
@@ -56,6 +57,7 @@ function FaqPage() {
               </AccordionItem>
             ))}
           </Accordion>
+          <Link to="/pricing" className="mt-7 inline-flex font-semibold text-teal-800 underline underline-offset-4">See cleaning prices and build your estimate</Link>
         </div>
       </section>
       <SiteFooter />

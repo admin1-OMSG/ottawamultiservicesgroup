@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Home,
+  MapPin,
   Plus,
   Sparkles,
 } from "lucide-react";
@@ -20,6 +21,10 @@ import {
   DEEP_TASKS,
   HOME_PROFILES,
   ROUTINE_TASKS,
+  SERVICE_AREA,
+  FREQUENCY_NOTE,
+  frequencyLabel,
+  packageExample,
   addonPrice,
   calculateCleaningEstimate,
   initialSelection,
@@ -46,6 +51,7 @@ export function PricingLanding() {
           ? "Choisissez votre espace, découvrez ce qui est inclus et composez votre estimation. Produits et matériel courant compris."
           : "Choose your space, see what is included and build your estimate. Cleaning products and everyday equipment included."}
       </p>
+      <ServiceAreaNote />
       <div className="mt-9 grid gap-5 md:grid-cols-2">
         {(["residential", "commercial"] as const).map((kind) => {
           const residential = kind === "residential";
@@ -104,6 +110,7 @@ export function PricingLanding() {
           : "Canadian dollars, before tax. A worker-hour means one person working for one hour."}
       </p>
       <QualityNotes />
+      <p className="mt-6 text-sm leading-7 text-slate-600">{FREQUENCY_NOTE[language]}</p>
       <div className="mt-10 border-t pt-7 text-sm leading-7 text-slate-600">
         {fr
           ? "Besoin d’un service spécialisé ? Une visite gratuite permet de préparer un devis précis."
@@ -116,6 +123,16 @@ export function PricingLanding() {
         </Link>
       </div>
     </main>
+  );
+}
+
+export function ServiceAreaNote() {
+  const { language } = useLanguage();
+  return (
+    <p className="mt-5 flex items-start gap-2 text-sm leading-6 text-teal-800">
+      <MapPin aria-hidden className="mt-0.5 h-5 w-5 shrink-0" />
+      {SERVICE_AREA[language]}
+    </p>
   );
 }
 
@@ -155,7 +172,22 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
   const residential = audience === "residential",
     profiles = residential ? HOME_PROFILES : BUSINESS_PROFILES;
   const update = <K extends keyof PricingSelection>(key: K, value: PricingSelection[K]) =>
-    setSelection((s) => ({ ...s, [key]: value }));
+    setSelection((s) => ({
+      ...s,
+      [key]: value,
+      ...(key === "plan"
+        ? {
+            visitsPerWeek:
+              value === "flexible"
+                ? s.visitsPerWeek > 1
+                  ? s.visitsPerWeek
+                  : 2
+                : value === "recurring"
+                  ? 1
+                  : s.visitsPerWeek,
+          }
+        : {}),
+    }));
   const selectPlan = (plan: PlanId) => {
     update("plan", plan);
     calculator.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -248,6 +280,7 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
           {t("Build my estimate", "Calculer mon estimation")}
         </Button>
       </div>
+      <ServiceAreaNote />
       <QualityNotes />
       <div
         className="relative mt-8 overflow-x-auto rounded-xl border bg-white"
@@ -268,7 +301,7 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
                 {t("Plan and included service", "Forfait et prestation comprise")}
               </th>
               <th className="p-4">{t("Rate per worker-hour", "Tarif par heure-personne")}</th>
-              <th className="p-4">{t("Minimum per visit", "Minimum par visite")}</th>
+              <th className="p-4">{t("Reference package", "Forfait de référence")}</th>
               <th className="p-4">
                 <span className="sr-only">{t("Select", "Choisir")}</span>
               </th>
@@ -276,9 +309,7 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
           </thead>
           <tbody>
             {planList.map((plan) => {
-              const reduced = plan.rate !== null && plan.rate > 0 && plan.rate < 50;
-              const minimum =
-                audience === "commercial" && plan.id === "recurring" ? 2 : plan.minimum;
+              const example = packageExample(plan);
               return (
                 <tr key={plan.id} className="border-t align-top">
                   <td className="p-4">
@@ -297,52 +328,68 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
                     ) : plan.rate === null ? (
                       <span className="font-semibold">{t("Custom quote", "Sur devis")}</span>
                     ) : (
+                      <span className="text-xl font-bold text-slate-900">
+                        {money(plan.rate, language)}
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-4" data-package={plan.id}>
+                    {!example ? (
+                      <span className="font-semibold">
+                        {plan.id === "flexible"
+                          ? t("Rate tailored to your schedule", "Tarif adapté à votre fréquence")
+                          : t("Free site visit", "Visite gratuite")}
+                      </span>
+                    ) : (
                       <>
                         <div className="flex flex-wrap items-baseline gap-2">
-                          {reduced && (
+                          {example.saving > 0 && (
                             <s
                               className="text-slate-500"
                               aria-label={t(
-                                "One-time standard rate: $50",
-                                "Tarif standard ponctuel : 50 $",
+                                "Comparable one-time package",
+                                "Forfait ponctuel comparable",
                               )}
                             >
-                              {money(50, language)}
+                              {money(example.reference, language)}
                             </s>
                           )}
                           <span className="text-xl font-bold text-slate-900">
-                            {money(plan.rate, language)}
+                            {money(example.amount, language)}
                           </span>
-                          {reduced && (
-                            <span className="rounded-full bg-teal-50 px-2 py-1 text-xs font-semibold text-teal-800">
-                              −{Math.round(((50 - plan.rate) / 50) * 100)} %
-                            </span>
-                          )}
                         </div>
-                        {reduced && (
-                          <p className="mt-1 max-w-[200px] text-xs leading-5 text-slate-600">
-                            {t(
-                              "Compared with our one-time standard hourly rate.",
-                              "Par rapport à notre tarif horaire standard ponctuel.",
-                            )}
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </td>
-                  <td className="p-4">
-                    {plan.rate === null ? (
-                      t("Free site visit", "Visite gratuite")
-                    ) : (
-                      <>
-                        <span className="block font-semibold">
-                          {money(plan.id === "extras" ? 150 : plan.rate * minimum, language)}
-                        </span>
-                        <span className="text-slate-500">
+                        <p className="mt-1 text-sm text-slate-600">
                           {plan.id === "extras"
                             ? t("selected tasks included", "tâches choisies comprises")
-                            : `${minimum.toLocaleString(language === "fr" ? "fr-CA" : "en-CA")} ${t("worker-hours", "heures-personnes")}`}
-                        </span>
+                            : `${example.hours.toLocaleString(language === "fr" ? "fr-CA" : "en-CA")} ${t("worker-hours per visit", "heures-personnes par visite")}`}
+                        </p>
+                        {example.saving > 0 && (
+                          <>
+                            <p className="mt-2 inline-block rounded-lg bg-teal-50 px-2 py-1 text-sm font-semibold text-teal-800">
+                              {t("Save", "Économisez")} {money(example.saving, language)}{" "}
+                              {t("per visit", "par visite")}
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-slate-600">
+                              {t(
+                                "Compared with the same one-time standard package, before tax and extras.",
+                                "Par rapport au même forfait standard ponctuel, avant taxes et options.",
+                              )}
+                              {residential
+                                ? " " + t("From the second visit.", "Dès la deuxième visite.")
+                                : ""}
+                            </p>
+                          </>
+                        )}
+                        {plan.id === "recurring" && (
+                          <p className="mt-2 text-xs leading-5 text-slate-600">
+                            {t(
+                              "3-hour comparison. Minimum visit:",
+                              "Comparaison sur 3 h. Minimum par visite :",
+                            )}{" "}
+                            {money(example.minimum, language)} / 2{" "}
+                            {t("worker-hours", "heures-personnes")}.
+                          </p>
+                        )}
                       </>
                     )}
                   </td>
@@ -380,6 +427,24 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
             )
           : ""}
       </p>
+      <div className="mt-5 rounded-xl border border-teal-100 bg-teal-50/60 p-5 text-sm leading-7 text-slate-700">
+        {residential && (
+          <p className="mb-2">
+            {t(
+              "Once every 2 weeks means one visit every 14 days. The weekly and every-2-weeks rates are the same per visit; their monthly budgets differ because they include 52 and 26 visits per year respectively.",
+              "Une visite toutes les 2 semaines signifie une visite tous les 14 jours. Le prix par visite est identique à celui de l’entretien hebdomadaire ; le budget mensuel diffère, avec respectivement 26 et 52 visites par an.",
+            )}
+          </p>
+        )}
+        <p>{FREQUENCY_NOTE[language]}</p>
+        <button
+          type="button"
+          className="mt-2 font-semibold text-teal-800 underline underline-offset-4"
+          onClick={() => selectPlan("flexible")}
+        >
+          {t("Choose a custom weekly schedule", "Choisir une fréquence hebdomadaire personnalisée")}
+        </button>
+      </div>
       <details className="mt-5 rounded-xl border bg-white p-5">
         <summary className="cursor-pointer font-semibold text-slate-900">
           {t("See exactly what is included", "Voir le détail des prestations incluses")}
@@ -466,8 +531,8 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
                       update("province", e.target.value as PricingSelection["province"])
                     }
                   >
-                    <option value="Ontario">Ontario</option>
-                    <option value="Quebec">Québec</option>
+                    <option value="Ontario">Ontario · Ottawa</option>
+                    <option value="Quebec">Québec · Gatineau</option>
                   </select>
                 </label>
                 <label className="grid gap-2 text-sm font-medium sm:col-span-2">
@@ -518,7 +583,8 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
                     </select>
                   </label>
                 )}
-                {!residential && selection.plan === "recurring" && (
+                {(selection.plan === "flexible" ||
+                  (!residential && selection.plan === "recurring")) && (
                   <label className="grid gap-2 text-sm font-medium">
                     {t("Visits per week", "Passages par semaine")}
                     <select
@@ -526,14 +592,35 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
                       value={selection.visitsPerWeek}
                       onChange={(e) => update("visitsPerWeek", Number(e.target.value))}
                     >
-                      {[1, 2, 3, 5].map((n) => (
+                      {(selection.plan === "flexible"
+                        ? [2, 3, 4, 5, 6, 7]
+                        : [1, 2, 3, 4, 5, 6, 7]
+                      ).map((n) => (
                         <option key={n} value={n}>
                           {n}
                         </option>
                       ))}
+                      <option value={0}>{t("Other schedule", "Autre fréquence")}</option>
                     </select>
                   </label>
                 )}
+                {(selection.plan === "flexible" ||
+                  (!residential && selection.plan === "recurring")) &&
+                  selection.visitsPerWeek === 0 && (
+                    <label className="grid gap-2 text-sm font-medium sm:col-span-2">
+                      {t("Describe your preferred schedule", "Précisez la fréquence souhaitée")}
+                      <input
+                        className="min-h-11 min-w-0 rounded-lg border bg-white px-3"
+                        maxLength={240}
+                        value={selection.customFrequency}
+                        onChange={(e) => update("customFrequency", e.target.value)}
+                        placeholder={t(
+                          "For example: twice daily, Monday to Friday",
+                          "Exemple : deux passages par jour, du lundi au vendredi",
+                        )}
+                      />
+                    </label>
+                  )}
                 <label className="grid gap-2 text-sm font-medium sm:col-span-2">
                   {t("Current condition", "État actuel")}
                   <select
@@ -689,22 +776,36 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
             <p className="text-sm font-semibold uppercase tracking-wider text-teal-800">
               {t("Your provisional estimate", "Votre estimation provisoire")}
             </p>
-            {estimate.requiresVisit ? (
+            {estimate.requiresQuote ? (
               <div className="mt-4">
+                {estimate.requiresRateReview && (
+                  <p className="mb-3 text-sm font-medium text-teal-800">
+                    {frequencyLabel(selection, language)}
+                  </p>
+                )}
                 <h3 className="text-2xl font-bold text-slate-900">
-                  {t("Let’s assess your space", "Évaluons vos besoins sur place")}
+                  {estimate.requiresVisit
+                    ? t("Let’s assess your space", "Évaluons vos besoins sur place")
+                    : t("A price for your schedule", "Un tarif adapté à votre fréquence")}
                 </h3>
                 <p className="mt-4 leading-7 text-slate-600">
-                  {t(
-                    "A free on-site visit is needed to confirm the work and provide a precise quote. Your selected options will be sent with your request.",
-                    "Une visite gratuite est nécessaire pour confirmer les travaux et fournir un devis précis. Vos options seront transmises avec la demande.",
-                  )}
+                  {estimate.requiresVisit
+                    ? t(
+                        "A free on-site visit is needed to confirm the work and provide a precise quote. Your selected options will be sent with your request.",
+                        "Une visite gratuite est nécessaire pour confirmer les travaux et fournir un devis précis. Vos options seront transmises avec la demande.",
+                      )
+                    : t(
+                        "We will review the rate and package for your requested frequency, tasks and time per visit. Send your choices for a tailored quote; the standard weekly rate is not applied automatically.",
+                        "Nous réviserons le tarif et le forfait selon la fréquence demandée, les tâches et la durée par passage. Transmettez vos choix pour un devis personnalisé ; le tarif hebdomadaire standard n’est pas appliqué automatiquement.",
+                      )}
                 </p>
                 <p className="mt-4 font-semibold text-teal-800">
-                  {t(
-                    "Free assessment · no payment now",
-                    "Visite gratuite · aucun paiement maintenant",
-                  )}
+                  {estimate.requiresVisit
+                    ? t(
+                        "Free assessment · no payment now",
+                        "Visite gratuite · aucun paiement maintenant",
+                      )
+                    : t("Free quote · no payment now", "Devis gratuit · aucun paiement maintenant")}
                 </p>
               </div>
             ) : (
@@ -769,6 +870,18 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
                       <span className="text-sm font-normal">
                         {t("incl. tax / visit", "TTC / visite")}
                       </span>
+                    </p>
+                    {estimate.packageSaving > 0 && (
+                      <p className="mt-2 text-sm font-semibold leading-6 text-teal-800">
+                        {money(estimate.packageSaving, language)}{" "}
+                        {t(
+                          "saved per recurring standard visit, before tax and extras, compared with the same one-time package.",
+                          "économisés par visite standard récurrente, avant taxes et options, par rapport au même forfait ponctuel.",
+                        )}
+                      </p>
+                    )}
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      <strong>{frequencyLabel(selection, language)}</strong>
                     </p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       {money(estimate.monthly!, language)}{" "}
