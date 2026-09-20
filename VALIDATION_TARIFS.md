@@ -1,4 +1,27 @@
-# Vérifications — Tarifs V4 : avantage hebdomadaire résidentiel
+# Vérifications — présentation V5
+
+Base : commit publié `0a9db75`. Grille conservée : `2026-09-20-v4`.
+
+## Contrôles réalisés
+
+- Les 13 contrôles de `node scripts/test-cleaning-pricing.mjs` réussissent, sans modification du module de calcul : tarifs hebdomadaires, visite tous les 14 jours, options, minimums, économies, taxes Ontario/Québec et demandes sur mesure.
+- `npm run build` réussit, y compris la génération de la route `/pricing/estimate`.
+- TypeScript global : 47 diagnostics préexistants, identiques à la référence après normalisation des numéros de ligne ; aucun nouveau diagnostic. Le contrôle global n’est donc pas annoncé comme entièrement vert.
+- Navigateur Chromium, ordinateur 1 440 px et mobile 390 px : images chargées, pages EN/FR, choix résidentiel/commercial, détails dépliables, absence de débordement horizontal de la page. Le tableau complet défile dans son cadre.
+- Le forfait « 1 visite par semaine » sélectionné sur la page de services ouvre le calculateur avec ce choix. Forfaits de 3 heures : 126 $ / 135 $ / 144 $ ; économies : 24 $ / 15 $ / 6 $. Minimum commercial de 90 $ et exemple commercial de 135 $ conservés.
+- Les liens de tous les forfaits transmettent leur audience et leur prestation. Les paramètres inconnus ou incompatibles sont remplacés par un choix valide.
+- Estimation hebdomadaire Ontario : première visite 169,50 $ TTC, suivantes 142,38 $ TTC, budget mensuel moyen 546 $ avant taxes. Avec réfrigérateur + four et adresse au Québec, la première visite atteint 247,20 $ TTC.
+- Parcours complet résidentiel : coordonnées, vérification du courriel, consentement de contact, photos de suivi décochées par défaut, demande enregistrée et confirmation. Montants, ville Gatineau et version V4 présents dans les données envoyées.
+- Parcours commercial personnalisé : fréquence libre conservée, demande de révision du tarif, aucun total inventé ni visite obligatoire du seul fait de cette fréquence.
+- Prestation spécialisée : proposition de visite gratuite et formulaire commercial présents.
+- Politique : rubriques dépliables, texte conservé sur la formation et la vérification des antécédents, suivi et consentements ; lien direct vers une rubrique testé. Navigation des rubriques au clavier contrôlée.
+- Deux visuels WebP locaux : 108 438 et 105 940 octets. Dimensions 1 536 × 1 024, textes alternatifs et chargement adapté.
+
+Les appels Supabase, de vérification du courriel et de notification ont été **simulés localement**. Aucune demande ni aucun courriel réels n’a été envoyé. Aucune modification Supabase de production ni publication du site n’a été réalisée pendant cette préparation.
+
+Les captures actualisées figurent dans `docs/pricing-preview/`. Après installation et déploiement, effectuer une demande avec votre propre adresse pour vérifier l’arrivée réelle dans le CRM.
+
+## Historique V4
 
 Base : commit publié `e3a921b`. Version de la grille : `2026-09-20-v4`.
 

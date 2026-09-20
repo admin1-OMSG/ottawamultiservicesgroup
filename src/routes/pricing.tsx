@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/pricing")({
   component: () => (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white">
       <SiteHeader />
       <Outlet />
       <SiteFooter />

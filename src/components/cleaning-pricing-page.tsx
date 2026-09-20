@@ -1,30 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  Building2,
-  Camera,
-  Check,
-  CheckCircle2,
-  ClipboardCheck,
-  Home,
-  MapPin,
-  Plus,
-  Sparkles,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/language";
 import { CleaningQuoteRequest } from "@/components/cleaning-quote-request";
 import {
   ADDONS,
   BUSINESS_PROFILES,
-  DEEP_TASKS,
   HOME_PROFILES,
-  ROUTINE_TASKS,
-  SERVICE_AREA,
-  FREQUENCY_NOTE,
   frequencyLabel,
-  packageExample,
   addonPrice,
   calculateCleaningEstimate,
   initialSelection,
@@ -35,141 +19,25 @@ import {
   type PricingSelection,
 } from "@/lib/cleaning-pricing";
 
-export function PricingLanding() {
-  const { language } = useLanguage();
-  const fr = language === "fr";
-  return (
-    <main data-i18n-ignore="true" className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
-      <p className="text-sm font-semibold uppercase tracking-widest text-teal-800">
-        {fr ? "Tarifs de nettoyage" : "Cleaning prices"}
-      </p>
-      <h1 className="mt-3 max-w-3xl text-3xl font-bold leading-tight text-slate-900 sm:text-5xl">
-        {fr ? "Le bon nettoyage, au prix clair." : "The right clean. A clear price."}
-      </h1>
-      <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
-        {fr
-          ? "Choisissez votre espace, découvrez ce qui est inclus et composez votre estimation. Produits et matériel courant compris."
-          : "Choose your space, see what is included and build your estimate. Cleaning products and everyday equipment included."}
-      </p>
-      <ServiceAreaNote />
-      <div className="mt-9 grid gap-5 md:grid-cols-2">
-        {(["residential", "commercial"] as const).map((kind) => {
-          const residential = kind === "residential";
-          const Icon = residential ? Home : Building2;
-          const startingPlan = plansFor(kind).find((p) => p.id === (residential ? "weekly" : "recurring"))!;
-          const startingMinimum = packageExample(startingPlan)!.minimum;
-          return (
-            <Link
-              key={kind}
-              to={residential ? "/pricing/residential" : "/pricing/commercial"}
-              className="group flex flex-col rounded-2xl border border-teal-100 bg-white p-7 shadow-sm transition hover:border-teal-500 hover:shadow-md sm:p-9"
-            >
-              <Icon aria-hidden className="h-9 w-9 text-teal-800" />
-              <h2 className="mt-5 text-2xl font-bold text-slate-900">
-                {residential
-                  ? fr
-                    ? "Résidentiel"
-                    : "Residential"
-                  : fr
-                    ? "Commercial"
-                    : "Commercial"}
-              </h2>
-              <p className="mt-3 leading-7 text-slate-600">
-                {residential
-                  ? fr
-                    ? "Maisons, appartements et condos. Entretien régulier, ponctuel ou en profondeur."
-                    : "Homes, apartments and condos. Recurring, one-time or deep cleaning."
-                  : fr
-                    ? "Bureaux, commerces et parties communes. Une fréquence adaptée à votre activité."
-                    : "Offices, shops and common areas. A schedule that fits your business."}
-              </p>
-              <div className="mt-7 text-3xl font-bold text-slate-900">
-                {money(startingPlan.rate!, language)}
-                <span className="ml-2 text-base font-normal text-slate-600">
-                  {fr ? "/ heure-personne" : "/ worker-hour"}
-                </span>
-              </div>
-              <p className="mt-2 text-sm text-slate-500">
-                {residential
-                  ? fr
-                    ? `Entretien hebdomadaire dès ${money(startingMinimum, language)} par visite. Première visite au tarif ponctuel.`
-                    : `Weekly maintenance from ${money(startingMinimum, language)} per visit. Initial visit at the one-time rate.`
-                  : fr
-                    ? `Entretien récurrent dès ${money(startingMinimum, language)} par visite. Périmètre confirmé au devis.`
-                    : `Recurring maintenance from ${money(startingMinimum, language)} per visit. Scope confirmed in your quote.`}
-              </p>
-              <span className="mt-7 inline-flex items-center gap-2 font-semibold text-teal-800">
-                {fr ? "Voir les tarifs et estimer" : "See prices and estimate"}
-                <ArrowRight className="h-4 w-4" />
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-      <p className="mt-4 text-sm text-slate-600">
-        {fr
-          ? "Dollars canadiens, avant taxes. Une heure-personne = le travail d’une personne pendant une heure."
-          : "Canadian dollars, before tax. A worker-hour means one person working for one hour."}
-      </p>
-      <QualityNotes />
-      <p className="mt-6 text-sm leading-7 text-slate-600">{FREQUENCY_NOTE[language]}</p>
-      <div className="mt-10 border-t pt-7 text-sm leading-7 text-slate-600">
-        {fr
-          ? "Besoin d’un service spécialisé ? Une visite gratuite permet de préparer un devis précis."
-          : "Need specialist cleaning? A free on-site visit helps us prepare an accurate quote."}{" "}
-        <Link
-          to="/pricing-policy"
-          className="font-semibold text-teal-800 underline underline-offset-4"
-        >
-          {fr ? "Lire notre politique des prix" : "Read our pricing policy"}
-        </Link>
-      </div>
-    </main>
-  );
-}
-
-export function ServiceAreaNote() {
-  const { language } = useLanguage();
-  return (
-    <p className="mt-5 flex items-start gap-2 text-sm leading-6 text-teal-800">
-      <MapPin aria-hidden className="mt-0.5 h-5 w-5 shrink-0" />
-      {SERVICE_AREA[language]}
-    </p>
-  );
-}
-
-export function QualityNotes() {
-  const { language } = useLanguage();
-  const fr = language === "fr";
-  return (
-    <div className="mt-8 grid gap-4 text-sm font-medium text-slate-700 sm:grid-cols-3">
-      {[
-        [Sparkles, fr ? "Produits et matériel inclus" : "Products and equipment included"],
-        [ClipboardCheck, fr ? "Checklist après chaque visite" : "Checklist after every visit"],
-        [Camera, fr ? "Photos avec votre accord" : "Photos with your permission"],
-      ].map(([Icon, label]) => {
-        const I = Icon as typeof Sparkles;
-        return (
-          <div key={String(label)} className="flex items-center gap-3">
-            <I aria-hidden className="h-5 w-5 shrink-0 text-teal-700" />
-            {label as string}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-export function CleaningPricingPage({ audience }: { audience: Audience }) {
+export function CleaningEstimatePage({
+  audience,
+  initialPlan,
+}: {
+  audience: Audience;
+  initialPlan: PlanId;
+}) {
   const { language } = useLanguage();
   const t = (en: string, fr: string) => (language === "fr" ? fr : en);
-  const [selection, setSelection] = useState<PricingSelection>(() => initialSelection(audience));
+  const [selection, setSelection] = useState<PricingSelection>(() => ({
+    ...initialSelection(audience),
+    plan: initialPlan,
+    visitsPerWeek: initialPlan === "flexible" ? 2 : 1,
+  }));
   const [checkout, setCheckout] = useState(false);
   const [confirmation, setConfirmation] = useState<{ id: string; missingPhotos: boolean } | null>(
     null,
   );
-  const calculator = useRef<HTMLElement>(null),
-    contact = useRef<HTMLElement>(null);
+  const contact = useRef<HTMLElement>(null);
   const estimate = useMemo(() => calculateCleaningEstimate(selection), [selection]);
   const residential = audience === "residential",
     profiles = residential ? HOME_PROFILES : BUSINESS_PROFILES;
@@ -190,10 +58,6 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
           }
         : {}),
     }));
-  const selectPlan = (plan: PlanId) => {
-    update("plan", plan);
-    calculator.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
   const book = () => {
     setCheckout(true);
     setTimeout(() => contact.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
@@ -242,267 +106,31 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
     );
 
   return (
-    <main data-i18n-ignore="true" className="mx-auto max-w-7xl px-4 py-9 sm:px-6 sm:py-12">
-      <nav
-        aria-label={t("Pricing navigation", "Navigation des tarifs")}
-        className="mb-6 flex flex-wrap gap-3 text-sm"
+    <main data-i18n-ignore="true" className="mx-auto max-w-6xl px-4 py-9 sm:px-6 sm:py-12">
+      <Link
+        to={residential ? "/pricing/residential" : "/pricing/commercial"}
+        className="inline-flex items-center gap-2 text-sm font-semibold text-teal-800 hover:underline"
       >
-        <Link to="/pricing" className="text-teal-800 underline underline-offset-4">
-          {t("Cleaning prices", "Tarifs de nettoyage")}
-        </Link>
-        <span aria-hidden>/</span>
-        <span>{residential ? t("Residential", "Résidentiel") : t("Commercial", "Commercial")}</span>
-        <Link
-          className="ml-auto text-teal-800 underline underline-offset-4"
-          to={residential ? "/pricing/commercial" : "/pricing/residential"}
-        >
+        <ArrowLeft aria-hidden className="h-4 w-4" />
+        {t("Back to services and prices", "Retour aux prestations et tarifs")}
+      </Link>
+      <div className="mt-7 max-w-2xl">
+        <p className="text-sm font-semibold uppercase tracking-widest text-teal-800">
           {residential
-            ? t("Looking for commercial cleaning?", "Besoin de nettoyage commercial ?")
-            : t("Looking for residential cleaning?", "Besoin de nettoyage résidentiel ?")}
-        </Link>
-      </nav>
-      <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-        <div>
-          <h1 className="text-3xl font-bold leading-tight text-slate-900 sm:text-4xl">
-            {residential
-              ? t("Residential cleaning prices", "Tarifs de nettoyage résidentiel")
-              : t("Commercial cleaning prices", "Tarifs de nettoyage commercial")}
-          </h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">
-            {t(
-              "Choose your service, add the details that matter and see your provisional estimate. No payment is needed to request an official quote.",
-              "Choisissez votre prestation et les options utiles pour voir votre estimation provisoire. Aucun paiement n’est nécessaire pour demander un devis officiel.",
-            )}
-          </p>
-        </div>
-        <Button
-          className="h-12 shrink-0 bg-teal-800 px-6 text-white hover:bg-teal-900"
-          onClick={() => calculator.current?.scrollIntoView({ behavior: "smooth" })}
-        >
-          {t("Build my estimate", "Calculer mon estimation")}
-        </Button>
-      </div>
-      <ServiceAreaNote />
-      <QualityNotes />
-      <div
-        className="relative mt-8 overflow-x-auto rounded-xl border bg-white"
-        role="region"
-        aria-label={t("Cleaning pricing table", "Tableau des tarifs de nettoyage")}
-        tabIndex={0}
-      >
-        <table className="w-full min-w-[680px] text-left text-sm">
-          <caption className="sr-only">
-            {t(
-              "Prices in CAD before tax, per worker-hour",
-              "Prix en CAD avant taxes, par heure-personne",
-            )}
-          </caption>
-          <thead className="bg-teal-900 text-white">
-            <tr>
-              <th className="p-4">
-                {t("Plan and included service", "Forfait et prestation comprise")}
-              </th>
-              <th className="p-4">{t("Rate per worker-hour", "Tarif par heure-personne")}</th>
-              <th className="p-4">{t("Reference package", "Forfait de référence")}</th>
-              <th className="p-4">
-                <span className="sr-only">{t("Select", "Choisir")}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {planList.map((plan) => {
-              const example = packageExample(plan);
-              return (
-                <tr key={plan.id} className="border-t align-top">
-                  <td className="p-4">
-                    <span className="block font-semibold text-slate-900">
-                      {plan.name[language]}
-                    </span>
-                    <span className="mt-1 block max-w-sm leading-6 text-slate-600">
-                      {plan.description[language]}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    {plan.id === "extras" ? (
-                      <span className="font-semibold">
-                        {t("Per selected task", "Par tâche choisie")}
-                      </span>
-                    ) : plan.rate === null ? (
-                      <span className="font-semibold">{t("Custom quote", "Sur devis")}</span>
-                    ) : (
-                      <span className="text-xl font-bold text-slate-900">
-                        {money(plan.rate, language)}
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-4" data-package={plan.id}>
-                    {!example ? (
-                      <span className="font-semibold">
-                        {plan.id === "flexible"
-                          ? t("Rate tailored to your schedule", "Tarif adapté à votre fréquence")
-                          : t("Free site visit", "Visite gratuite")}
-                      </span>
-                    ) : (
-                      <>
-                        <div className="flex flex-wrap items-baseline gap-2">
-                          {example.saving > 0 && (
-                            <s
-                              className="text-slate-500"
-                              aria-label={t(
-                                "Comparable one-time package",
-                                "Forfait ponctuel comparable",
-                              )}
-                            >
-                              {money(example.reference, language)}
-                            </s>
-                          )}
-                          <span className="text-xl font-bold text-slate-900">
-                            {money(example.amount, language)}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-sm text-slate-600">
-                          {plan.id === "extras"
-                            ? t("selected tasks included", "tâches choisies comprises")
-                            : `${example.hours.toLocaleString(language === "fr" ? "fr-CA" : "en-CA")} ${t("worker-hours per visit", "heures-personnes par visite")}`}
-                        </p>
-                        {example.saving > 0 && (
-                          <>
-                            <p className="mt-2 inline-block rounded-lg bg-teal-50 px-2 py-1 text-sm font-semibold text-teal-800">
-                              {t("Save", "Économisez")} {money(example.saving, language)}{" "}
-                              {t("per visit", "par visite")}
-                            </p>
-                            <p className="mt-1 text-xs leading-5 text-slate-600">
-                              {t(
-                                "Compared with the same one-time standard package, before tax and extras.",
-                                "Par rapport au même forfait standard ponctuel, avant taxes et options.",
-                              )}
-                              {residential
-                                ? " " + t("From the second visit.", "Dès la deuxième visite.")
-                                : ""}
-                            </p>
-                          </>
-                        )}
-                        {plan.id === "recurring" && (
-                          <p className="mt-2 text-xs leading-5 text-slate-600">
-                            {t(
-                              "3-hour comparison. Minimum visit:",
-                              "Comparaison sur 3 h. Minimum par visite :",
-                            )}{" "}
-                            {money(example.minimum, language)} / 2{" "}
-                            {t("worker-hours", "heures-personnes")}.
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </td>
-                  <td className="p-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => selectPlan(plan.id)}
-                      aria-label={`${t("Select", "Choisir")} ${plan.name[language]}`}
-                    >
-                      {t("Select", "Choisir")}
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      <p className="mt-2 text-xs text-slate-500 sm:hidden">
-        {t(
-          "Swipe the table sideways to see all prices and select a plan.",
-          "Faites glisser le tableau pour voir tous les prix et choisir un forfait.",
-        )}
-      </p>
-      <p className="mt-3 text-sm leading-6 text-slate-600">
-        {t(
-          "CAD before taxes. Products and everyday equipment included. Worker-hours are the total work of the team, not elapsed time.",
-          "CAD avant taxes. Produits et matériel courant inclus. Les heures-personnes représentent le travail total de l’équipe, pas le temps écoulé.",
-        )}
-        {residential
-          ? " " +
-            t(
-              "Recurring rates begin at the second visit; the initial visit uses the one-time rate unless a deep clean is agreed.",
-              "Les tarifs récurrents commencent à la deuxième visite ; la première est au tarif ponctuel, sauf nettoyage en profondeur convenu.",
-            )
-          : ""}
-      </p>
-      <div className="mt-5 rounded-xl border border-teal-100 bg-teal-50/60 p-5 text-sm leading-7 text-slate-700">
-        {residential && (
-          <p className="mb-2">
-            {t(
-              "Once a week means one visit every 7 days at $42 per worker-hour; once every 2 weeks means one visit every 14 days at $45 per worker-hour. A recurring three-hour visit costs $126 weekly or $135 every two weeks: $9 less per weekly visit, before tax and extras, from the second visit. Average monthly budgets reflect 52 or 26 visits per year.",
-              "Une visite par semaine correspond à un passage tous les 7 jours à 42 $ par heure-personne ; une visite toutes les 2 semaines, à un passage tous les 14 jours à 45 $ par heure-personne. Pour trois heures, le forfait récurrent coûte 126 $ chaque semaine ou 135 $ tous les 14 jours : 9 $ de moins par visite hebdomadaire, avant taxes et options, dès la deuxième visite. Les budgets mensuels moyens reposent sur 52 ou 26 visites par an.",
-            )}
-          </p>
-        )}
-        <p>{FREQUENCY_NOTE[language]}</p>
-        <button
-          type="button"
-          className="mt-2 font-semibold text-teal-800 underline underline-offset-4"
-          onClick={() => selectPlan("flexible")}
-        >
-          {t("Choose a custom weekly schedule", "Choisir une fréquence hebdomadaire personnalisée")}
-        </button>
-      </div>
-      <details className="mt-5 rounded-xl border bg-white p-5">
-        <summary className="cursor-pointer font-semibold text-slate-900">
-          {t("See exactly what is included", "Voir le détail des prestations incluses")}
-        </summary>
-        <div className="mt-5 grid gap-6 md:grid-cols-2">
-          <div>
-            <h2 className="font-semibold">{t("Standard cleaning", "Nettoyage standard")}</h2>
-            <ul className="mt-3 space-y-3 text-sm leading-6 text-slate-600">
-              {ROUTINE_TASKS.map((item) => (
-                <li key={item.en} className="flex gap-2">
-                  <Check className="mt-1 h-4 w-4 shrink-0 text-teal-700" />
-                  {item[language]}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h2 className="font-semibold">
-              {t("Deep cleaning adds", "Le nettoyage en profondeur ajoute")}
-            </h2>
-            <ul className="mt-3 space-y-3 text-sm leading-6 text-slate-600">
-              {DEEP_TASKS.map((item) => (
-                <li key={item.en} className="flex gap-2">
-                  <Plus className="mt-1 h-4 w-4 shrink-0 text-teal-700" />
-                  {item[language]}
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 text-sm leading-6 text-slate-600">
-              {t(
-                "Appliance interiors, window glass and the options below are extra unless included in your written quote. We never charge twice for the same task.",
-                "Intérieurs des appareils, vitres et options ci-dessous en supplément, sauf inclusion au devis. Une même tâche n’est jamais facturée deux fois.",
-              )}
-            </p>
-            {!residential && (
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                {t(
-                  "Commercial service covers clear desks, reception, floors, washrooms, kitchenette and on-site bins. Paper, user soap and bin liners are client-supplied or quoted separately; restocking accessible dispensers is included.",
-                  "L’entretien commercial couvre bureaux dégagés, réception, sols, sanitaires, kitchenette et poubelles sur place. Papier, savon des usagers et sacs fournis par le client ou chiffrés séparément ; réapprovisionnement accessible inclus.",
-                )}
-              </p>
-            )}
-          </div>
-        </div>
-      </details>
-
-      <section ref={calculator} id="estimate" className="mt-12 scroll-mt-28">
-        <h2 className="text-2xl font-bold text-slate-900">
-          {t("Build your cleaning estimate", "Composez votre estimation")}
-        </h2>
-        <p className="mt-2 text-slate-600">
+            ? t("Residential · Ottawa & Gatineau", "Résidentiel · Ottawa et Gatineau")
+            : t("Commercial · Ottawa & Gatineau", "Commercial · Ottawa et Gatineau")}
+        </p>
+        <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          {t("Make it your clean.", "Votre nettoyage, à votre mesure.")}
+        </h1>
+        <p className="mt-4 text-base leading-7 text-slate-600">
           {t(
-            "Your choices stay visible as the estimate updates.",
-            "L’estimation se met à jour au fil de vos choix.",
+            "Tell us about your space, choose your extras and review your estimate. Requesting your official quote is free, with no payment now.",
+            "Précisez votre espace, choisissez vos options et consultez votre estimation. Demandez ensuite votre devis officiel gratuitement, sans paiement immédiat.",
           )}
         </p>
+      </div>
+      <section id="estimate" className="mt-8 scroll-mt-28">
         <div className="mt-6 grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">
             <section className="rounded-xl border bg-white p-5 sm:p-6">
@@ -679,8 +307,8 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
                   {t("$5 bundle saving", "5 $ d’économie en forfait")}
                 </span>
               </div>
-              {(["kitchen", "rooms", "detail"] as const).map((group, i) => (
-                <details key={group} className="mt-4 border-t pt-4" open={i === 0}>
+              {(["kitchen", "rooms", "detail"] as const).map((group) => (
+                <details key={group} className="mt-4 border-t pt-4">
                   <summary className="cursor-pointer py-1 font-semibold">
                     {group === "kitchen"
                       ? t("Kitchen and appliances", "Cuisine et appareils")

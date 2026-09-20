@@ -1,0 +1,90 @@
+﻿OMSG — INSTALLATION DE LA PRÉSENTATION V5
+
+À appliquer sur la V4 publiée dans le commit 0a9db75.
+Cette archive contient uniquement les fichiers modifiés ou ajoutés, avec leurs chemins d’origine, sans dossier parent.
+
+CE QUI CHANGE
+- Photos d’illustration pour le résidentiel et le commercial.
+- Pages plus aérées : forfaits principaux, détails dépliables et boutons visibles.
+- Calculateur sur /pricing/estimate, avec reprise du forfait sélectionné.
+- Politique des prix regroupée en rubriques dépliables.
+- Prix, économies, taxes et connexion existante au formulaire CRM conservés.
+La grille reste en version 2026-09-20-v4. V5 désigne la présentation.
+Aucune migration Supabase, nouvelle dépendance ou variable d’environnement n’est nécessaire.
+
+1. EXTRAIRE ET COPIER
+Fermez le serveur local s’il est en cours d’exécution.
+Extrayez le ZIP dans un dossier temporaire, puis copiez TOUT son contenu dans :
+C:\Users\Dell\OneDrive\Desktop\OMSG-v2.5-clean\ottawamultiservicesgroup-main
+
+Acceptez le remplacement des fichiers de même nom. Fusionnez les dossiers src et docs ; ne supprimez pas leurs autres fichiers.
+Vérifiez que le fichier src\routes\pricing.estimate.tsx et le dossier src\assets\cleaning sont bien présents dans votre projet.
+
+2. VÉRIFIER
+Depuis PowerShell, dans le dossier du projet, exécutez séparément :
+
+node scripts/test-cleaning-pricing.mjs
+npm.cmd run build
+
+Le premier doit annoncer 13 contrôles réussis. Si une commande échoue, corrigez le problème avant l’envoi.
+Pour prévisualiser localement : npm.cmd run dev, puis ouvrez l’adresse indiquée dans PowerShell avec le chemin /pricing.
+
+3. PRÉPARER SEULEMENT LES FICHIERS DE CETTE MISE À JOUR
+
+$fichiersTarifsV5 = @(
+  "INSTALLATION_TARIFS_V5.txt"
+  "INTEGRATION_TARIFS_FR.md"
+  "VALIDATION_TARIFS.md"
+  "docs/cleaning-images-v5.md"
+  "docs/pricing-preview/calculator-mobile-fr.png"
+  "docs/pricing-preview/commercial-desktop.png"
+  "docs/pricing-preview/estimate-desktop.png"
+  "docs/pricing-preview/packages-desktop.png"
+  "docs/pricing-preview/policy-mobile-fr.png"
+  "docs/pricing-preview/pricing-desktop.png"
+  "docs/pricing-preview/residential-desktop.png"
+  "docs/pricing-preview/residential-mobile-fr.png"
+  "docs/pricing-preview/residential-mobile-hero-fr.png"
+  "src/assets/cleaning/commercial-v5.webp"
+  "src/assets/cleaning/residential-v5.webp"
+  "src/components/cleaning-pricing-overview.tsx"
+  "src/components/cleaning-pricing-page.tsx"
+  "src/routeTree.gen.ts"
+  "src/routes/pricing-policy.tsx"
+  "src/routes/pricing.commercial.tsx"
+  "src/routes/pricing.estimate.tsx"
+  "src/routes/pricing.index.tsx"
+  "src/routes/pricing.residential.tsx"
+  "src/routes/pricing.tsx"
+)
+git --literal-pathspecs add -- $fichiersTarifsV5
+git diff --cached --stat
+
+Comparez les fichiers préparés avec la liste ci-dessus. N’utilisez pas git add . : vos autres changements ne font pas partie de cette refonte.
+Les avertissements LF/CRLF indiquent une conversion des fins de ligne sur Windows ; ils ne signifient pas que l’ajout a échoué.
+
+4. COMMIT ET ENVOI
+Après réussite des vérifications, exécutez séparément :
+
+git commit -m "Tarifs V5 : presentation illustree et calculateur separe"
+git push origin main
+
+Le push envoie le code à GitHub. Attendez ensuite la réussite du déploiement habituel de votre site.
+
+5. CONTRÔLER LE SITE APRÈS DÉPLOIEMENT
+https://www.ottawamultiservicesgroup.com/pricing
+https://www.ottawamultiservicesgroup.com/pricing/residential
+https://www.ottawamultiservicesgroup.com/pricing/commercial
+https://www.ottawamultiservicesgroup.com/pricing/estimate?audience=residential&plan=weekly
+https://www.ottawamultiservicesgroup.com/pricing-policy
+
+- Deux photos apparaissent au choix résidentiel/commercial.
+- Les forfaits résidentiels affichent 126 $, 135 $ et 144 $ avant taxes et options. La première visite reste distincte.
+- Choisir un forfait ouvre le calculateur avec cette prestation.
+- Les tarifs et périmètres de tous les suppléments sont accessibles dans les rubriques dépliables.
+- Le bouton Réserver maintenant ouvre le parcours de demande officielle.
+- EN/FR, rubriques et boutons fonctionnent aussi sur téléphone.
+- Effectuez une demande avec votre propre courriel pour vérifier l’arrivée réelle dans le CRM et les notifications. Les essais de cette préparation ont utilisé un backend simulé.
+
+Actualisez avec Ctrl + F5 si nécessaire. Les fichiers de prévisualisation sont dans docs/pricing-preview ; ils ne sont pas des pages supplémentaires à publier.
+Les photos sont des illustrations générées, signalées comme telles. Vous pourrez les remplacer par vos propres photos de réalisations avec les autorisations adaptées.

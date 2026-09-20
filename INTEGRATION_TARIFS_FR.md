@@ -1,6 +1,15 @@
-# Tarifs OMSG — mise à jour V4
+# Tarifs OMSG — présentation V5
 
-Version des tarifs : `2026-09-20-v4`. Cette mise à jour s’applique au dépôt existant après le commit `e3a921b` (tarifs V3 publiés). Les modifications sont préparées et vérifiées localement ; elles restent à publier avec le processus habituel du site.
+Base : commit publié `0a9db75` (V4). La grille reste en version `2026-09-20-v4` : cette mise à jour modifie la présentation et le parcours, sans changer les calculs ni les prix. Les fichiers sont préparés localement et restent à publier par le processus habituel du site.
+
+## Une présentation plus visuelle
+
+- `/pricing` : deux grandes cartes illustrées pour choisir résidentiel ou commercial.
+- `/pricing/residential` et `/pricing/commercial` : photo du service, trois forfaits principaux et boutons vers l’estimation. Le tableau complet, les tâches incluses et chaque supplément sont accessibles dans des rubriques dépliables.
+- `/pricing/estimate?audience=residential&plan=weekly` : calculateur sur une page dédiée. Le forfait choisi est transmis automatiquement. Les valeurs de l’adresse sont validées ; un forfait incompatible est remplacé par le forfait par défaut du parcours.
+- `/pricing-policy` : les engagements restent identiques, dans des rubriques dépliables. La première est ouverte ; les liens directs vers une rubrique ouvrent son contenu.
+- Deux visuels d’illustration créés avec l’IA sont intégrés au projet au format WebP (environ 106 et 104 Kio). Ils ne représentent pas des employés ou réalisations réels d’OMSG. Les descriptions et prompts figurent dans `docs/cleaning-images-v5.md`.
+- Versions anglaise et française, images avec texte alternatif, rubriques accessibles au clavier, largeur adaptée au mobile. Le calculateur ne s’affiche plus au bas des longues pages commerciales.
 
 ## Tarif hebdomadaire réduit
 
@@ -62,7 +71,7 @@ Comparaisons avant taxes et options, à tâches et durée identiques. Les réfé
 
 ## Demande et CRM
 
-1. Le client choisit résidentiel ou commercial, prestation, province et options.
+1. Le client choisit résidentiel ou commercial, consulte les forfaits, puis clique sur « Choisir ce forfait ». La page dédiée `/pricing/estimate` reprend ce choix et permet de préciser la province et les options.
 2. Pour les formules standard, le calculateur affiche l’estimation et les taxes : Ontario, TVH 13 % ; Québec, TPS 5 % et TVQ 9,975 %, arrondies séparément.
 3. Pour plusieurs passages hebdomadaires ou un calendrier personnalisé, il choisit une fréquence de 2 à 7 visites par semaine ou décrit un autre rythme. Le tarif et le forfait sont à réviser au devis officiel. Aucun faux total de 0 $ n’est affiché ou enregistré.
 4. « Book now / Réserver maintenant » ouvre le formulaire. Les coordonnées, la vérification du courriel et les consentements utilisent le parcours existant. Les photos sont recommandées mais facultatives.
@@ -78,8 +87,12 @@ Les engagements sont conservés : employés formés et vérification des antéc�
 
 ## Installation et vérifications
 
-Suivre `INSTALLATION_TARIFS_V4.txt`. L’archive contient uniquement les fichiers modifiés ou ajoutés, avec leurs chemins d’origine, sans dossier parent. Elle ne contient ni dépendances, ni sortie de compilation, ni clé ou configuration de test. Ne pas supprimer les autres fichiers du projet et ne pas réécrire l’historique Git.
+Suivre `INSTALLATION_TARIFS_V5.txt`. L’archive contient uniquement les fichiers modifiés ou ajoutés, avec leurs chemins d’origine, sans dossier parent. Elle ne contient ni dépendances, ni sortie de compilation, ni clé ou configuration de test. Ne pas supprimer les autres fichiers du projet et ne pas réécrire l’historique Git.
 
-Aucune migration Supabase, nouvelle dépendance ou modification des variables d’environnement n’est nécessaire. Les fonctions de vérification du courriel, de demande de devis et de notification existantes restent requises, ainsi que les champs d’adresse déjà installés.
+Aucune migration Supabase, nouvelle dépendance ou modification des variables d’environnement n’est nécessaire pour cette refonte visuelle. Les fonctions de vérification du courriel, de demande de devis et de notification existantes restent requises, ainsi que les champs d’adresse déjà installés.
 
 Le bilan des contrôles figure dans `VALIDATION_TARIFS.md`. Après publication, vérifier les pages et effectuer une demande avec votre propre courriel pour contrôler l’arrivée réelle dans le CRM et les notifications. Les contrôles livrés utilisent un backend simulé et ne vérifient pas la configuration de votre production.
+
+## Limite du devis officiel
+
+La demande et son estimation provisoire sont enregistrées par le parcours existant. Les lignes du devis officiel du CRM restent préparées et vérifiées par votre équipe ; cette refonte ne crée pas de remplissage automatique supplémentaire. Aucune intervention directe n’a été faite sur votre base Supabase de production.

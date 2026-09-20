@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CleaningPricingPage } from "@/components/cleaning-pricing-page";
+import { CleaningPricingPage } from "@/components/cleaning-pricing-overview";
 import { seoHead } from "@/lib/seo";
 export const Route = createFileRoute("/pricing/commercial")({
   head: () =>

@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { ChevronDown, Check } from "lucide-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -19,6 +21,15 @@ export const Route = createFileRoute("/pricing-policy")({
 function PricingPolicy() {
   const { language } = useLanguage();
   const t = (en: string, fr: string) => (language === "fr" ? fr : en);
+  useEffect(() => {
+    const openLinkedSection = () => {
+      const section = document.getElementById(window.location.hash.slice(1));
+      if (section instanceof HTMLDetailsElement) section.open = true;
+    };
+    openLinkedSection();
+    window.addEventListener("hashchange", openLinkedSection);
+    return () => window.removeEventListener("hashchange", openLinkedSection);
+  }, []);
   const sections = [
     {
       id: "included",
@@ -160,9 +171,9 @@ function PricingPolicy() {
     },
   ];
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white">
       <SiteHeader />
-      <main data-i18n-ignore="true" className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+      <main data-i18n-ignore="true" className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
         <Link
           to="/pricing"
           className="text-sm font-semibold text-teal-800 underline underline-offset-4"
@@ -179,34 +190,47 @@ function PricingPolicy() {
           )}
         </p>
         <p className="mt-4 text-sm font-medium text-teal-800">{SERVICE_AREA[language]}</p>
-        <nav
-          aria-label={t("Policy sections", "Rubriques de la politique")}
-          className="mt-7 flex flex-wrap gap-2"
-        >
-          {sections.map((s) => (
-            <a
-              key={s.id}
-              href={`#${s.id}`}
-              className="rounded-full border bg-white px-3 py-2 text-sm text-teal-900 hover:border-teal-600"
-            >
-              {s.title}
-            </a>
+        <div className="mt-8 grid gap-4 rounded-lg bg-teal-50 p-6 text-sm font-medium text-teal-950 sm:grid-cols-3">
+          {[
+            t("Prices confirmed before work", "Prix confirmés avant le travail"),
+            t("No duplicate task charges", "Aucune tâche facturée deux fois"),
+            t("Photos only with your permission", "Photos uniquement avec votre accord"),
+          ].map((item) => (
+            <p key={item} className="flex gap-2">
+              <Check aria-hidden className="h-5 w-5 shrink-0 text-teal-700" />
+              {item}
+            </p>
           ))}
-        </nav>
-        <div className="mt-9 space-y-5">
-          {sections.map((section) => (
-            <section
+        </div>
+        <p className="mt-8 text-sm text-slate-600">
+          {t(
+            "Open a topic to read the details.",
+            "Ouvrez une rubrique pour consulter les détails.",
+          )}
+        </p>
+        <div className="mt-4 border-t border-slate-200">
+          {sections.map((section, index) => (
+            <details
               key={section.id}
               id={section.id}
-              className="scroll-mt-28 rounded-xl border bg-white p-6 sm:p-8"
+              open={index === 0}
+              className="group scroll-mt-28 border-b border-slate-200 py-2"
             >
-              <h2 className="text-xl font-semibold text-slate-900">{section.title}</h2>
-              {section.body.map((body, i) => (
-                <p key={i} className="mt-4 text-base leading-8 text-slate-600">
-                  {body}
-                </p>
-              ))}
-            </section>
+              <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-4 text-lg font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
+                {section.title}
+                <ChevronDown
+                  aria-hidden
+                  className="h-5 w-5 shrink-0 text-teal-700 transition group-open:rotate-180"
+                />
+              </summary>
+              <div className="pb-5">
+                {section.body.map((body, i) => (
+                  <p key={i} className="mt-3 text-sm leading-7 text-slate-600">
+                    {body}
+                  </p>
+                ))}
+              </div>
+            </details>
           ))}
         </div>
         <div className="mt-8 flex flex-wrap gap-5 text-sm">

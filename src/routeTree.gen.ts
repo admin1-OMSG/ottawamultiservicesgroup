@@ -47,6 +47,7 @@ import { Route as AdminScheduleRouteImport } from './routes/admin/schedule'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as PricingIndexRouteImport } from './routes/pricing.index'
 import { Route as PricingCommercialRouteImport } from './routes/pricing.commercial'
+import { Route as PricingEstimateRouteImport } from './routes/pricing.estimate'
 import { Route as PricingResidentialRouteImport } from './routes/pricing.residential'
 import { Route as AdminContractsIndexRouteImport } from './routes/admin/contracts.index'
 import { Route as AdminCustomersIndexRouteImport } from './routes/admin/customers.index'
@@ -259,6 +260,11 @@ const PricingCommercialRoute = PricingCommercialRouteImport.update({
   path: '/commercial',
   getParentRoute: () => PricingRoute,
 } as any)
+const PricingEstimateRoute = PricingEstimateRouteImport.update({
+  id: '/estimate',
+  path: '/estimate',
+  getParentRoute: () => PricingRoute,
+} as any)
 const PricingResidentialRoute = PricingResidentialRouteImport.update({
   id: '/residential',
   path: '/residential',
@@ -394,6 +400,7 @@ export interface FileRoutesByFullPath {
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/pricing/commercial': typeof PricingCommercialRoute
+  '/pricing/estimate': typeof PricingEstimateRoute
   '/pricing/residential': typeof PricingResidentialRoute
   '/admin/': typeof AdminIndexRoute
   '/pricing/': typeof PricingIndexRoute
@@ -451,6 +458,7 @@ export interface FileRoutesByTo {
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/pricing/commercial': typeof PricingCommercialRoute
+  '/pricing/estimate': typeof PricingEstimateRoute
   '/pricing/residential': typeof PricingResidentialRoute
   '/admin': typeof AdminIndexRoute
   '/pricing': typeof PricingIndexRoute
@@ -511,6 +519,7 @@ export interface FileRoutesById {
   '/admin/schedule': typeof AdminScheduleRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/pricing/commercial': typeof PricingCommercialRoute
+  '/pricing/estimate': typeof PricingEstimateRoute
   '/pricing/residential': typeof PricingResidentialRoute
   '/admin/': typeof AdminIndexRoute
   '/pricing/': typeof PricingIndexRoute
@@ -572,6 +581,7 @@ export interface FileRouteTypes {
     | '/admin/schedule'
     | '/admin/settings'
     | '/pricing/commercial'
+    | '/pricing/estimate'
     | '/pricing/residential'
     | '/admin/'
     | '/pricing/'
@@ -629,6 +639,7 @@ export interface FileRouteTypes {
     | '/admin/schedule'
     | '/admin/settings'
     | '/pricing/commercial'
+    | '/pricing/estimate'
     | '/pricing/residential'
     | '/admin'
     | '/pricing'
@@ -688,6 +699,7 @@ export interface FileRouteTypes {
     | '/admin/schedule'
     | '/admin/settings'
     | '/pricing/commercial'
+    | '/pricing/estimate'
     | '/pricing/residential'
     | '/admin/'
     | '/pricing/'
@@ -1007,6 +1019,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PricingCommercialRouteImport
       parentRoute: typeof PricingRoute
     }
+    '/pricing/estimate': {
+      id: '/pricing/estimate'
+      path: '/estimate'
+      fullPath: '/pricing/estimate'
+      preLoaderRoute: typeof PricingEstimateRouteImport
+      parentRoute: typeof PricingRoute
+    }
     '/pricing/residential': {
       id: '/pricing/residential'
       path: '/residential'
@@ -1211,12 +1230,14 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface PricingRouteChildren {
   PricingCommercialRoute: typeof PricingCommercialRoute
+  PricingEstimateRoute: typeof PricingEstimateRoute
   PricingResidentialRoute: typeof PricingResidentialRoute
   PricingIndexRoute: typeof PricingIndexRoute
 }
 
 const PricingRouteChildren: PricingRouteChildren = {
   PricingCommercialRoute: PricingCommercialRoute,
+  PricingEstimateRoute: PricingEstimateRoute,
   PricingResidentialRoute: PricingResidentialRoute,
   PricingIndexRoute: PricingIndexRoute,
 }
