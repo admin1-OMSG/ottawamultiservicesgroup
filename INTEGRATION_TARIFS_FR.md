@@ -1,3 +1,44 @@
+# V10 — Prestations enregistrées avec le devis officiel
+
+Base : V9 publiée, commit `861eafb`. Cette mise à jour ajoute le périmètre des prestations au document présenté au client, séparément des calculs. Les tarifs restent ceux de V8 ; le marqueur de nouvelle demande devient `2026-09-20-v10` pour identifier l’ajout des instantanés de tâches.
+
+## Contenu du devis
+
+Le client dispose d’une rubrique **Voir les prestations comprises à chaque visite** et de liens **Voir les prestations** près des cinq lignes du tableau des montants. Un lien ouvre directement la visite concernée et ses tâches détaillées. L’annexe comprend :
+
+- Service résidentiel ou commercial, profil des lieux, adresse d’intervention et fréquence.
+- Tâches courantes ; ajouts du nettoyage en profondeur si cette formule est choisie. Une formule « options seules » ne promet aucun entretien général.
+- Visites 1, 2, 3, 4 et 5 et suivantes : tâches et options réellement prévues pour chaque passage. Les options ponctuelles ne sont reprises qu’à la première visite ; les options « à chaque visite » sont reprises partout.
+- Description et quantité des options, avec leurs limites exactes (armoires vidées et jusqu’à 20 ouvertures, garage jusqu’à 300 pi², balcon jusqu’à 100 pi², linge propre fourni, etc.).
+- Produits et matériel courant compris, préparation, fournitures client, limites, exclusions et travaux nécessitant une visite gratuite sur site.
+- Personnel formé et vérifié, checklist après intervention, photos avant/après uniquement sur autorisation préalable.
+
+La quatrième visite conserve le travail convenu ; le crédit porte seulement sur le prix. Les calculs, les notes et les conditions générales sont des rubriques distinctes. Le devis principal garde son montant pour la visite couverte ; l’annexe explicite aussi le programme des autres visites proposé dans l’échéancier.
+
+Le courriel « Votre devis est prêt » inclut l’annexe complète, en plus du résumé des montants et du lien sécurisé vers le portail. L’annexe est également accessible dans l’écran de signature, dont le contenu reste défilable sur téléphone.
+
+## Conservation et langues
+
+Les nouvelles demandes enregistrent les descriptions EN/FR dans `questionnaire_answers`. À la création du devis, le texte de la langue d’émission est proposé à l’administrateur, qui peut le corriger et le prévisualiser avant enregistrement. Il est enregistré comme annexe lisible dans `estimates.terms`, avec des délimiteurs de version internes. Le portail et les courriels rendent cette annexe sans exposer ces délimiteurs. Les conditions reprises dans les factures et leur PDF restent lisibles.
+
+Aucune nouvelle table/colonne, migration, modification de RLS ou mise à jour automatique des devis enregistrés. L’affichage d’un devis émis lit seulement son annexe sauvegardée, sans interroger le catalogue courant. L’annexe demeure dans la langue d’émission ; changer la langue de navigation ne réécrit pas les prestations contractuelles sauvegardées.
+
+## Anciennes demandes et devis existants
+
+Un bouton sur le devis administrateur ouvre un **nouveau brouillon depuis la même demande**. L’ancien devis n’est ni modifié ni annulé automatiquement. Pour une ancienne demande sans instantané des tâches, les choix clairement identifiés permettent une proposition utilisant les descriptions actuelles : le formulaire le signale et l’équipe doit vérifier le texte. Les montants restent importés des données enregistrées, sans recalcul depuis le catalogue. Des choix inconnus, un profil sur mesure ou des travaux spécialisés exigent une annexe manuelle après étude / visite sur site.
+
+Les anciennes conditions et signatures ne sont pas modifiées. Un devis dépourvu d’annexe affiche un message explicite et conserve l’accès à ses lignes, notes et conditions. Une annexe invalide ou ambiguë n’est pas interprétée et reste visible dans les conditions au lieu d’être supprimée.
+
+Toute modification manuelle des lignes, quantités ou fréquences doit être reportée dans l’annexe avant émission. Le suivi réel des prestations et de l’admissibilité au crédit reste manuel comme en V8. Cette modification décrit le travail proposé ; elle ne crée pas un journal automatique des tâches réalisées.
+
+## Installation
+
+Suivre `INSTALLATION_TARIFS_V10.txt` : tests, compilation, sélection des fichiers, commit/push puis déploiement de **send-crm-email**. Le nouveau fichier partagé `quote-service-scope.ts` doit être copié avec les autres. Aucun `db push`. Les nouveaux courriels utilisent le nouveau modèle ; ceux déjà reçus restent inchangés.
+
+---
+
+# Historique antérieur à V10
+
 # V9 — Devis client : résumé par visite et calculs à la demande
 
 Base : V8 publiée, commit `4c8e794`. Cette version modifie la présentation du devis client. Le catalogue, les règles des quatre visites, les montants enregistrés, la création des factures et la version tarifaire V8 restent identiques.

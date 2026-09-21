@@ -1,3 +1,20 @@
+# Validation V10 — annexe des prestations par visite
+
+Base : V9 publiée, commit `861eafb`. Vérifications locales avec données fictives et backend simulé.
+
+- **12 contrôles de périmètre** (`test-quote-service-scope.mjs`) : instantanés EN/FR, première visite versus récurrence, tâches identiques à la quatrième visite, résidentiel/commercial, adresse et limites, nettoyage approfondi/options seules, catalogue modifié après demande, ancienne demande proposée pour un nouveau brouillon, cas manuels/spécialisés, annexe idempotente, anciennes conditions intactes, blocs invalides, échappement HTML, texte lisible des factures/PDF.
+- **58 contrôles de régression** : 10 résumés de facturation (304 échéanciers), 9 questionnaires/notifications, 24 tarifs et 15 transferts demande/devis (1 080 combinaisons). Total : **70 contrôles**.
+- **Parcours navigateur réel local** : ouverture du brouillon depuis une demande, édition des prestations, enregistrement simulé de l’annexe dans les conditions, consultation du devis côté client, cinq liens de prestations, ouverture directe de la première/quatrième visite, options ponctuelles absentes de la quatrième, calcul séparé inchangé, ancienne demande avec proposition signalée et ancien devis sans réécriture.
+- **Signature** : accès à la même annexe avant signature ; dialogue défilable sur mobile même après ouverture des longues prestations. Aucun rendez-vous ni signature soumis ; disponibilité simulée seulement.
+- **Commercial français et mobile 390 px** : distributeurs accessibles, fournitures, options par visite, qualité et absence de débordement horizontal. Captures inspectées visuellement.
+- **Courriel officiel** : vrai gestionnaire exécuté avec doubles locaux ; résumé et annexe EN/FR, destinataire client prévu, lien sécurisé, contrôle administrateur et idempotence conservés. HTML produit rendu dans Chromium, aucun courriel réel envoyé.
+- **Compilation** : `npm run build` réussit. Les 47 diagnostics TypeScript préexistants restent identiques à la base après normalisation des numéros de ligne ; aucun nouveau diagnostic dans les changements. Le contrôle TypeScript global n’est donc pas annoncé comme réussi.
+- **Production** : aucune écriture dans Supabase, aucun envoi de message, aucune signature et aucun déploiement effectués par cette livraison. Les droits d’accès existants restent utilisés. Vérification réelle à effectuer après installation avec une adresse de test contrôlée par OMSG.
+
+---
+
+# Historique antérieur à V10
+
 # Validation V9 — résumé du devis client
 
 Base : V8 publiée, commit `4c8e794`.

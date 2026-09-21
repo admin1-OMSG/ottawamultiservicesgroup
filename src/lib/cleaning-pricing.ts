@@ -1,5 +1,5 @@
 /** Public estimates only. Official quotes are reviewed and issued through the CRM. */
-export const PRICING_VERSION = "2026-09-20-v8";
+export const PRICING_VERSION = "2026-09-20-v10";
 export type Locale = "en" | "fr";
 export type Audience = "residential" | "commercial";
 export type PlanId =
@@ -918,6 +918,8 @@ export function pricingAnswers(
       .join("\n") || none;
   const result: Record<string, string> = {
     "Request source": "cleaning_pricing",
+    "Service scope EN": cleaningServiceScope(s, "en"),
+    "Service scope FR": cleaningServiceScope(s, "fr"),
     "Pricing version": PRICING_VERSION,
     "Customer type": s.audience,
     Plan: e.plan?.name[locale] ?? s.plan,
@@ -1021,4 +1023,185 @@ export function pricingAnswers(
       )[locale],
     });
   return result;
+}
+
+/** Snapshot of the offered work, without recalculating or embedding any price. */
+export function cleaningServiceScope(s: PricingSelection, locale: Locale): string {
+  const t = (en: string, fr: string) => (locale === "fr" ? fr : en);
+  const plan = PLANS.find((p) => p.id === s.plan);
+  const profile = (s.audience === "residential" ? HOME_PROFILES : BUSINESS_PROFILES).find(
+    (p) => p.id === s.profile,
+  );
+  if (
+    !plan ||
+    !profile ||
+    profile.id === "custom" ||
+    s.plan === "specialist" ||
+    s.condition === "heavy" ||
+    (s.audience === "commercial" && s.businessType === "specialist")
+  )
+    return "";
+  const recurring = isRecurringSelection(s);
+  const chosen = selectedAddons(s);
+  const section = (title: string, lines: string[]) =>
+    `## ${title}\n${lines.map((line) => `- ${line.replace(/[\r\n]+/g, " ")}`).join("\n")}`;
+  const routine = s.plan === "extras" ? [] : ROUTINE_TASKS.map((task) => task[locale]);
+  if (s.plan !== "extras" && s.audience === "commercial")
+    routine.push(
+      t(
+        "Clear desks, reception, kitchenette and washrooms in the agreed premises; replenish accessible dispensers with client-supplied paper, user soap and liners.",
+        "Bureaux dégagés, réception, kitchenette et sanitaires du local convenu ; réapprovisionnement des distributeurs accessibles avec papier, savon des usagers et sacs fournis par le client.",
+      ),
+    );
+  if (s.plan === "deep") routine.push(...DEEP_TASKS.map((task) => task[locale]));
+  const visits = recurring ? [1, 2, 3, 4, 5] : [1];
+  return [
+    section(t("Service and premises", "Prestation et lieux"), [
+      `${t("Service", "Prestation")} : ${plan.name[locale]} — ${t(s.audience === "residential" ? "Residential" : "Commercial", s.audience === "residential" ? "Résidentiel" : "Commercial")}`,
+      `${t("Property", "Lieu")} : ${profile.label[locale]}`,
+      `${t("Agreed frequency", "Fréquence convenue")} : ${frequencyLabel(s, locale)}`,
+      t(
+        "Normal use and accessible, cleared surfaces within the stated property profile.",
+        "Usage normal, surfaces accessibles et dégagées dans les limites du profil indiqué.",
+      ),
+    ]),
+    section(
+      t("Included cleaning", "Nettoyage compris"),
+      routine.length
+        ? routine
+        : [
+            t(
+              "Selected additional services only. No general cleaning is included.",
+              "Uniquement les prestations supplémentaires choisies. Aucun nettoyage général n’est compris.",
+            ),
+          ],
+    ),
+    ...visits.map((visit) =>
+      section(
+        visit === 5
+          ? t("Visit 5 onward", "À partir de la visite 5")
+          : `${t("Visit", "Visite")} ${visit}`,
+        [
+          ...(routine.length
+            ? [
+                t(
+                  "All the tasks listed under Included cleaning, for the premises described above.",
+                  "Toutes les tâches de la rubrique Nettoyage compris, pour les lieux décrits ci-dessus.",
+                ),
+              ]
+            : []),
+          ...chosen
+            .filter((item) => visit === 1 || item.frequency === "every")
+            .map(
+              ({ addon, quantity }) =>
+                `${addon.name[locale]} × ${quantity} (${addon.unit[locale]}) — ${addon.scope[locale]}`,
+            ),
+          ...(!chosen.some((item) => visit === 1 || item.frequency === "every")
+            ? [
+                t(
+                  "No additional services selected for this visit.",
+                  "Aucune prestation supplémentaire sélectionnée pour cette visite.",
+                ),
+              ]
+            : []),
+          ...(visit === 4
+            ? [
+                t(
+                  "The fourth-visit credit changes the price only; the agreed cleaning tasks remain the same.",
+                  "Le crédit de la quatrième visite modifie uniquement le prix ; les tâches d’entretien convenues restent identiques.",
+                ),
+              ]
+            : []),
+        ],
+      ),
+    ),
+    section(t("Products and preparation", "Produits et préparation"), [
+      t(
+        "Suitable cleaning products and everyday equipment (cloths, vacuum, mop and small tools) are included, along with usual travel within the agreed urban Ottawa/Gatineau service area.",
+        "Les produits adaptés et le matériel courant (chiffons, aspirateur, vadrouille et petits outils) sont inclus, ainsi que le déplacement urbain habituel dans la zone Ottawa/Gatineau convenue.",
+      ),
+      t(
+        "The client provides access to the agreed rooms and identifies delicate surfaces, allergies and any product restrictions before the visit. Rooms and work surfaces must be accessible; no heavy furniture moving is included.",
+        "Le client donne accès aux pièces convenues et signale les surfaces délicates, allergies et restrictions de produits avant la visite. Les pièces et surfaces doivent être accessibles ; aucun déplacement de mobilier lourd n’est compris.",
+      ),
+      t(
+        "Bin liners, washroom paper and user soap are supplied by the client unless separately itemized. Clean bed linen and dishwasher detergent are client-supplied when these options are selected.",
+        "Sacs, papier sanitaire et savon des usagers sont fournis par le client sauf mention distincte. Linge de lit propre et détergent du lave-vaisselle sont fournis par le client lorsque ces options sont choisies.",
+      ),
+    ]),
+    section(t("Limits and excluded work", "Limites et prestations exclues"), [
+      t(
+        "Only the tasks and quantities expressly listed in this annex are included. Appliance and cabinet interiors (except the microwave), window glass, laundry, dishes, balconies and garages are excluded unless listed for that visit. Any selected option retains its stated area, quantity and access limits.",
+        "Seules les tâches et quantités expressément listées dans cette annexe sont comprises. Intérieurs d’appareils et d’armoires (sauf micro-ondes), vitres, lessive, vaisselle, balcons et garages sont exclus sauf mention pour la visite concernée. Chaque option conserve ses limites de surface, quantité et accès.",
+      ),
+      t(
+        "Major post-construction cleaning, mould, flooding/water damage, carpet or upholstery extraction, machine floor care, high/exterior windows and other specialist work require a free on-site assessment and a separate written quote.",
+        "Nettoyage après gros travaux, moisissures, inondations/dégâts d’eau, extraction des tapis ou tissus, entretien mécanisé des sols, vitres hautes/extérieures et autres travaux spécialisés nécessitent une visite gratuite sur site et un devis écrit distinct.",
+      ),
+      t(
+        "Any additional task or change of frequency, area or quantity must be agreed in writing, with its price, before the work is performed. Unlisted services do not become included because a minimum visit charge applies.",
+        "Toute tâche supplémentaire ou modification de fréquence, surface ou quantité doit être convenue par écrit avec son prix avant exécution. Un minimum de facturation ne rend pas incluses les prestations non listées.",
+      ),
+    ]),
+    section(t("Quality follow-up", "Suivi qualité"), [
+      t(
+        "Assigned OMSG employees are trained for their tasks and have undergone criminal background checks.",
+        "Les employés OMSG affectés à l’intervention sont formés à leurs tâches et ont fait l’objet d’une vérification des antécédents judiciaires.",
+      ),
+      t(
+        "A completed checklist of the agreed tasks and observations is sent to the client after each visit. Before/after photos are taken only with prior client authorization and included in the private report. Photos are optional; declining them does not affect the cleaning service.",
+        "Une checklist des tâches convenues, réalisées et des observations est transmise au client après chaque visite. Des photos avant/après sont prises uniquement avec son autorisation préalable et jointes au rapport privé. Elles sont facultatives ; leur refus ne modifie pas le service de nettoyage.",
+      ),
+    ]),
+  ].join("\n\n");
+}
+
+/** Used only while preparing a NEW draft, never to display or rewrite an issued quote. */
+export function proposedScopeFromAnswers(answers: Record<string, unknown>, locale: Locale) {
+  const saved = answers[`Service scope ${locale.toUpperCase()}`];
+  if (typeof saved === "string" && saved.trim().startsWith("## ") && saved.length <= 60000)
+    return { body: saved, source: "saved" as const };
+  const empty = { body: "", source: "manual" as const };
+  if (answers["Customer type"] !== "residential" && answers["Customer type"] !== "commercial")
+    return empty;
+  const s = initialSelection(answers["Customer type"]);
+  const plan = plansFor(s.audience).find((p) =>
+    Object.values(p.name).includes(String(answers.Plan)),
+  );
+  const profile = (s.audience === "residential" ? HOME_PROFILES : BUSINESS_PROFILES).find((p) =>
+    Object.values(p.label).includes(String(answers["Property profile"])),
+  );
+  if (!plan || !profile || answers.Condition !== "normal") return empty;
+  s.plan = plan.id;
+  s.profile = profile.id;
+  if (s.audience === "commercial") {
+    if (!["office", "retail", "common"].includes(String(answers["Business type"]))) return empty;
+    s.businessType = answers["Business type"] as PricingSelection["businessType"];
+  }
+  s.visitsPerWeek = Number(answers["Visits per week"] || 0);
+  s.customFrequency = String(answers["Requested frequency"] || "");
+  const schedule = answers["Add-on schedule"];
+  if (typeof schedule !== "string") return empty;
+  if (!/^(None|Aucun)$/.test(schedule))
+    for (const line of schedule.split("\n")) {
+      const match = line.match(/^(.+?) × (\d+) — (.+)$/);
+      if (!match) return empty;
+      const addon = ADDONS.find((a) => Object.values(a.name).includes(match[1]));
+      if (!addon || s.addons[addon.id] || (addon.residentialOnly && s.audience === "commercial"))
+        return empty;
+      const quantity = Number(match[2]);
+      if (quantity < (addon.min || 1) || quantity > addon.max) return empty;
+      if (
+        !/^(Every visit|À chaque visite|First visit only|Première visite seulement|This visit only|Cette visite seulement)$/.test(
+          match[3],
+        )
+      )
+        return empty;
+      s.addons[addon.id] = quantity;
+      s.addonFrequencies![addon.id] = /^(Every visit|À chaque visite)$/.test(match[3])
+        ? "every"
+        : "first";
+    }
+  const body = cleaningServiceScope(s, locale);
+  return body ? { body, source: "proposed" as const } : empty;
 }

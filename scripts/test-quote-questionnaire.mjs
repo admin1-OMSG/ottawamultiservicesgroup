@@ -3,6 +3,7 @@ import {readFileSync, mkdirSync, writeFileSync} from 'node:fs';
 import ts from 'typescript';
 const options={module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022};
 const moduleUrl = source => `data:text/javascript;base64,${Buffer.from(ts.transpileModule(source,{compilerOptions:options}).outputText).toString('base64')}`;
+const scopeUrl=moduleUrl(readFileSync(new URL('../supabase/functions/_shared/quote-service-scope.ts',import.meta.url),'utf8'));
 const sharedUrl=moduleUrl(readFileSync(new URL('../supabase/functions/_shared/quote-questionnaire.ts',import.meta.url),'utf8'));
 const {questionnaireSections,renderQuestionnaireHtml}=await import(sharedUrl);
 const {initialSelection,calculateCleaningEstimate,pricingAnswers}=await import(moduleUrl(readFileSync(new URL('../src/lib/cleaning-pricing.ts',import.meta.url),'utf8')));
@@ -74,7 +75,7 @@ try{
  let edge=readFileSync(new URL('../supabase/functions/send-crm-email/index.ts',import.meta.url),'utf8');
  edge=edge.replace(/import \{ createClient \} from "https:[^\n]+\n/,'const createClient = globalThis.__quoteEmailTest.createClient;\n');
  edge=edge.replace('"../_shared/quote-questionnaire.ts"',JSON.stringify(sharedUrl));
- edge=edge.replace('"../_shared/quote-billing-summary.ts"',JSON.stringify(moduleUrl(readFileSync(new URL('../supabase/functions/_shared/quote-billing-summary.ts',import.meta.url),'utf8'))));
+ edge=edge.replace('"../_shared/quote-service-scope.ts"',JSON.stringify(scopeUrl)).replace('"../_shared/quote-billing-summary.ts"',JSON.stringify(moduleUrl(readFileSync(new URL('../supabase/functions/_shared/quote-billing-summary.ts',import.meta.url),'utf8'))));
  await import(moduleUrl(edge));
  for(const locale of ['en','fr']){
   currentAnswers=makeAnswers(locale);

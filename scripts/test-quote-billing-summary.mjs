@@ -4,15 +4,18 @@ import ts from 'typescript';
 const moduleUrl=source=>'data:text/javascript;base64,'+Buffer.from(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64');
 const read=path=>readFileSync(new URL(path,import.meta.url),'utf8');
 const questionnaireUrl=moduleUrl(read('../supabase/functions/_shared/quote-questionnaire.ts'));
+const scopeUrl=moduleUrl(read('../supabase/functions/_shared/quote-service-scope.ts'));
+const {attachServiceScope}=await import(scopeUrl);
+const pricingUrl=moduleUrl(read('../src/lib/cleaning-pricing.ts'));
 const billingUrl=moduleUrl(read('../supabase/functions/_shared/quote-billing-summary.ts'));
 const {readBillingSchedule:summary,renderBillingSummaryHtml:html,billingRows}=await import(billingUrl);
-const {buildEstimateDraft,quoteTotals}=await import(moduleUrl(read('../src/lib/estimate-request.ts').replace('../../supabase/functions/_shared/quote-questionnaire',questionnaireUrl)));
+const {buildEstimateDraft,quoteTotals}=await import(moduleUrl(read('../src/lib/estimate-request.ts').replace('../../supabase/functions/_shared/quote-questionnaire',questionnaireUrl).replace('./cleaning-pricing',pricingUrl)));
 const {initialSelection,calculateCleaningEstimate:estimate,pricingAnswers,HOME_PROFILES,BUSINESS_PROFILES}=await import(moduleUrl(read('../src/lib/cleaning-pricing.ts')));
 const selection={...initialSelection('residential'),plan:'weekly',profile:'two'};
 const request=(s=selection,locale='en')=>({id:'33333333-3333-4333-8333-333333333333',customer_id:'44444444-4444-4444-8444-444444444444',request_number:7002,service_name:'House Cleaning',questionnaire_answers:{...pricingAnswers(s,estimate(s),locale),preferredLanguage:locale}});
 function saved(s=selection,locale='en',basis='first') {
  const d=buildEstimateDraft(request(s,locale),basis),totals=quoteTotals(d.lines,d.taxRate,d.discount);
- return {id:'55555555-5555-4555-8555-555555555555',estimate_number:'Q-TEST-7002',title:d.title,notes:d.notes,terms:d.billingCondition,currency:'CAD',subtotal:totals.subtotal,discount_total:d.discount,tax_rate:d.taxRate,tax_total:totals.tax,total:totals.total,items:d.lines.map((row,index)=>({...row,id:'item-'+index,line_total:row.quantity*row.unit_price})),status:'sent',updated_at:'2026-09-20T12:00:00Z',created_at:'2026-09-20T12:00:00Z',estimated_duration_minutes:210,crew_size:1,customer_id:request().customer_id,service_request_id:request().id,valid_until:'2026-10-20'};
+ return {id:'55555555-5555-4555-8555-555555555555',estimate_number:'Q-TEST-7002',title:d.title,notes:d.notes,terms:attachServiceScope(d.billingCondition,d.serviceScope,d.locale),currency:'CAD',subtotal:totals.subtotal,discount_total:d.discount,tax_rate:d.taxRate,tax_total:totals.tax,total:totals.total,items:d.lines.map((row,index)=>({...row,id:'item-'+index,line_total:row.quantity*row.unit_price})),status:'sent',updated_at:'2026-09-20T12:00:00Z',created_at:'2026-09-20T12:00:00Z',estimated_duration_minutes:210,crew_size:1,customer_id:request().customer_id,service_request_id:request().id,valid_until:'2026-10-20'};
 }
 let passed=0;
 function test(name,run){run();passed++;console.log('PASS '+name);}
@@ -81,13 +84,13 @@ globalThis.Deno={env:{get:key=>({SUPABASE_URL:'https://qa.invalid',SUPABASE_ANON
 globalThis.fetch=async(url,init)=>{assert.equal(url,'https://api.resend.com/emails');sent.push(JSON.parse(init.body));return new Response(JSON.stringify({id:'mock-'+sent.length}),{status:200})};
 const send=()=>handler(new Request('https://qa.invalid/functions/v1/send-crm-email',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer test-only'},body:JSON.stringify({type:'estimate_ready',estimateId:fixture.id})}));
 try{
- let edge=read('../supabase/functions/send-crm-email/index.ts').replace(/import \{ createClient \} from "https:[^\n]+\n/,'const createClient = globalThis.__billingEmailTest.createClient;\n').replace('"../_shared/quote-questionnaire.ts"',JSON.stringify(questionnaireUrl)).replace('"../_shared/quote-billing-summary.ts"',JSON.stringify(billingUrl));
+ let edge=read('../supabase/functions/send-crm-email/index.ts').replace(/import \{ createClient \} from "https:[^\n]+\n/,'const createClient = globalThis.__billingEmailTest.createClient;\n').replace('"../_shared/quote-questionnaire.ts"',JSON.stringify(questionnaireUrl)).replace('"../_shared/quote-billing-summary.ts"',JSON.stringify(billingUrl)).replace('"../_shared/quote-service-scope.ts"',JSON.stringify(scopeUrl));
  await import(moduleUrl(edge));
  for(const locale of ['en','fr']) {
   fixture={...saved(selection,locale),customer:customer(locale)};const response=await send();assert.equal(response.status,200);assert.equal((await response.json()).ok,true);
-  const email=sent.at(-1);assert.deepEqual(email.to,['client@example.test']);assert.match(email.html,locale==='fr'?/71,19/:/71\.19/);assert.match(email.html,locale==='fr'?/Voir mon devis et les calculs/:/View my quote and calculations/);assert.match(email.html,/secure-quote\?token=test-only&amp;quote=7002/);
+  const email=sent.at(-1);assert.deepEqual(email.to,['client@example.test']);assert.match(email.html,locale==='fr'?/71,19/:/71\.19/);assert.match(email.html,locale==='fr'?/Voir mon devis, les prestations et les calculs/:/View my quote, services and calculations/);assert.match(email.html,/secure-quote\?token=test-only&amp;quote=7002/);
   assert.match(links.at(-1).options.redirectTo,/\/portal\?estimate=55555555/);
-  if(process.env.BILLING_PREVIEW_DIR){mkdirSync(process.env.BILLING_PREVIEW_DIR,{recursive:true});writeFileSync(`${process.env.BILLING_PREVIEW_DIR}/official-email-v9-${locale}.html`,email.html);}
+  if(process.env.BILLING_PREVIEW_DIR){mkdirSync(process.env.BILLING_PREVIEW_DIR,{recursive:true});writeFileSync(`${process.env.BILLING_PREVIEW_DIR}/official-email-v10-${locale}.html`,email.html);}
  }
  passed++;console.log('PASS real estimate-ready handler sends EN/FR schedule to the intended customer with secure portal link');
  duplicate=true;const before=sent.length;assert.equal((await (await send()).json()).duplicate,true);assert.equal(sent.length,before);assert.equal(logs.length,2);

@@ -1,3 +1,4 @@
+import { proposedScopeFromAnswers } from "./cleaning-pricing";
 import {
   questionnaireLocale,
   questionnaireSections,
@@ -298,6 +299,9 @@ export function buildEstimateDraft(
       ),
     );
   }
+  const scope = cleaning
+    ? proposedScopeFromAnswers(answers, locale)
+    : { body: "", source: "manual" as const };
   const sections = questionnaireSections(answers, locale);
   const requestDetails = (cleaning ? sections.slice(0, 2) : sections)
     .map(
@@ -369,6 +373,15 @@ export function buildEstimateDraft(
     lines,
     discount,
     fourVisitPolicy,
+    serviceScope:
+      scope.body && address
+        ? scope.body.replace(
+            /\n\n(?=## )/,
+            `\n- ${t("Service address", "Adresse d’intervention")} : ${address.replace(/[\r\n]+/g, " ")}\n\n`,
+          )
+        : scope.body,
+    serviceScopeSource: scope.source,
+    cleaning,
     billingCondition: fourVisitPolicy ? asText(answers["Recurring pricing condition"]) : "",
     taxRate: rate,
     currency: cleaning ? "CAD" : null,

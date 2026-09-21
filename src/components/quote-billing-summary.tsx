@@ -1,3 +1,5 @@
+import { openScopeSection } from "@/components/quote-service-scope";
+import type { ServiceScope } from "../../supabase/functions/_shared/quote-service-scope";
 import { useLanguage } from "@/lib/language";
 import {
   billingCondition,
@@ -6,7 +8,15 @@ import {
   type BillingSchedule,
 } from "../../supabase/functions/_shared/quote-billing-summary";
 
-export function QuoteBillingSummary({ schedule }: { schedule: BillingSchedule }) {
+export function QuoteBillingSummary({
+  schedule,
+  quoteId,
+  scope,
+}: {
+  schedule: BillingSchedule;
+  quoteId?: string;
+  scope?: ServiceScope | null;
+}) {
   const { language } = useLanguage();
   const t = (en: string, fr: string) => (language === "fr" ? fr : en);
   const rows = billingRows(schedule, language);
@@ -40,6 +50,20 @@ export function QuoteBillingSummary({ schedule }: { schedule: BillingSchedule })
               <th scope="row" className="px-4 py-3 text-left font-normal sm:px-5">
                 <span className="block font-semibold text-slate-900">{row.label}</span>
                 <span className="mt-0.5 block text-xs text-slate-500">{row.note}</span>
+                {quoteId &&
+                  scope?.sections.some(
+                    (section) => section.id === `visit-${row.id.replace(/\D/g, "")}`,
+                  ) && (
+                    <button
+                      type="button"
+                      className="mt-1 text-xs font-medium text-teal-800 underline underline-offset-2"
+                      onClick={() =>
+                        openScopeSection(quoteId, `visit-${row.id.replace(/\D/g, "")}`)
+                      }
+                    >
+                      {t("View services", "Voir les prestations")}
+                    </button>
+                  )}
               </th>
               <td
                 className={`whitespace-nowrap px-4 py-3 text-right text-lg font-bold tabular-nums sm:px-5 ${row.id === "4" ? "text-teal-700" : "text-slate-900"}`}

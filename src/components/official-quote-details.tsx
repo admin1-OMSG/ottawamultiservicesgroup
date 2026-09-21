@@ -1,3 +1,8 @@
+import { QuoteServiceScope } from "@/components/quote-service-scope";
+import {
+  readServiceScope,
+  termsWithoutScope,
+} from "../../supabase/functions/_shared/quote-service-scope";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/language";
@@ -33,6 +38,8 @@ export function OfficialQuoteDetails({ estimate }: { estimate: OfficialQuote }) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const schedule = readBillingSchedule(estimate);
+  const scope = readServiceScope(estimate.terms);
+  const otherTerms = termsWithoutScope(estimate.terms);
   const money = (n: number) =>
     new Intl.NumberFormat(language === "fr" ? "fr-CA" : "en-CA", {
       style: "currency",
@@ -63,7 +70,8 @@ export function OfficialQuoteDetails({ estimate }: { estimate: OfficialQuote }) 
   }
   return (
     <>
-      {schedule && <QuoteBillingSummary schedule={schedule} />}
+      <QuoteServiceScope terms={estimate.terms} quoteId={estimate.id} />
+      {schedule && <QuoteBillingSummary schedule={schedule} quoteId={estimate.id} scope={scope} />}
       <details
         id={`quote-calculation-${estimate.id}`}
         data-i18n-ignore="true"
@@ -138,6 +146,11 @@ export function OfficialQuoteDetails({ estimate }: { estimate: OfficialQuote }) 
             <dd>{money(estimate.total)}</dd>
           </div>
         </dl>
+      </details>
+      <details data-i18n-ignore="true" className="mt-4 rounded-lg border p-4">
+        <summary className="cursor-pointer font-semibold text-slate-800">
+          {t("Notes and conditions of this quote", "Notes et conditions de ce devis")}
+        </summary>
         {estimate.notes && (
           <details className="mt-5 rounded-lg border p-3">
             <summary className="cursor-pointer font-semibold">
@@ -148,11 +161,11 @@ export function OfficialQuoteDetails({ estimate }: { estimate: OfficialQuote }) 
             </p>
           </details>
         )}
-        {estimate.terms && (
+        {otherTerms && (
           <div className="mt-5">
             <h4 className="font-semibold">{t("Terms", "Conditions")}</h4>
             <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
-              {estimate.terms}
+              {otherTerms}
             </p>
           </div>
         )}

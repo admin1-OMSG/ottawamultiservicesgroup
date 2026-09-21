@@ -7,7 +7,7 @@ const dataModule = (path, replacements = []) => {
   return 'data:text/javascript;base64,' + Buffer.from(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64');
 };
 const questionnaire=dataModule('../supabase/functions/_shared/quote-questionnaire.ts');
-const {buildEstimateDraft: draft, quoteTotals, quoteTaxRows,requestHasRecurringPrice}=await import(dataModule('../src/lib/estimate-request.ts', [['../../supabase/functions/_shared/quote-questionnaire',questionnaire]]));
+const {buildEstimateDraft: draft, quoteTotals, quoteTaxRows,requestHasRecurringPrice}=await import(dataModule('../src/lib/estimate-request.ts', [['../../supabase/functions/_shared/quote-questionnaire',questionnaire], ['./cleaning-pricing',dataModule('../src/lib/cleaning-pricing.ts')]]));
 const {initialSelection,calculateCleaningEstimate: estimate,pricingAnswers,HOME_PROFILES,BUSINESS_PROFILES,ADDONS}=await import(dataModule('../src/lib/cleaning-pricing.ts'));
 const base={id:'33333333-3333-4333-8333-333333333333',request_number:7001,customer_id:'44444444-4444-4444-8444-444444444444',first_name:'Example',last_name:'Client',email:'client@example.test',phone:'6135550100',address_line:'100 Example Street',city:'Ottawa',province:'Ontario',postal_code:'K1A 0B1',service_name:'House Cleaning',preferred_date:'2026-10-01',description:'Please use the side entrance.',internal_notes:'PRIVATE ADMIN NOTE'};
 const example={...initialSelection('residential'),plan:'weekly',profile:'three',addons:{oven:1,fridge:1,baseboards:1,windows:2,linen:2},addonFrequencies:{linen:'every'}};

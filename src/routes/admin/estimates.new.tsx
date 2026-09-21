@@ -1,3 +1,8 @@
+import { ServiceScopeEditor, QuoteServiceScope } from "@/components/quote-service-scope";
+import {
+  attachServiceScope,
+  validServiceScope,
+} from "../../../supabase/functions/_shared/quote-service-scope";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Plus, Trash2 } from "lucide-react";
@@ -53,6 +58,7 @@ function NewEstimatePage() {
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState("");
+  const [serviceScope, setServiceScope] = useState("");
   const [validUntil, setValidUntil] = useState("");
   const [discount, setDiscount] = useState(0);
   const [taxRate, setTaxRate] = useState(0.13);
@@ -85,6 +91,7 @@ function NewEstimatePage() {
   function applyDraft(value: ReturnType<typeof buildEstimateDraft>) {
     setTitle(value.title);
     setNotes(value.notes);
+    setServiceScope(value.serviceScope);
     setLines(value.lines);
     setDiscount(value.discount);
     setTaxRate(value.taxRate);
@@ -181,6 +188,7 @@ function NewEstimatePage() {
         else {
           setTitle("");
           setNotes("");
+          setServiceScope("");
           setLines([blankLine()]);
           setDiscount(0);
           setEstimatedHours(2);
@@ -297,6 +305,15 @@ function NewEstimatePage() {
       );
       return;
     }
+    if ((draft?.cleaning || serviceScope.trim()) && !validServiceScope(serviceScope)) {
+      setError(
+        t(
+          "Describe the agreed services before saving this cleaning quote.",
+          "Décrivez les prestations convenues avant d’enregistrer ce devis de nettoyage.",
+        ),
+      );
+      return;
+    }
     savingRef.current = true;
     setSaving(true);
     try {
@@ -316,7 +333,7 @@ function NewEstimatePage() {
           estimated_duration_minutes: Math.round(estimatedHours * 60),
           crew_size: crewSize,
           notes: notes.trim() || null,
-          terms: terms.trim() || null,
+          terms: attachServiceScope(terms.trim(), serviceScope, draft?.locale ?? language) || null,
           subtotal: totals.subtotal,
           discount_total: discount,
           tax_rate: taxRate,
@@ -710,6 +727,49 @@ function NewEstimatePage() {
                     </>
                   )}
                 </div>
+              </section>
+              <section className={section}>
+                <h2 className="text-lg font-bold">
+                  {t(
+                    "Services included in the official quote",
+                    "Prestations comprises dans le devis officiel",
+                  )}
+                </h2>
+                <p className="mt-2 mb-4 text-sm text-slate-600">
+                  {t(
+                    "Review the tasks, quantities, frequency and exclusions. The saved annex forms part of the quote shown to the client and its terms. If you change the service lines, update this annex too.",
+                    "Vérifiez les tâches, quantités, fréquences et exclusions. L’annexe enregistrée fait partie du devis présenté au client et de ses conditions. Si vous modifiez les lignes de prestations, adaptez aussi cette annexe.",
+                  )}
+                </p>
+                {draft?.serviceScopeSource === "proposed" && (
+                  <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+                    {t(
+                      "This older request has no saved task list. The proposed annex uses its saved selections and the current task descriptions. Review and adjust it before issuing this new quote; no previously issued quote is changed.",
+                      "Cette ancienne demande n’a pas de liste de tâches enregistrée. L’annexe proposée reprend ses choix enregistrés et les descriptions actuelles. Vérifiez-la avant d’émettre ce nouveau devis ; aucun devis déjà émis n’est modifié.",
+                    )}
+                  </p>
+                )}
+                {!serviceScope && (
+                  <p className="mb-3 text-sm text-amber-800">
+                    {t(
+                      "Add the scope agreed after reviewing the request or completing the required site visit.",
+                      "Ajoutez le périmètre convenu après étude de la demande ou réalisation de la visite sur site nécessaire.",
+                    )}
+                  </p>
+                )}
+                <ServiceScopeEditor
+                  value={serviceScope}
+                  onChange={(body) => {
+                    setServiceScope(body);
+                    setDirty(true);
+                  }}
+                />
+                {validServiceScope(serviceScope) && (
+                  <QuoteServiceScope
+                    terms={attachServiceScope("", serviceScope, draft?.locale ?? language)}
+                    quoteId="draft-preview"
+                  />
+                )}
               </section>
               <section className={section}>
                 <h2 className="text-lg font-bold">{t("Notes and terms", "Notes et conditions")}</h2>

@@ -319,6 +319,11 @@ export function questionnaireSections(
       ],
     },
   ];
+  const scope = answers[`Service scope ${locale.toUpperCase()}`];
+  if (typeof scope === "string" && scope.trim()) sections.push({
+    title: t("Proposed service details", "Détail des prestations proposées"),
+    rows: [{ label: t("Tasks and frequency (reviewed in the official quote)", "Tâches et fréquence (validées au devis officiel)"), value: scope.replace(/^## /gm, "") }],
+  });
   return sections.filter((section) => section.rows.length > 0);
 }
 

@@ -1,0 +1,113 @@
+﻿OMSG — INSTALLATION TARIFS V10
+Prestations détaillées par visite dans le devis officiel
+
+Base : V9 publiée, commit 861eafb. Installer après V9.
+Archive de 22 fichiers ajoutés ou modifiés uniquement.
+Les tarifs et le crédit de la quatrième visite ne changent pas.
+
+1. COPIER
+Extraire l’archive dans un dossier temporaire, puis copier son contenu dans :
+C:\Users\Dell\OneDrive\Desktop\OMSG-v2.5-clean\ottawamultiservicesgroup-main
+Fusionner les dossiers et accepter les remplacements ; conserver les autres fichiers.
+
+2. VÉRIFIER DANS POWERSHELL
+Depuis le dossier du projet, exécuter une commande à la fois :
+
+node scripts/test-quote-service-scope.mjs
+node scripts/test-quote-billing-summary.mjs
+node scripts/test-quote-questionnaire.mjs
+node scripts/test-cleaning-pricing.mjs
+node scripts/test-estimate-request.mjs
+npm.cmd run build
+
+Résultats attendus : 12, 10, 9, 24 et 15 contrôles, puis compilation réussie.
+Si une commande échoue, conserver sa sortie et arrêter avant publication.
+
+3. PRÉPARER UNIQUEMENT LES FICHIERS DE CETTE VERSION
+Les chemins ci-dessous sont entre apostrophes : conserver ces apostrophes pour le nom contenant $estimateId.
+
+$fichiersTarifsV10 = @(
+  'INSTALLATION_TARIFS_V10.txt'
+  'INTEGRATION_TARIFS_FR.md'
+  'VALIDATION_TARIFS.md'
+  'docs/pricing-preview/quote-summary-v10-en.png'
+  'docs/pricing-preview/fourth-visit-services-v10-en.png'
+  'docs/pricing-preview/fourth-visit-services-mobile-v10-fr.png'
+  'docs/pricing-preview/official-email-v10-fr.png'
+  'scripts/test-quote-service-scope.mjs'
+  'scripts/test-quote-billing-summary.mjs'
+  'scripts/test-quote-questionnaire.mjs'
+  'scripts/test-estimate-request.mjs'
+  'src/components/quote-service-scope.tsx'
+  'src/components/quote-billing-summary.tsx'
+  'src/components/official-quote-details.tsx'
+  'src/lib/cleaning-pricing.ts'
+  'src/lib/estimate-request.ts'
+  'src/routes/admin/estimates.new.tsx'
+  'src/routes/admin/estimates.$estimateId.tsx'
+  'src/routes/portal.tsx'
+  'supabase/functions/_shared/quote-service-scope.ts'
+  'supabase/functions/_shared/quote-questionnaire.ts'
+  'supabase/functions/send-crm-email/index.ts'
+)
+
+git --literal-pathspecs add -- $fichiersTarifsV10
+git diff --cached --stat
+
+Vérifier que seuls les fichiers voulus sont préparés. Ne pas utiliser git add .
+Les avertissements LF/CRLF ne sont pas bloquants.
+
+4. PUBLIER LE SITE
+
+git commit -m "Tarifs V10 : prestations detaillees par visite et annexe au devis"
+git push origin main
+
+Attendre la réussite du déploiement habituel du site.
+
+5. PUBLIER LA FONCTION COURRIEL
+
+npx.cmd supabase@latest functions deploy send-crm-email --project-ref prlkiyyjctfksmrvorqs --use-api
+
+En cas de session expirée : npx.cmd supabase@latest login, puis relancer le déploiement.
+La fonction utilise désormais les trois modules partagés :
+- _shared/quote-questionnaire.ts
+- _shared/quote-billing-summary.ts (déjà installé en V9)
+- _shared/quote-service-scope.ts (nouveau en V10)
+Aucune migration SQL ni commande db push. L’annexe est enregistrée dans le champ terms existant du devis.
+Les droits Supabase et le mécanisme de signature existants sont conservés.
+
+6. PRÉPARER LE DEVIS RÉVISÉ
+Un devis déjà enregistré ne reçoit pas automatiquement de nouvelles obligations.
+Dans le CRM, ouvrir le devis concerné et cliquer sur :
+« Préparer un nouveau devis depuis cette demande / Prepare a new quote from this request ».
+Ce lien ouvre un NOUVEAU brouillon à partir de la même demande ; il ne modifie pas l’ancien devis et ne l’annule pas.
+
+Dans le nouveau formulaire :
+- Vérifier les montants, la visite couverte et la condition des quatre visites.
+- Ouvrir « Prestations comprises dans le devis officiel ».
+- Vérifier les pièces/surfaces, l’adresse, les tâches, les quantités et les options par visite.
+- Ajuster le texte si une prestation particulière est convenue. Chaque rubrique commence par ## ; les tâches sont du texte lisible.
+- Vérifier aussi l’annexe si vous modifiez les lignes tarifaires ou les quantités.
+- Enregistrer le brouillon, relire, puis envoyer le nouveau devis au client.
+
+Pour une demande antérieure à V10, les descriptions peuvent être proposées à partir des choix enregistrés et des descriptions actuelles. Un message l’indique dans le formulaire : vérifier avant émission. Aucun prix n’est recalculé pour cette opération.
+Si la demande ne permet pas d’identifier le service ou les options, ou concerne des travaux spécialisés, saisir le périmètre convenu après étude / visite sur site. Le formulaire refuse d’enregistrer un nouveau devis de nettoyage sans annexe structurée renseignée.
+Une demande antérieure à V8 ne reçoit pas automatiquement la condition des quatre visites : elle doit être revue si cette nouvelle offre doit être proposée.
+Un devis déjà accepté ou signé reste intact ; toute nouvelle proposition doit être présentée distinctement au client.
+
+7. CONTRÔLER CÔTÉ CLIENT
+Actualiser le portail avec Ctrl + F5 et ouvrir le NOUVEAU devis.
+- « Voir les prestations comprises à chaque visite » est indépendant des calculs.
+- Le tableau des montants comporte « Voir les prestations » à chaque visite lorsque l’échéancier et l’annexe sont présents.
+- Cliquer sur la première visite : tâches de base + toutes les options prévues pour cette visite.
+- Cliquer sur la quatrième : mêmes tâches de base + options récurrentes uniquement ; le crédit ne diminue pas le travail convenu.
+- Vérifier produits, limites, exclusions, checklist et photos uniquement avec autorisation préalable.
+- Les conditions et notes restent consultables dans une rubrique séparée.
+- L’annexe est aussi disponible dans l’écran de signature.
+
+Le courriel nouvellement envoyé contient l’annexe complète et le lien sécurisé vers le devis. Utiliser votre propre adresse pour un test.
+Les anciens courriels ne changent pas. La simple consultation n’envoie aucun message.
+L’annexe est affichée dans la langue d’émission du devis ; ses formulations enregistrées ne sont pas remplacées par une traduction automatique après signature.
+La version V10 ne suit pas automatiquement l’exécution des tâches ni les visites réellement effectuées : ces opérations restent celles du CRM et de votre suivi qualité.
+
+Documentation : INTEGRATION_TARIFS_FR.md et VALIDATION_TARIFS.md.
