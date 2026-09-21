@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Youtube } from "lucide-react";
 import { BrandMark } from "@/components/site-header";
 import { useLanguage } from "@/lib/language";
+import { openPrivacyPreferences } from "@/lib/marketing-consent";
 function XIcon({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
@@ -121,14 +122,24 @@ export function SiteFooter() {
               { label: "Become a Partner", to: "/partners" },
             ]}
           />
-          <FooterCol
-            title="Legal"
-            links={[
-              { label: "Privacy Policy", to: "/privacy" },
-              { label: "Pricing Policy", to: "/pricing-policy" },
-              { label: "Terms & Conditions", to: "/terms" },
-            ]}
-          />
+          <div>
+            <FooterCol
+              title="Legal"
+              links={[
+                { label: "Privacy Policy", to: "/privacy" },
+                { label: "Pricing Policy", to: "/pricing-policy" },
+                { label: "Terms & Conditions", to: "/terms" },
+              ]}
+            />
+            <button
+              type="button"
+              data-i18n-ignore="true"
+              onClick={openPrivacyPreferences}
+              className="mt-1 min-h-11 py-2 text-left text-base leading-relaxed underline-offset-4 hover:text-teal-800 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-800"
+            >
+              {language === "fr" ? "Préférences de confidentialité" : "Privacy preferences"}
+            </button>
+          </div>
         </div>
       </div>
       <div className="mx-auto mt-10 flex max-w-7xl flex-col items-center justify-between gap-3 border-t border-teal-100 px-4 pt-6 text-center text-sm leading-relaxed text-slate-600 sm:px-6 md:flex-row md:text-left lg:px-8">

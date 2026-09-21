@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { EmailVerification } from "@/components/email-verification";
+import { CollectionNotice } from "@/components/collection-notice";
 
 export const Route = createFileRoute("/careers")({
   head: () => ({
@@ -396,9 +397,7 @@ function CareersPage() {
 
               <div className="border-t border-border pt-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="max-w-2xl text-xs text-muted-foreground">
-                    By submitting this application, you agree that Ottawa Multiservices Group Inc. may use the information provided to assess employment opportunities and contact you regarding your application.
-                  </p>
+                  <CollectionNotice purpose="career" />
                   <Button
                     type="submit"
                     disabled={submitting || preparingResume || !verificationToken}

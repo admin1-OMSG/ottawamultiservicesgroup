@@ -1,0 +1,101 @@
+OMSG — PAGES, CONTACT ET CONFIDENTIALITÉ V13
+Base : f14bf1a (Accueil V12). Date : 21 septembre 2026.
+
+Ce ZIP contient UNIQUEMENT les fichiers modifiés ou ajoutés par cette mise à jour.
+Il ne contient pas tout le projet. Il s'applique au dossier existant avec la V12.
+
+CE QUI CHANGE
+- Terms & Conditions, Privacy Policy et FAQ révisés et entièrement disponibles en anglais/français.
+- Page de suppression des données harmonisée avec la confidentialité.
+- Distinction demande gratuite / devis officiel accepté ; règle des quatre visites expliquée.
+- Formulaire Contact réellement sauvegardé dans la boîte des demandes du CRM après vérification du courriel.
+- Suivi Meta facultatif, bloqué avant accord ; choix Accepter/Refuser et lien permanent dans le pied de page.
+- Notices aux formulaires de devis, candidature et partenariat.
+- Les tarifs et calculs de facturation ne sont pas modifiés.
+
+1. COPIER
+Fermez votre serveur local s'il est en cours (Ctrl+C).
+Extrayez le ZIP, puis copiez son CONTENU dans :
+C:\Users\Dell\OneDrive\Desktop\OMSG-v2.5-clean\ottawamultiservicesgroup-main
+Acceptez le remplacement des fichiers et la fusion des dossiers src, scripts et docs.
+Ne supprimez pas vos anciens dossiers et ne créez pas un second projet imbriqué.
+
+2. VÉRIFIER DANS POWERSHELL
+Depuis ce dossier, exécutez :
+
+node scripts/test-contact-request.mjs
+node scripts/test-marketing-consent.mjs
+node scripts/test-cleaning-pricing.mjs
+npm.cmd run build
+
+Résultats attendus : 6 contrôles Contact, 9 contrôles de consentement, 24 contrôles tarifaires et compilation réussie.
+Ces tests ne transmettent rien à votre CRM et n'envoient pas de courriel.
+Utilisez npm.cmd si PowerShell bloque npm.ps1.
+
+3. CONSULTER LES PAGES LOCALEMENT
+npm.cmd run dev
+Ouvrez l'adresse locale affichée dans le terminal, puis :
+/terms
+/privacy
+/faq
+/data-deletion
+/contact
+
+Vérifiez les versions EN/FR, puis choisissez Refuser dans la bannière.
+Le lien « Préférences de confidentialité » du pied de page permet de revoir le choix.
+La page Contact nécessite maintenant la vérification de l'adresse courriel.
+Une demande réellement envoyée depuis votre navigateur utilise votre CRM réel ; ne soumettez qu'un message d'essai identifiable si vous souhaitez cette vérification.
+Les messages seront dans la boîte des demandes, sous « Contact message » ou « Message de contact ».
+Une demande Contact ne crée aucun devis officiel ni rendez-vous.
+Arrêtez le serveur avec Ctrl+C.
+
+4. ENREGISTRER LES FICHIERS DE CETTE MISE À JOUR
+Copiez le bloc ci-dessous dans PowerShell :
+
+$fichiersPagesV13 = @(
+  'INSTALLATION_PAGES_V13.txt'
+  'VALIDATION_PAGES_V13.md'
+  'docs/pages-preview-v13/contact-mobile-fr.png'
+  'docs/pages-preview-v13/faq-mobile-fr.png'
+  'docs/pages-preview-v13/privacy-hero-mobile-fr.png'
+  'docs/pages-preview-v13/terms-desktop-fr.png'
+  'scripts/test-contact-request.mjs'
+  'scripts/test-marketing-consent.mjs'
+  'src/components/cleaning-quote-request.tsx'
+  'src/components/collection-notice.tsx'
+  'src/components/marketing-consent.tsx'
+  'src/components/quote-funnel.tsx'
+  'src/components/site-footer.tsx'
+  'src/lib/contact-request.ts'
+  'src/lib/marketing-consent.ts'
+  'src/routes/__root.tsx'
+  'src/routes/careers.tsx'
+  'src/routes/contact.tsx'
+  'src/routes/data-deletion.tsx'
+  'src/routes/faq.tsx'
+  'src/routes/privacy.tsx'
+  'src/routes/terms.tsx'
+)
+git --literal-pathspecs add -- $fichiersPagesV13
+git diff --cached --stat
+
+Le résumé doit contenir les 22 fichiers listés ci-dessus, sans autres modifications étrangères.
+Les avertissements LF/CRLF sont habituels sous Windows et ne bloquent pas l'installation.
+N'utilisez pas git add . si vous avez d'autres travaux locaux.
+
+5. PUBLIER APRÈS VÉRIFICATION
+git commit -m "Pages V13 : conditions, confidentialite, FAQ et Contact"
+git push origin main
+
+Attendez la réussite du déploiement habituel, puis ouvrez le site et faites Ctrl+F5.
+Vérifiez les trois pages, le lien des préférences et un message Contact clairement identifié comme test.
+
+SUPABASE
+Aucune migration et aucune commande de déploiement Supabase supplémentaire.
+Cette mise à jour utilise les fonctions de vérification du courriel et de réception des demandes déjà installées.
+Aucune clé, variable d'environnement ou configuration Supabase n'est fournie ou remplacée.
+Les données existantes et les devis déjà acceptés restent inchangés.
+
+NOTES
+Lisez VALIDATION_PAGES_V13.md pour les vérifications réalisées et les engagements à appliquer dans vos opérations (checklists, formation, antécédents, annulation et confidentialité).
+La compilation réussit ; les erreurs TypeScript préexistantes hors de cette mise à jour sont décrites dans ce document.

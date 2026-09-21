@@ -17,6 +17,8 @@ import { useLanguage } from "@/lib/language";
 import { EmailVerification } from "@/components/email-verification";
 import { FileCameraInput } from "@/components/file-camera-input";
 import { FREQUENCY_NOTE } from "@/lib/cleaning-pricing";
+import { CollectionNotice } from "@/components/collection-notice";
+import { trackQuoteLead } from "@/lib/marketing-consent";
 
 
 const CLEANING_FREQUENCIES = ["One-Time", "Once a week", "Once every 2 weeks", "2 visits per week", "3 visits per week", "4 visits per week", "5 visits per week", "6 visits per week", "Daily", "Monthly", "Other schedule"];
@@ -530,18 +532,7 @@ function ContactForm({
             console.warn("Quote saved, but admin email was not sent.");
           }
 
-          if (typeof window !== "undefined") {
-            const fbq = (window as Window & {
-              fbq?: (...args: unknown[]) => void;
-            }).fbq;
-
-            if (typeof fbq === "function") {
-              fbq("track", "Lead", {
-                content_name: service,
-                content_category: "Quote Request",
-              });
-            }
-          }
+          trackQuoteLead(service);
 
           form.reset();
           setPhotos([]);
@@ -712,6 +703,7 @@ function ContactForm({
           {pending ? "Sending…" : "Get My Free Quote Now"}
         </Button>
       </div>
+      <CollectionNotice purpose="quote" />
     </form>
   );
 }
@@ -949,6 +941,7 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
           {pending ? "Sending…" : mode === "service_provider" ? "Submit Partner Profile" : "Submit Subcontracting Opportunity"}
         </Button>
       </div>
+      <CollectionNotice purpose="partner" />
     </form>
   );
 }

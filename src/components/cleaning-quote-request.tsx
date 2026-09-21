@@ -7,6 +7,7 @@ import { EmailVerification } from "@/components/email-verification";
 import { FileCameraInput } from "@/components/file-camera-input";
 import { supabase } from "@/lib/supabase";
 import { sendCrmEmail } from "@/lib/email-notifications";
+import { trackQuoteLead } from "@/lib/marketing-consent";
 import {
   PRICING_VERSION,
   RECURRING_SHORT,
@@ -181,6 +182,7 @@ export function CleaningQuoteRequest({
       } catch {
         /* Request remains safely in the CRM. */
       }
+      trackQuoteLead(selection.audience === "commercial" ? "Office Cleaning" : "House Cleaning");
       onSaved(
         id,
         uploads.some((r) => r.status === "rejected"),
