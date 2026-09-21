@@ -12,7 +12,6 @@ import {
   Mail,
   MapPin,
   Phone,
-  ShieldCheck,
   Snowflake,
   Sparkles,
   Truck,
@@ -78,7 +77,7 @@ function HomePage() {
       <Toaster richColors position="top-center" />
       <SiteHeader variant="transparent" />
 
-      <section className="relative isolate min-h-[720px] overflow-hidden sm:min-h-[760px] lg:min-h-[780px]">
+      <section id="home-intro" className="relative isolate min-h-[720px] overflow-hidden sm:min-h-[760px] lg:min-h-[780px]">
         <img
           src={homeBanner}
           alt="Ottawa Multiservices Group services: cleaning, post-construction cleaning, car wash, garden maintenance, tire change, moving, snow removal and small renovations"
@@ -87,16 +86,16 @@ function HomePage() {
           fetchPriority="high"
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(248,255,254,.96)_0%,rgba(237,252,249,.90)_40%,rgba(229,249,246,.38)_70%,rgba(229,249,246,.08)_100%)]" />
+        <div className="absolute inset-0 bg-white/95 lg:bg-[linear-gradient(90deg,#f8fffe_0%,rgba(248,255,254,.98)_45%,rgba(248,255,254,.90)_60%,rgba(229,249,246,.20)_85%,rgba(229,249,246,.08)_100%)] lg:bg-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-background/20 to-transparent" />
 
         <div className="relative mx-auto flex min-h-[720px] max-w-7xl items-center px-4 pb-20 pt-28 sm:min-h-[760px] sm:px-6 sm:pt-32 lg:min-h-[780px] lg:px-8">
           <div className="max-w-3xl">
-            <Badge className="mb-5 border border-teal-200 bg-white/75 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-teal-800 backdrop-blur-sm hover:bg-white/85 sm:text-[11px]">
+            <Badge className="mb-5 whitespace-normal border border-teal-200 bg-white px-3 py-2 text-xs font-semibold uppercase leading-relaxed tracking-[0.12em] text-teal-800 hover:bg-white">
               One Company. Multiple Solutions. All Seasons.
             </Badge>
             <h1 className="font-display text-4xl font-extrabold leading-[1.02] text-slate-900 sm:text-5xl md:text-6xl lg:text-[68px]">
-              Everything You Need. <span className="text-accent">One Trusted Team.</span>
+              Everything You Need. <span className="text-teal-700">One Trusted Team.</span>
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-700 sm:text-lg md:text-xl">
               Professional services for homes, businesses and vehicles across Ottawa & Gatineau.
@@ -107,11 +106,11 @@ function HomePage() {
                 Get My Free Quote <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <Link to="/partners" className="inline-flex">
-                <Button size="lg" variant="outline" className="h-13 rounded-xl border-accent/40 bg-white/80 px-6 text-base font-bold text-accent backdrop-blur-sm hover:bg-accent/5">
+                <Button size="lg" variant="outline" className="h-13 w-full rounded-xl border-teal-300 bg-white px-6 text-base font-bold text-teal-800 hover:bg-teal-50">
                   Become a Partner <Handshake className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <a href="tel:+16134076699" className="inline-flex h-13 items-center justify-center gap-2 rounded-xl border border-teal-200 bg-white/80 px-6 text-base font-semibold text-teal-900 backdrop-blur-sm transition hover:bg-teal-50">
+              <a href="tel:+16134076699" className="inline-flex h-13 items-center justify-center gap-2 rounded-xl border border-teal-200 bg-white px-6 text-base font-semibold text-teal-900 transition hover:bg-teal-50">
                 <Phone className="h-4 w-4" /> (613) 407-6699
               </a>
             </div>
@@ -135,40 +134,40 @@ function HomePage() {
             ].map(([title, body], i) => (
               <div key={title} className={`p-5 sm:p-6 ${i > 0 ? "border-t border-border sm:border-l sm:border-t-0" : ""}`}>
                 <div className="font-display font-bold text-navy">{title}</div>
-                <div className="mt-1 text-sm text-muted-foreground">{body}</div>
+                <div className="mt-2 text-base leading-relaxed text-slate-600">{body}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-14 sm:py-18 lg:py-20">
+      <section id="home-services" className="py-14 sm:py-18 lg:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <SectionHeader eyebrow="Our services" title="Practical help for your home, property and vehicle" align="left" />
-            <Link to="/services" className="inline-flex items-center text-sm font-semibold text-navy hover:text-accent">View all services <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
+            <Link to="/services" className="inline-flex min-h-11 items-center text-base font-semibold text-teal-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-700">View all services <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
           </div>
           <div className="mt-8 rounded-2xl border border-border bg-white p-1.5 shadow-soft sm:p-2">
             <img
               src={servicesBanner}
               alt="Ottawa Multiservices Group service overview"
+              loading="lazy"
               className="block h-auto w-full object-contain object-left"
             />
           </div>
-          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-7 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {services.map((service) => (
-              <Link key={service.title} to="/quote" className="group relative min-h-[255px] overflow-hidden rounded-2xl border border-white/20 bg-navy shadow-soft">
-                {service.image ? (
-                  <img src={service.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover brightness-[1.12] saturate-[1.05] transition duration-500 group-hover:scale-[1.03]" />
-                ) : (
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.20),transparent_42%),linear-gradient(145deg,#163c70,#2f6ca8)]" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-navy/85 via-navy/35 to-transparent" />
-                <div className="relative flex h-full min-h-[255px] flex-col justify-end p-6 text-white">
-                  <div className="mb-auto grid h-11 w-11 place-items-center rounded-xl border border-white/20 bg-white/12 backdrop-blur-sm"><service.icon className="h-5 w-5 text-accent" /></div>
-                  <h3 className="font-display text-xl font-bold">{service.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/75">{service.body}</p>
-                  <span className="mt-4 inline-flex items-center text-sm font-semibold text-accent">Get a quote <ArrowRight className="ml-1.5 h-4 w-4" /></span>
+              <Link key={service.title} to="/quote" className="group flex h-full flex-col overflow-hidden rounded-2xl border border-teal-100 bg-white shadow-soft transition-shadow hover:shadow-lift focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-700">
+                <div className="aspect-[16/9] overflow-hidden bg-teal-50">
+                  <img src={service.image} alt="" aria-hidden="true" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03]" />
+                </div>
+                <div className="flex flex-1 flex-col p-6">
+                  <div className="flex items-start gap-3">
+                    <service.icon aria-hidden="true" className="mt-0.5 h-6 w-6 shrink-0 text-teal-700" />
+                    <h3 className="font-display text-xl font-bold leading-snug text-teal-950">{service.title}</h3>
+                  </div>
+                  <p className="mb-5 mt-3 text-base leading-relaxed text-slate-600">{service.body}</p>
+                  <span className="mt-auto inline-flex items-center text-base font-semibold text-teal-800 underline-offset-4 group-hover:underline">Get a quote <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" /></span>
                 </div>
               </Link>
             ))}
@@ -176,11 +175,11 @@ function HomePage() {
         </div>
       </section>
 
-      <section className="bg-sand/55 py-14 sm:py-18 lg:py-20">
+      <section id="home-process" className="bg-sand/55 py-14 sm:py-18 lg:py-20">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-8">
           <div>
             <SectionHeader eyebrow="Why clients choose this process" title="Professional service without the usual back-and-forth" align="left" />
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">From the first request to the final invoice, your information stays organized. You can send photos, review the quote, choose a time, sign electronically and keep your documents in one place.</p>
+            <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">From the first request to the final invoice, your information stays organized. You can send photos, review the quote, choose a time, sign electronically and keep your documents in one place.</p>
             <div className="mt-7 grid gap-3 sm:grid-cols-2">
               {[
                 "Free quote requests",
@@ -190,26 +189,29 @@ function HomePage() {
                 "Electronic quote acceptance",
                 "Invoices and service history in your portal",
               ].map((item) => (
-                <div key={item} className="flex items-start gap-3 rounded-xl bg-white p-3.5 shadow-sm"><span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-accent/15 text-accent"><Check className="h-3.5 w-3.5" /></span><span className="text-sm font-medium text-navy">{item}</span></div>
+                <div key={item} className="flex items-start gap-3 rounded-xl border border-teal-100 bg-white p-4"><span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal-100 text-teal-800"><Check aria-hidden="true" className="h-3.5 w-3.5" /></span><span className="text-base font-medium leading-relaxed text-teal-950">{item}</span></div>
               ))}
             </div>
           </div>
 
-          <Card className="overflow-hidden rounded-3xl border-teal-100 bg-gradient-to-br from-teal-600 to-cyan-600 p-0 text-white shadow-lift">
-            <div className="grid gap-px bg-white/10 sm:grid-cols-2">
+          <Card className="rounded-3xl border-teal-200 bg-teal-50 p-4 shadow-soft sm:p-5">
+            <ol className="grid gap-4 sm:grid-cols-2">
               {[
                 { icon: Camera, number: "01", title: "Tell us what you need", body: "Choose your service, answer a few questions and add useful photos." },
                 { icon: FileCheck2, number: "02", title: "Review your quote", body: "See the price, estimated duration and service details before accepting." },
                 { icon: CalendarCheck2, number: "03", title: "Choose your appointment", body: "Select an available time that works for you." },
                 { icon: UserRoundCheck, number: "04", title: "Follow everything online", body: "Access signed quotes, interventions, photos and invoices in your portal." },
               ].map((step) => (
-                <div key={step.number} className="bg-white/8 p-6 sm:p-7">
-                  <div className="flex items-center justify-between"><div className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-accent"><step.icon className="h-5 w-5" /></div><span className="font-display text-3xl font-extrabold text-white/12">{step.number}</span></div>
-                  <h3 className="mt-6 font-display text-lg font-bold">{step.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/65">{step.body}</p>
-                </div>
+                <li key={step.number} className="rounded-2xl border border-teal-100 bg-white p-5 sm:p-6">
+                  <div aria-hidden="true" className="flex items-center justify-between">
+                    <span className="grid h-11 w-11 place-items-center rounded-full bg-teal-800 font-display text-lg font-bold text-white">{step.number}</span>
+                    <step.icon className="h-6 w-6 text-teal-700" />
+                  </div>
+                  <h3 className="mt-5 font-display text-xl font-bold leading-snug text-teal-950">{step.title}</h3>
+                  <p className="mt-3 text-base leading-relaxed text-slate-600">{step.body}</p>
+                </li>
               ))}
-            </div>
+            </ol>
           </Card>
         </div>
       </section>
@@ -217,9 +219,9 @@ function HomePage() {
       <section id="funnel" className="scroll-mt-24 py-14 sm:py-18 lg:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-8 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Start here</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.12em] text-teal-800">Start here</p>
             <h2 className="mt-2 font-display text-3xl font-bold text-navy sm:text-4xl">Tell us what you need</h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">Answer a few questions so we can prepare a more accurate quote. You can also add photos to help us understand the job.</p>
+            <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-slate-600">Answer a few questions so we can prepare a more accurate quote. You can also add photos to help us understand the job.</p>
           </div>
           <QuoteFunnel />
         </div>
@@ -229,11 +231,11 @@ function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-8 rounded-3xl border border-border bg-white p-6 shadow-soft sm:p-8 lg:grid-cols-[1.15fr_.85fr] lg:p-10">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">Local service</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.12em] text-teal-800">Local service</p>
               <h2 className="mt-2 font-display text-3xl font-bold text-navy">Serving Ottawa, Gatineau and surrounding communities</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">Need to confirm that we serve your neighbourhood? Call or email us and we’ll let you know before you request a quote.</p>
+              <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-600">Need to confirm that we serve your neighbourhood? Call or email us and we’ll let you know before you request a quote.</p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <a href="tel:+16134076699" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-cyan-600 px-5 text-sm font-semibold text-white hover:brightness-110"><Phone className="h-4 w-4" />(613) 407-6699</a>
+                <a href="tel:+16134076699" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-teal-800 px-5 text-base font-semibold text-white hover:bg-teal-900"><Phone className="h-4 w-4" />(613) 407-6699</a>
                 <a href="mailto:info@ottawamultiservicesgroup.com" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border px-5 text-sm font-semibold text-navy hover:bg-secondary"><Mail className="h-4 w-4" />Email us</a>
               </div>
             </div>
@@ -248,13 +250,13 @@ function HomePage() {
 
       <section className="py-14 sm:py-18 lg:py-20">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <div className="overflow-hidden rounded-3xl bg-gradient-to-r from-teal-600 to-cyan-600 p-7 text-white shadow-lift sm:p-10 md:flex md:items-center md:justify-between md:gap-10">
+          <div className="overflow-hidden rounded-3xl bg-teal-900 p-7 text-white shadow-lift sm:p-10 lg:flex lg:items-center lg:justify-between lg:gap-10">
             <div className="max-w-2xl">
               <Badge className="border border-white/15 bg-white/10 text-white hover:bg-white/10">Customer Portal</Badge>
               <h2 className="mt-4 font-display text-3xl font-bold">Your quotes, appointments and invoices — in one place</h2>
-              <p className="mt-3 text-sm leading-relaxed text-white/70 sm:text-base">Return anytime to review signed quotes, scheduled services, work photos and invoices.</p>
+              <p className="mt-3 text-base leading-relaxed text-white">Return anytime to review signed quotes, scheduled services, work photos and invoices.</p>
             </div>
-            <Link to="/portal" className="mt-6 block shrink-0 md:mt-0"><Button size="lg" className="h-12 w-full rounded-xl bg-accent px-6 font-bold text-accent-foreground md:w-auto">Open Customer Portal <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
+            <Link to="/portal" className="mt-6 block shrink-0 lg:mt-0"><Button size="lg" className="h-auto min-h-12 w-full whitespace-normal rounded-xl bg-white px-6 py-3 text-base font-bold text-teal-900 hover:bg-teal-50 lg:w-auto">Open Customer Portal <ArrowRight className="ml-2 h-4 w-4 shrink-0" /></Button></Link>
           </div>
         </div>
       </section>
@@ -265,13 +267,13 @@ function HomePage() {
 }
 
 function TrustPill({ icon: Icon, text }: { icon: React.ElementType; text: string }) {
-  return <div className="flex items-center gap-2 rounded-xl border border-teal-200 bg-white/75 px-3.5 py-3 shadow-sm backdrop-blur-sm"><Icon className="h-4 w-4 shrink-0 text-primary" /><span>{text}</span></div>;
+  return <div className="flex items-center gap-2 rounded-xl border border-teal-200 bg-white px-3.5 py-3 text-sm font-medium leading-relaxed text-teal-950 shadow-sm"><Icon aria-hidden="true" className="h-4 w-4 shrink-0 text-teal-700" /><span>{text}</span></div>;
 }
 
 function SectionHeader({ eyebrow, title, align = "center" }: { eyebrow: string; title: string; align?: "left" | "center" }) {
   return (
     <div className={align === "center" ? "mx-auto max-w-2xl text-center" : "max-w-2xl"}>
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{eyebrow}</p>
+      <p className="text-sm font-semibold uppercase tracking-[0.12em] text-teal-800">{eyebrow}</p>
       <h2 className="mt-2 font-display text-3xl font-bold leading-tight text-navy sm:text-4xl">{title}</h2>
     </div>
   );

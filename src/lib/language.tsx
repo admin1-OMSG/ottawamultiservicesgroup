@@ -15,6 +15,23 @@ const LanguageContext = createContext<LanguageContextValue>({
 });
 
 const FR: Record<string, string> = {
+  "Clear written quotes": "Devis écrits et clairs",
+  "Online scheduling": "Rendez-vous en ligne",
+  "Before & after photos": "Photos avant et après",
+  "Select what you need and we'll ask a few quick questions to prepare an accurate quote.": "Choisissez un service, puis répondez à quelques questions pour obtenir un devis précis.",
+  "Regular, deep, move in/out": "Régulier, en profondeur, emménagement ou déménagement",
+  "Mobile interior & exterior": "Nettoyage intérieur et extérieur à domicile",
+  "Mowing, trimming, cleanups": "Tonte, taille et nettoyage saisonnier",
+  "Per-visit or seasonal": "À la visite ou pour la saison",
+  "Local, packing, loading": "Déménagement local, emballage et chargement",
+  "Seasonal swap at your door": "Changement saisonnier à domicile",
+  "Small jobs, fast fixes": "Petits travaux et réparations",
+  "Daily & scheduled cleans": "Entretien quotidien ou planifié",
+  "Lots, walkways, salting": "Stationnements, allées et épandage de sel",
+  "Contracts for properties": "Entretien paysager sous contrat",
+  "General upkeep & repairs": "Entretien général et réparations",
+  "Full-service janitorial": "Service complet d’entretien ménager",
+
   "How often can you clean?": "À quelle fréquence pouvez-vous intervenir ?",
   "Weekly cleaning means one visit every 7 days; every two weeks means one visit every 14 days. Two or more visits per week, daily cleaning and other schedules are also available. The rate and package are reviewed for your requested frequency and tasks.": "Le nettoyage hebdomadaire correspond à une visite tous les 7 jours ; toutes les deux semaines, à une visite tous les 14 jours. Deux passages par semaine ou plus, un entretien quotidien et d’autres rythmes sont aussi possibles. Le tarif et le forfait sont révisés selon la fréquence et les tâches demandées.",
   "Rates depend on the service, size and frequency. Our cleaning pricing pages show included tasks, package prices and savings in dollars for comparable visits. Custom weekly schedules receive a revised quote.": "Les tarifs dépendent du service, de la superficie et de la fréquence. Nos pages de tarifs de nettoyage indiquent les tâches incluses, les forfaits et les économies en dollars pour des visites comparables. Les fréquences hebdomadaires personnalisées font l’objet d’un devis révisé.",

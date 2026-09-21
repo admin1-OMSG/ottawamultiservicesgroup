@@ -1,0 +1,89 @@
+OMSG — ACCUEIL V11 : LISIBILITÉ
+Date : 21 septembre 2026
+Base : version publiée 4de1f21 (Tarifs V10).
+
+Ce ZIP contient uniquement les fichiers modifiés ou ajoutés pour cette mise à jour.
+Il s'applique à votre projet existant ; ce n'est pas un projet complet.
+
+CE QUI CHANGE
+- Textes de l'accueil plus contrastés, y compris le titre et les boutons.
+- Six services illustrés : photo au-dessus, description lisible sur fond blanc.
+- Quatre étapes du service sur fond blanc, avec numéros et titres visibles.
+- Descriptions principales en 16 px avec davantage d'espace entre les lignes.
+- Noms et descriptions des services du formulaire affichés en entier.
+- Traductions françaises ajoutées pour les badges et descriptions du formulaire.
+- Encadré du portail client plus contrasté.
+
+1. COPIER LES FICHIERS
+Fermez le serveur local avec Ctrl+C s'il est en cours.
+Extrayez le ZIP, puis copiez son contenu dans :
+C:\Users\Dell\OneDrive\Desktop\OMSG-v2.5-clean\ottawamultiservicesgroup-main
+
+Choisissez « Remplacer les fichiers dans la destination ».
+Les dossiers src et docs doivent fusionner avec ceux du projet existant.
+Le fichier src/routes/index.tsx doit être directement dans ce projet,
+sans dossier supplémentaire imbriqué.
+
+2. COMPILER
+Ouvrez PowerShell dans le dossier du projet et exécutez :
+
+npm.cmd run build
+
+Attendez la fin de la compilation. Si une erreur apparaît, transmettez-la
+avant de passer à l'étape suivante.
+Utilisez npm.cmd pour éviter le blocage des scripts npm.ps1 par PowerShell.
+
+3. VOIR L'ACCUEIL LOCALEMENT
+
+npm.cmd run dev
+
+Ouvrez l'adresse locale indiquée dans le terminal.
+Vérifiez la page d'accueil en FR puis en EN :
+- les six cartes de services et leurs descriptions ;
+- les quatre étapes numérotées ;
+- le formulaire et les noms de services longs ;
+- les boutons de devis, partenaire et portail client ;
+- l'affichage mobile avec les outils de votre navigateur.
+
+Les captures fournies se trouvent dans docs/home-preview/.
+Arrêtez le serveur avec Ctrl+C lorsque vous avez terminé.
+
+4. PRÉPARER UNIQUEMENT CETTE MISE À JOUR DANS GIT
+Dans le même PowerShell :
+
+$fichiersAccueilV11 = @(
+  'INSTALLATION_ACCUEIL_V11.txt'
+  'VALIDATION_ACCUEIL_V11.md'
+  'src/routes/index.tsx'
+  'src/components/quote-funnel.tsx'
+  'src/lib/language.tsx'
+  'docs/home-preview/hero-desktop-fr.png'
+  'docs/home-preview/services-desktop-fr.png'
+  'docs/home-preview/steps-desktop-fr.png'
+  'docs/home-preview/steps-mobile-fr.png'
+  'docs/home-preview/form-mobile-fr.png'
+)
+
+git --literal-pathspecs add -- $fichiersAccueilV11
+git diff --cached --stat
+
+Le résumé doit contenir uniquement les 10 fichiers de cette liste.
+Des avertissements LF/CRLF peuvent apparaître sous Windows ; ils ne bloquent
+pas cette étape. Ne faites pas « git add . » : votre dossier peut contenir
+d'autres travaux sans rapport avec l'accueil.
+
+5. PUBLIER SUR VOTRE DÉPÔT
+Une fois la compilation et le résumé vérifiés :
+
+git commit -m "Accueil V11 : contrastes et lisibilite des services"
+git push origin main
+
+Attendez que le déploiement habituel de votre site soit terminé.
+Ouvrez ensuite l'accueil et faites Ctrl+F5 pour actualiser les fichiers.
+
+SUPABASE
+Aucune commande Supabase, migration SQL ou publication de fonction nécessaire.
+Cette mise à jour concerne la présentation et quelques traductions.
+Les tarifs, devis, factures, disponibilités et enregistrements CRM ne sont
+pas modifiés. Le composant partagé du formulaire affiche aussi les titres
+complets là où il est utilisé ailleurs sur le site.

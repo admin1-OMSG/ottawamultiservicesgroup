@@ -171,14 +171,14 @@ function ChoiceTile({ icon: Icon, title, desc, onClick }: { icon: React.ElementT
 
 function ServiceTile({ icon: Icon, title, blurb, onClick }: { icon: React.ElementType; title: string; blurb: string; onClick: () => void; }) {
   return (
-    <button onClick={onClick} className="group text-left rounded-xl border border-border bg-card p-5 hover:border-accent hover:shadow-soft transition-all">
-      <div className="flex items-center gap-3">
+    <button type="button" onClick={onClick} className="group min-w-0 text-left rounded-xl border border-teal-200 bg-white p-5 hover:border-teal-600 hover:shadow-soft transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700">
+      <div className="flex items-start gap-3">
         <div className="h-10 w-10 rounded-lg bg-secondary text-navy grid place-items-center group-hover:bg-accent group-hover:text-accent-foreground transition-colors shrink-0">
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <div className="font-semibold text-navy truncate">{title}</div>
-          <div className="text-xs text-muted-foreground truncate">{blurb}</div>
+          <div className="text-base font-semibold leading-snug text-teal-950">{title}</div>
+          <div className="mt-1 text-sm leading-relaxed text-slate-600">{blurb}</div>
         </div>
       </div>
     </button>
