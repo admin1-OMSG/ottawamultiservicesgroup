@@ -1,0 +1,67 @@
+OMSG — ACCUEIL V12 : VISUEL, TITRE ET PIED DE PAGE
+Base : d074257 (Accueil V11). Date : 21 septembre 2026.
+
+Ce ZIP contient uniquement les fichiers modifiés et les documents de cette
+mise à jour. Il s'applique au projet existant avec la V11 installée.
+
+MODIFICATIONS
+- Ancien montage de l'en-tête remplacé par l'illustration de nettoyage sans
+  texte déjà présente dans le projet.
+- Texte et image séparés en deux colonnes sur ordinateur, puis empilés sur mobile.
+- Deux phrases du titre séparées, avec une taille adaptable à la largeur.
+- Bannière de services avec texte intégré supprimée de l'accueil.
+- Six cartes de services conservées.
+- Pied de page commun réorganisé : liens plus grands, colonnes espacées,
+  coordonnées lisibles, icônes sociales plus faciles à toucher.
+- Carrières et mention de droits réservés traduites dans le pied de page.
+
+1. COPIER
+Copiez le contenu du ZIP dans votre dossier existant :
+C:\Users\Dell\OneDrive\Desktop\OMSG-v2.5-clean\ottawamultiservicesgroup-main
+Acceptez le remplacement des fichiers. Fusionnez les dossiers src et docs.
+Ne créez pas un second dossier de projet à l'intérieur du premier.
+
+2. COMPILER DANS POWERSHELL
+npm.cmd run build
+Attendez une compilation réussie. En cas d'erreur, transmettez le résultat.
+
+3. VÉRIFIER LOCALEMENT (avant publication)
+npm.cmd run dev
+Ouvrez l'adresse locale affichée dans le terminal.
+Vérifiez l'accueil et le pied de page en français et en anglais.
+Vérifiez aussi les boutons de devis et les liens du pied de page.
+Arrêtez le serveur avec Ctrl+C.
+Les aperçus sont fournis dans docs/home-preview-v12/.
+
+4. PRÉPARER UNIQUEMENT LES FICHIERS DE CETTE MISE À JOUR
+$fichiersAccueilV12 = @(
+  'INSTALLATION_ACCUEIL_V12.txt'
+  'VALIDATION_ACCUEIL_V12.md'
+  'src/routes/index.tsx'
+  'src/components/site-footer.tsx'
+  'docs/home-preview-v12/hero-desktop-fr.png'
+  'docs/home-preview-v12/hero-mobile-fr.png'
+  'docs/home-preview-v12/services-fr.png'
+  'docs/home-preview-v12/footer-desktop-fr.png'
+  'docs/home-preview-v12/footer-mobile-fr.png'
+)
+git --literal-pathspecs add -- $fichiersAccueilV12
+git diff --cached --stat
+
+Le résumé doit contenir ces 9 fichiers uniquement.
+Les avertissements LF/CRLF ne sont pas bloquants sous Windows.
+N'utilisez pas git add . : vous avez peut-être d'autres changements locaux.
+
+5. PUBLIER APRÈS VÉRIFICATION
+ git commit -m "Accueil V12 : visuel sans texte, titre et pied de page"
+ git push origin main
+
+Attendez la fin du déploiement habituel, puis ouvrez votre site et faites Ctrl+F5.
+
+SUPABASE
+Aucune migration ni commande Supabase nécessaire.
+Les tarifs, les devis et les données CRM ne changent pas.
+Le pied de page étant partagé, sa nouvelle présentation s'applique aux autres
+pages qui utilisent le composant SiteFooter.
+Les anciens fichiers d'images restent dans le projet : il n'est pas nécessaire
+ni demandé de les supprimer manuellement.

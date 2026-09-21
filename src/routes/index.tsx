@@ -18,9 +18,7 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import heroCleaning from "@/assets/omsg-hero-cleaning.jpg";
-import homeBanner from "@/assets/omsg-home-banner.png";
 import tireServiceImg from "@/assets/omsg-tire-service.png";
-import servicesBanner from "@/assets/omsg-services-banner.png";
 import snowServiceImg from "@/assets/omsg-snow-service.png";
 import repairsServiceImg from "@/assets/omsg-repairs-service.png";
 import movingServiceImg from "@/assets/omsg-moving-service.png";
@@ -32,6 +30,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { QuoteFunnel } from "@/components/quote-funnel";
+import { useLanguage } from "@/lib/language";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -70,6 +69,7 @@ const services = [
 ];
 
 function HomePage() {
+  const { language } = useLanguage();
   const scrollToFunnel = () => document.getElementById("funnel")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
@@ -77,25 +77,15 @@ function HomePage() {
       <Toaster richColors position="top-center" />
       <SiteHeader variant="transparent" />
 
-      <section id="home-intro" className="relative isolate min-h-[720px] overflow-hidden sm:min-h-[760px] lg:min-h-[780px]">
-        <img
-          src={homeBanner}
-          alt="Ottawa Multiservices Group services: cleaning, post-construction cleaning, car wash, garden maintenance, tire change, moving, snow removal and small renovations"
-          width={1920}
-          height={1080}
-          fetchPriority="high"
-          className="absolute inset-0 h-full w-full object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-white/95 lg:bg-[linear-gradient(90deg,#f8fffe_0%,rgba(248,255,254,.98)_45%,rgba(248,255,254,.90)_60%,rgba(229,249,246,.20)_85%,rgba(229,249,246,.08)_100%)] lg:bg-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-background/20 to-transparent" />
-
-        <div className="relative mx-auto flex min-h-[720px] max-w-7xl items-center px-4 pb-20 pt-28 sm:min-h-[760px] sm:px-6 sm:pt-32 lg:min-h-[780px] lg:px-8">
-          <div className="max-w-3xl">
+      <section id="home-intro" className="bg-gradient-to-br from-white to-teal-50">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-24 pt-28 sm:px-6 sm:pb-28 sm:pt-32 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:px-8">
+          <div className="min-w-0">
             <Badge className="mb-5 whitespace-normal border border-teal-200 bg-white px-3 py-2 text-xs font-semibold uppercase leading-relaxed tracking-[0.12em] text-teal-800 hover:bg-white">
               One Company. Multiple Solutions. All Seasons.
             </Badge>
-            <h1 className="font-display text-4xl font-extrabold leading-[1.02] text-slate-900 sm:text-5xl md:text-6xl lg:text-[68px]">
-              Everything You Need. <span className="text-teal-700">One Trusted Team.</span>
+            <h1 className="font-display text-[clamp(2rem,3.6vw,3.5rem)] font-extrabold leading-[1.14] tracking-tight text-slate-900">
+              <span className="block text-balance">Everything You Need.</span>
+              <span className="mt-3 block text-balance text-teal-700">One Trusted Team.</span>
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-700 sm:text-lg md:text-xl">
               Professional services for homes, businesses and vehicles across Ottawa & Gatineau.
@@ -120,6 +110,16 @@ function HomePage() {
               <TrustPill icon={CalendarCheck2} text="Online scheduling" />
               <TrustPill icon={Camera} text="Before & after photos" />
             </div>
+          </div>
+          <div className="overflow-hidden rounded-3xl border border-teal-100 bg-white shadow-soft">
+            <img
+              src={heroCleaning}
+              alt={language === "fr" ? "Illustration d’une équipe de nettoyage dans une maison" : "Illustration of a cleaning team in a home"}
+              width={1024}
+              height={1024}
+              fetchPriority="high"
+              className="aspect-[4/3] w-full object-cover sm:aspect-[3/2] lg:aspect-[4/5]"
+            />
           </div>
         </div>
       </section>
@@ -146,14 +146,6 @@ function HomePage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <SectionHeader eyebrow="Our services" title="Practical help for your home, property and vehicle" align="left" />
             <Link to="/services" className="inline-flex min-h-11 items-center text-base font-semibold text-teal-800 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-700">View all services <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
-          </div>
-          <div className="mt-8 rounded-2xl border border-border bg-white p-1.5 shadow-soft sm:p-2">
-            <img
-              src={servicesBanner}
-              alt="Ottawa Multiservices Group service overview"
-              loading="lazy"
-              className="block h-auto w-full object-contain object-left"
-            />
           </div>
           <div className="mt-7 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {services.map((service) => (
