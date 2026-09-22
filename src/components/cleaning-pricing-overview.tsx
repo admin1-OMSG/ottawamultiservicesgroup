@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/lib/language";
 import {
-  RECURRING_SHORT,
   ADDONS,
   DEEP_TASKS,
   ROUTINE_TASKS,
@@ -179,6 +178,72 @@ function Process() {
   );
 }
 
+// Display the existing four-visit policy for equal-scope packages, without taxes or extras.
+// Derive the full rate from the standard plan so display values follow the price catalogue.
+function recurringPackage(plan: ReturnType<typeof plansFor>[number], hours: number) {
+  if (!["weekly", "biweekly", "monthly", "recurring"].includes(plan.id)) return null;
+  const fullRate = plansFor("residential").find((item) => item.id === "once")!.rate!;
+  const round = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+  const full = round(hours * fullRate);
+  const following = round(hours * plan.rate!);
+  const difference = round(full - following);
+  const credit = round(3 * difference);
+  const fourth = round(following - credit);
+  return {
+    fullRate,
+    full,
+    following,
+    difference,
+    credit,
+    fourth,
+    saving: round(4 * difference),
+    total: round(3 * full + fourth),
+    referenceTotal: round(4 * full),
+  };
+}
+
+function RecurringCondition() {
+  const { t } = useCopy();
+  return (
+    <p className="text-sm leading-6 text-slate-700">
+      {t(
+        "4 consecutive visits at the agreed frequency required. No credit if you stop before visit 4.",
+        "4 visites consécutives à la fréquence convenue requises. Aucun crédit en cas d’arrêt avant la 4e visite.",
+      )}
+    </p>
+  );
+}
+
+function PackageCalculation({ billing }: { billing: NonNullable<ReturnType<typeof recurringPackage>> }) {
+  const { language, t } = useCopy();
+  return (
+    <details className="group mt-2">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-teal-900 [&::-webkit-details-marker]:hidden">
+        {t("Understand the calculation", "Comprendre le calcul")}
+        <ChevronDown aria-hidden className="h-4 w-4 shrink-0 transition group-open:rotate-180" />
+      </summary>
+      <div className="space-y-2 pb-2 text-sm leading-6 text-slate-700">
+        <p>
+          {t("Saving per visit:", "Économie par visite :")} {money(billing.full, language)} −{" "}
+          {money(billing.following, language)} = {money(billing.difference, language)}.
+        </p>
+        <p>
+          {t("Credit from visits 1–3:", "Crédit des visites 1 à 3 :")} 3 ×{" "}
+          {money(billing.difference, language)} = {money(billing.credit, language)}.
+        </p>
+        <p>
+          {t("Invoice 4:", "Facture 4 :")} {money(billing.following, language)} −{" "}
+          {money(billing.credit, language)} = {money(billing.fourth, language)}.
+        </p>
+        <p>
+          {t("Total for 4 visits:", "Total des 4 visites :")} {money(billing.total, language)}{" "}
+          {t("instead of", "au lieu de")} {money(billing.referenceTotal, language)}.
+        </p>
+      </div>
+    </details>
+  );
+}
+
 export function PricingLanding() {
   const { language, t } = useCopy();
   return (
@@ -204,6 +269,7 @@ export function PricingLanding() {
             const plan = plansFor(audience).find(
               (p) => p.id === (residential ? "weekly" : "recurring"),
             )!;
+            const billing = recurringPackage(plan, plan.minimum)!;
             return (
               <Link
                 key={audience}
@@ -238,21 +304,18 @@ export function PricingLanding() {
                         )}
                   </p>
                   <p className="mt-5 text-base font-semibold text-teal-900">
-                    {t("From", "Dès")} {money(packageExample(plan)!.minimum, language)}{" "}
+                    {t("First visit from", "Première visite dès")} {money(billing.full, language)}{" "}
                     <span className="text-sm font-normal text-slate-600">
-                      {t("/ visit, before tax", "/ visite, avant taxes")}
+                      {t("before tax & extras", "avant taxes et options")}
                     </span>
                   </p>
-                  <p className="mt-1 text-xs leading-5 text-slate-500">
-                    {residential
-                      ? t(
-                          "Weekly maintenance, 3 worker-hours. Initial visit from $150.",
-                          "Entretien hebdomadaire, 3 heures-personnes. Première visite dès 150 $.",
-                        )
-                      : t(
-                          "One visit per week, minimum 2 worker-hours.",
-                          "Une visite par semaine, minimum de 2 heures-personnes.",
-                        )}
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {plan.minimum} {t("worker-hours · one visit per week.", "heures-personnes · une visite par semaine.")}{" "}
+                    {t("Visits 1–3 at full rate; credit on visit 4 after 4 consecutive visits.", "Visites 1 à 3 au tarif complet ; crédit à la 4e après 4 visites consécutives.")}
+                  </p>
+                  <p className="mt-2 text-sm font-medium text-teal-900">
+                    {t("Then from", "Ensuite dès")} {money(billing.following, language)}{" "}
+                    {t("per visit, at the agreed frequency.", "par visite, selon la fréquence convenue.")}
                   </p>
                   <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-teal-800">
                     {t("Explore services & prices", "Voir les prestations et tarifs")}
@@ -289,52 +352,65 @@ function PackageCard({ audience, id }: { audience: Audience; id: PlanId }) {
   const { language, t } = useCopy();
   const plan = plansFor(audience).find((p) => p.id === id)!;
   const example = packageExample(plan)!;
-  const recurring = id === "recurring";
+  const commercialRecurring = id === "recurring";
+  const billing = recurringPackage(plan, example.hours);
+  const minimumBilling = commercialRecurring ? recurringPackage(plan, plan.minimum)! : null;
   return (
     <article
       data-package={id}
-      className={`flex flex-col rounded-lg border p-6 sm:p-7 ${id === "weekly" || recurring ? "border-teal-700 bg-teal-50/60" : "border-slate-200 bg-white"}`}
+      className={`flex flex-col rounded-lg border p-6 sm:p-7 ${id === "weekly" || commercialRecurring ? "border-teal-700 bg-teal-50/60" : "border-slate-200 bg-white"}`}
     >
       <h3 className="min-h-14 text-lg font-semibold leading-7 text-slate-900">
         {plan.name[language]}
       </h3>
-      <div className="mt-4 flex flex-wrap items-baseline gap-2">
-        <span className="text-3xl font-bold tracking-tight text-slate-900">
-          {money(example.amount, language)}
-        </span>
-        {example.saving > 0 && (
-          <s
-            className="text-base text-slate-500"
-            aria-label={t("Comparable one-time package", "Forfait ponctuel comparable")}
-          >
-            {money(example.reference, language)}
-          </s>
-        )}
-      </div>
-      {["weekly", "biweekly", "monthly", "recurring"].includes(id) && (
-        <p className="mt-2 text-xs font-medium leading-5 text-teal-800">
-          {t(
-            "Subject to 4 consecutive visits · credit on invoice 4",
-            "Sous condition de 4 visites consécutives · crédit sur la facture 4",
-          )}
-        </p>
-      )}
-      <p className="mt-2 text-sm text-slate-600">
+      <p className="mt-4 text-sm font-semibold text-slate-700">
+        {billing ? t("Your first visit", "Votre première visite") : t("Per visit", "Par visite")}
+      </p>
+      <p className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
+        {money(billing?.full ?? example.amount, language)}
+      </p>
+      <p className="mt-2 text-sm leading-6 text-slate-600">
+        {t("CAD before tax & extras", "CAD avant taxes et options")}
+      </p>
+      <p className="mt-1 text-sm leading-6 text-slate-600">
         {example.hours.toLocaleString(language === "fr" ? "fr-CA" : "en-CA")}{" "}
         {t("worker-hours / visit", "heures-personnes / visite")}
       </p>
-      <p className="mt-1 text-sm text-slate-600">
-        {money(plan.rate!, language)} {t("/ worker-hour", "/ heure-personne")}
-      </p>
-      <p
-        className={`mt-4 min-h-6 text-sm font-semibold ${example.saving > 0 ? "text-teal-800" : "text-slate-600"}`}
-      >
-        {example.saving > 0
-          ? `${t("Save", "Économisez")} ${money(example.saving, language)} ${t("/ visit", "/ visite")}`
-          : id === "deep"
-            ? t("A more detailed clean", "Un nettoyage plus détaillé")
-            : t("A fresh start, when you need it", "Un espace propre, selon vos besoins")}
-      </p>
+      {billing ? (
+        <>
+          <dl className="mt-5 divide-y divide-slate-200 rounded-md border border-slate-200 bg-white text-sm">
+            {[
+              { label: t("Visits 1–3 · each", "Visites 1 à 3 · chacune"), amount: billing.full },
+              { label: t("Visit 4 · credit applied", "Visite 4 · crédit déduit"), amount: billing.fourth },
+              { label: t("Visit 5 onward · each", "Dès la visite 5 · chacune"), amount: billing.following },
+            ].map(({ label, amount }, index) => (
+              <div key={label} className={`flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-3 py-3 ${index === 1 ? "bg-teal-50 text-teal-950" : "text-slate-700"}`}>
+                <dt className="min-w-0">{label}</dt>
+                <dd className="shrink-0 font-bold tabular-nums">{money(amount, language)}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-4 text-sm font-semibold leading-6 text-teal-900">
+            {t("Save", "Économisez")} {money(billing.saving, language)}{" "}
+            {t("over the first 4 visits.", "sur les 4 premières visites.")}
+          </p>
+          <div className="mt-2">
+            <RecurringCondition />
+          </div>
+          <PackageCalculation billing={billing} />
+        </>
+      ) : (
+        <>
+          <p className="mt-1 text-sm text-slate-600">
+            {money(plan.rate!, language)} {t("/ worker-hour", "/ heure-personne")}
+          </p>
+          <p className="mt-4 text-sm font-semibold text-slate-600">
+            {id === "deep"
+              ? t("A more detailed clean", "Un nettoyage plus détaillé")
+              : t("A fresh start, when you need it", "Un espace propre, selon vos besoins")}
+          </p>
+        </>
+      )}
       <ul className="my-5 space-y-3 border-t border-slate-200 pt-5 text-sm leading-6 text-slate-600">
         {(id === "deep"
           ? [
@@ -369,15 +445,19 @@ function PackageCard({ audience, id }: { audience: Audience; id: PlanId }) {
           </li>
         ))}
       </ul>
-      {recurring && (
-        <p className="mb-4 text-xs leading-5 text-slate-600">
-          {t("3-hour example. Minimum visit:", "Exemple de 3 h. Minimum par visite :")}{" "}
-          {money(example.minimum, language)} / 2 {t("worker-hours", "heures-personnes")}.
+      {minimumBilling && (
+        <p className="mb-5 text-sm leading-6 text-slate-600">
+          <strong className="font-semibold text-slate-800">
+            {t("For the 2-worker-hour minimum:", "Pour le minimum de 2 heures-personnes :")}
+          </strong>{" "}
+          {t("visits 1–3", "visites 1 à 3")} {money(minimumBilling.full, language)}{" "}
+          {t("each", "chacune")} ; {t("visit 4", "visite 4")} {money(minimumBilling.fourth, language)} ;{" "}
+          {t("then", "puis")} {money(minimumBilling.following, language)} {t("per visit.", "par visite.")}
         </p>
       )}
       <div className="mt-auto">
-        <EstimateLink audience={audience} plan={id} secondary={id !== "weekly" && !recurring}>
-          {t("Choose this plan", "Choisir ce forfait")}
+        <EstimateLink audience={audience} plan={id} secondary={id !== "weekly" && !commercialRecurring}>
+          {t("Get my free quote", "Obtenir mon devis gratuit")}
         </EstimateLink>
       </div>
     </article>
@@ -393,15 +473,19 @@ function AllPlans({ audience }: { audience: Audience }) {
         "Comparer toutes les prestations et tous les tarifs",
       )}
     >
+      <p className="mb-3 text-sm leading-6 text-slate-700">
+        {t("CAD before tax and extras. Recurring packages show the amounts for each stage, for identical cleaning time and scope.", "CAD avant taxes et options. Les forfaits récurrents indiquent les montants à chaque étape, pour une durée et des prestations identiques.")}
+      </p>
+      <RecurringCondition />
       <div
-        className="relative overflow-x-auto"
+        className="relative mt-3 overflow-x-auto"
         role="region"
         tabIndex={0}
         aria-label={t("All cleaning prices", "Tous les tarifs de nettoyage")}
       >
         <table className="w-full min-w-[640px] text-left text-sm">
           <caption className="sr-only">
-            {t("Prices in CAD before tax", "Tarifs en CAD avant taxes")}
+            {t("Prices in CAD before tax and extras", "Tarifs en CAD avant taxes et options")}
           </caption>
           <thead>
             <tr className="border-b text-slate-900">
@@ -416,6 +500,8 @@ function AllPlans({ audience }: { audience: Audience }) {
           <tbody>
             {plansFor(audience).map((plan) => {
               const example = packageExample(plan);
+              const billing = example ? recurringPackage(plan, example.hours) : null;
+              const minimumBilling = plan.id === "recurring" ? recurringPackage(plan, plan.minimum)! : null;
               return (
                 <tr key={plan.id} className="border-b border-slate-100 align-top">
                   <td className="max-w-xs py-5 pr-5">
@@ -423,7 +509,14 @@ function AllPlans({ audience }: { audience: Audience }) {
                     <p className="mt-1 leading-6">{plan.description[language]}</p>
                   </td>
                   <td className="p-3 pt-5">
-                    {plan.id === "extras"
+                    {billing ? (
+                      <>
+                        <p className="font-semibold text-slate-900">{money(billing.fullRate, language)}</p>
+                        <p>{t("Visits 1–3", "Visites 1 à 3")}</p>
+                        <p className="mt-2 font-semibold text-slate-900">{money(plan.rate!, language)}</p>
+                        <p>{t("Recurring rate after qualification", "Tarif récurrent après admissibilité")}</p>
+                      </>
+                    ) : plan.id === "extras"
                       ? t("Per task", "Par tâche")
                       : plan.rate === null
                         ? t("Custom quote", "Sur devis")
@@ -432,25 +525,32 @@ function AllPlans({ audience }: { audience: Audience }) {
                   <td className="p-3 pt-5">
                     {example ? (
                       <>
-                        <div className="flex flex-wrap gap-2">
-                          {example.saving > 0 && <s>{money(example.reference, language)}</s>}
-                          <strong className="text-slate-900">
-                            {money(example.amount, language)}
-                          </strong>
-                        </div>
-                        <p className="text-xs">
+                        {billing ? (
+                          <div className="space-y-1 text-sm leading-6">
+                            <p><strong className="text-slate-900">{money(billing.full, language)}</strong> · {t("visits 1–3, each", "visites 1 à 3, chacune")}</p>
+                            <p className="font-medium text-teal-900">{money(billing.fourth, language)} · {t("visit 4, credit applied", "visite 4, crédit déduit")}</p>
+                            <p>{money(billing.following, language)} · {t("visit 5 onward, each", "dès la visite 5, chacune")}</p>
+                          </div>
+                        ) : (
+                          <strong className="text-slate-900">{money(example.amount, language)}</strong>
+                        )}
+                        <p className="mt-2 text-sm leading-6">
                           {plan.id === "extras"
                             ? t("Minimum total, tasks included", "Minimum total, tâches comprises")
-                            : `${example.hours.toLocaleString(language === "fr" ? "fr-CA" : "en-CA")} ${t("worker-hours", "heures-personnes")}`}
+                            : `${example.hours.toLocaleString(language === "fr" ? "fr-CA" : "en-CA")} ${t("worker-hours / visit", "heures-personnes / visite")}`}
                         </p>
-                        {example.saving > 0 && (
-                          <p className="font-semibold text-teal-800">
-                            {t("Save", "Économisez")} {money(example.saving, language)}
+                        {billing && (
+                          <p className="mt-2 font-semibold text-teal-900">
+                            {t("Save", "Économisez")} {money(billing.saving, language)}{" "}
+                            {t("over the first 4 visits", "sur les 4 premières visites")}
                           </p>
                         )}
-                        {plan.id === "recurring" && (
-                          <p className="text-xs">
-                            {t("Minimum", "Minimum")} {money(example.minimum, language)} / 2 h
+                        {minimumBilling && (
+                          <p className="mt-2 text-sm leading-6">
+                            {t("2-hour minimum:", "Minimum de 2 h :")} {money(minimumBilling.full, language)}{" "}
+                            {t("for each of visits 1–3;", "pour chacune des visites 1 à 3 ;")} {money(minimumBilling.fourth, language)}{" "}
+                            {t("on visit 4; then", "à la visite 4 ; puis")} {money(minimumBilling.following, language)}{" "}
+                            {t("per visit.", "par visite.")}
                           </p>
                         )}
                       </>
@@ -727,10 +827,9 @@ export function CleaningPricingPage({ audience }: { audience: Audience }) {
           </div>
           <p className="mt-5 text-sm leading-7 text-slate-600">
             {t(
-              "Savings compare the same standard one-time package and duration.",
-              "Les économies se calculent par rapport au même forfait standard ponctuel, de durée identique.",
-            )}{" "}
-            <strong className="font-medium text-slate-800">{RECURRING_SHORT[language]}</strong>
+              "Four-visit savings compare 4 identical visits at the full standard rate. The credit changes the price, not the agreed cleaning tasks.",
+              "Les économies sur 4 visites se comparent à 4 prestations identiques au tarif standard complet. Le crédit modifie le prix, pas les tâches convenues.",
+            )}
           </p>
           <AllPlans audience={audience} />
           <div className="mt-7 flex flex-col justify-between gap-5 rounded-lg bg-teal-50 px-6 py-6 sm:flex-row sm:items-center">

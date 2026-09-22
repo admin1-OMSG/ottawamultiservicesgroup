@@ -1,0 +1,87 @@
+OMSG — PRIX INITIAUX ET AVANTAGE RÉCURRENT PLUS LISIBLES — V15
+
+Cette mise à jour complète la version V14 déjà installée.
+L’archive contient uniquement les fichiers de ce correctif, pas tout le projet.
+
+CHANGEMENTS
+- Première visite au tarif complet affichée clairement sur les forfaits récurrents.
+- Montants des visites 1 à 3, de la quatrième après crédit et des suivantes.
+- Économie totale sur les quatre premières visites et calcul dépliable.
+- Conditions près des montants, en français et en anglais.
+- Présentation harmonisée en résidentiel, commercial, page générale des tarifs,
+  tableau comparatif et politique des prix.
+
+Les taux, prestations, taxes, règles de crédit et données CRM ne sont pas modifiés.
+Aucun déploiement de fonction ni migration Supabase n’est nécessaire.
+
+1. COPIER LES FICHIERS
+Fermez le serveur local s’il est ouvert. Faites une copie de sauvegarde des deux
+fichiers suivants, hors du dossier du projet, puis extrayez le ZIP et copiez son
+contenu à la racine du projet (le dossier contenant package.json).
+Acceptez le remplacement des fichiers existants.
+
+Fichiers du site remplacés :
+src/components/cleaning-pricing-overview.tsx
+src/routes/pricing-policy.tsx
+
+Les fichiers de documentation et les aperçus ne modifient pas le fonctionnement
+du site. N’importez pas ce ZIP dans Supabase.
+
+2. VÉRIFIER DANS POWERSHELL
+Depuis votre dossier de projet :
+
+node scripts/test-cleaning-pricing.mjs
+npm.cmd run build
+
+Si une commande échoue, arrêtez-vous et transmettez le message d’erreur.
+La commande npm.cmd évite le blocage de npm.ps1 par PowerShell.
+
+3. PRÉPARER UNIQUEMENT CE CORRECTIF
+Exécutez ce bloc :
+
+$fichiersPrixV15 = @(
+  "src/components/cleaning-pricing-overview.tsx"
+  "src/routes/pricing-policy.tsx"
+  "INSTALLATION_PRIX_CLAIRS_V15.txt"
+  "VALIDATION_PRIX_CLAIRS_V15.md"
+  "docs/pricing-preview/recurring-cards-v15-en.png"
+  "docs/pricing-preview/recurring-card-mobile-v15-fr.png"
+)
+git --literal-pathspecs add -- $fichiersPrixV15
+git diff --cached --stat
+git diff --cached --name-only
+
+Vérifiez que les fichiers préparés correspondent à la liste ci-dessus. Si vous
+voyez d’autres modifications, transmettez le résultat avant de créer le commit.
+Les avertissements LF/CRLF seuls ne constituent pas une erreur.
+
+4. ENVOYER LE CORRECTIF
+Après validation des tests, de la compilation et des fichiers préparés :
+
+git commit -m "Clarify initial cleaning prices and recurring invoice schedule"
+git push origin main
+
+5. APRÈS LE DÉPLOIEMENT DE VOTRE HÉBERGEUR
+Attendez que le déploiement du site soit terminé avec succès.
+Rechargez la page avec Ctrl+F5 sur ordinateur, puis vérifiez sur téléphone :
+
+https://ottawamultiservicesgroup.com/pricing
+https://ottawamultiservicesgroup.com/pricing/residential
+https://ottawamultiservicesgroup.com/pricing/commercial
+https://ottawamultiservicesgroup.com/pricing-policy
+
+Pour l’exemple résidentiel hebdomadaire de 3 heures-personnes, sans options :
+- visites 1 à 3 : 150 CAD chacune avant taxes ;
+- visite 4 : 54 CAD avant taxes ;
+- visite 5 et suivantes : 126 CAD avant taxes ;
+- économie totale sur les quatre premières visites : 96 CAD avant taxes.
+
+La quatrième facture contient 72 CAD de crédit pour les trois premières visites,
+plus le tarif récurrent de 126 CAD pour la quatrième. Ne pas confondre ce crédit
+de 72 CAD avec l’économie totale de 96 CAD sur les quatre visites.
+
+Le calculateur affiche les taxes et les options selon les choix du client : les
+totaux qui y figurent peuvent donc différer des exemples avant taxes des cartes.
+Testez les boutons EN/FR et ouvrez « Comprendre le calcul ».
+
+Ce correctif ne publie et ne modifie aucune publicité Facebook.
