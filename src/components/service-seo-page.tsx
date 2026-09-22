@@ -33,24 +33,33 @@ export function ServiceSeoPage({
             <p className="font-semibold uppercase tracking-[.18em] text-teal-700">
               {content.eyebrow}
             </p>
-            <h1 className="mt-3 max-w-4xl text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+            <h1 className="mt-3 max-w-4xl [overflow-wrap:anywhere] text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
               {content.title}
             </h1>
             <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">{content.intro}</p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link to={pricingPath ?? "/quote"}>
-                <Button size="lg">
+              <Button
+                asChild
+                size="lg"
+                className="h-auto min-h-12 w-full whitespace-normal px-4 py-3 text-center sm:w-auto"
+              >
+                <Link to={pricingPath ?? "/quote"}>
                   {pricingPath
                     ? t("See prices and estimate", "Voir les tarifs et estimer")
                     : t("Get a Free Quote", "Obtenir un devis gratuit")}
-                </Button>
-              </Link>
-              <a href="tel:+16134076699">
-                <Button size="lg" variant="outline">
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-auto min-h-12 w-full whitespace-normal px-4 py-3 sm:w-auto"
+              >
+                <a href="tel:+16134076699">
                   <Phone className="mr-2 h-4 w-4" />
                   (613) 407-6699
-                </Button>
-              </a>
+                </a>
+              </Button>
             </div>
           </div>
         </section>

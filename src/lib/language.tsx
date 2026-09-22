@@ -68,6 +68,7 @@ const FR: Record<string, string> = {
   "Services": "Services",
   "About": "À propos",
   "Partners": "Partenaires",
+  "Careers": "Carrières",
   "Customer Portal": "Portail client",
   "Contact": "Contact",
   "Free Quote": "Devis gratuit",
@@ -608,15 +609,26 @@ function walk(root: Node, language: Language) {
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>("en");
+  const [preferenceLoaded, setPreferenceLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("omsg-language");
-    if (saved === "fr") setLanguageState("fr");
+    try {
+      const saved = window.localStorage.getItem("omsg-language");
+      if (saved === "fr" || saved === "en") setLanguageState(saved);
+    } catch {
+      // Language switching must still work when the browser blocks storage.
+    }
+    setPreferenceLoaded(true);
   }, []);
 
   useEffect(() => {
+    if (!preferenceLoaded) return;
     document.documentElement.lang = language;
-    window.localStorage.setItem("omsg-language", language);
+    try {
+      window.localStorage.setItem("omsg-language", language);
+    } catch {
+      // The preference remains available for this page through React state.
+    }
     walk(document.body, language);
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
@@ -627,7 +639,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     });
     observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: [...ATTRS] });
     return () => observer.disconnect();
-  }, [language]);
+  }, [language, preferenceLoaded]);
 
   const setLanguage = useCallback((next: Language) => setLanguageState(next), []);
   const toggleLanguage = useCallback(() => setLanguageState((current) => current === "en" ? "fr" : "en"), []);
@@ -642,16 +654,44 @@ export function useLanguage() {
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { language, setLanguage } = useLanguage();
   return (
-    <div data-i18n-ignore="true" className={`inline-flex items-center rounded-xl border border-border/80 bg-background/95 p-1 shadow-sm backdrop-blur ${compact ? "text-[11px]" : "text-xs"}`} aria-label="Language selector">
-      <button type="button" onClick={() => setLanguage("en")} className={`rounded-lg px-2.5 py-1.5 font-bold transition ${language === "en" ? "bg-navy text-white" : "text-foreground/65 hover:bg-secondary"}`} aria-pressed={language === "en"}>EN</button>
-      <button type="button" onClick={() => setLanguage("fr")} className={`rounded-lg px-2.5 py-1.5 font-bold transition ${language === "fr" ? "bg-navy text-white" : "text-foreground/65 hover:bg-secondary"}`} aria-pressed={language === "fr"}>FR</button>
+    <div data-language-switcher="true" data-i18n-ignore="true" role="group" className={`inline-flex shrink-0 items-center rounded-xl border border-border/80 bg-background/95 p-0.5 shadow-sm backdrop-blur ${compact ? "text-xs" : "text-sm"}`} aria-label={language === "fr" ? "Langue du site" : "Site language"}>
+      <button type="button" lang="en" aria-label="English" onClick={() => setLanguage("en")} className={`inline-flex h-11 min-w-11 items-center justify-center rounded-lg px-2 font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${language === "en" ? "bg-navy text-white" : "text-foreground/80 hover:bg-secondary"}`} aria-pressed={language === "en"}>EN</button>
+      <button type="button" lang="fr" aria-label="Français" onClick={() => setLanguage("fr")} className={`inline-flex h-11 min-w-11 items-center justify-center rounded-lg px-2 font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${language === "fr" ? "bg-navy text-white" : "text-foreground/80 hover:bg-secondary"}`} aria-pressed={language === "fr"}>FR</button>
     </div>
   );
 }
 
 export function FloatingLanguageSwitcher() {
+  const [needed, setNeeded] = useState(false);
+
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      const hasVisibleSwitcher = Array.from(document.querySelectorAll<HTMLElement>('[data-language-switcher="true"]')).some((element) => (
+        !element.closest('[data-floating-language-switcher="true"]')
+        && element.getClientRects().length > 0
+        && window.getComputedStyle(element).visibility !== "hidden"
+      ));
+      setNeeded(!hasVisibleSwitcher);
+    };
+    const scheduleUpdate = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(update);
+    };
+    update();
+    const observer = new MutationObserver(scheduleUpdate);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    window.addEventListener("resize", scheduleUpdate);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", scheduleUpdate);
+      window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  if (!needed) return null;
   return (
-    <div data-i18n-ignore="true" className="fixed bottom-4 right-4 z-[100] sm:bottom-5 sm:right-5 lg:hidden">
+    <div data-floating-language-switcher="true" data-i18n-ignore="true" className="fixed bottom-4 right-4 z-40 sm:bottom-5 sm:right-5">
       <LanguageSwitcher compact />
     </div>
   );

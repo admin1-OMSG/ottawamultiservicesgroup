@@ -698,7 +698,7 @@ function ContactForm({
           type="submit"
           size="lg"
           disabled={pending || preparingPhotos}
-          className="h-12 bg-accent px-8 text-base font-semibold text-accent-foreground hover:brightness-105"
+          className="h-auto min-h-12 w-full whitespace-normal bg-accent px-4 py-3 text-base font-semibold text-accent-foreground hover:brightness-105 sm:w-auto sm:px-8"
         >
           {pending ? "Sending…" : "Get My Free Quote Now"}
         </Button>
@@ -937,7 +937,7 @@ export function PartnerApplicationForm({ mode, onSubmitted }: { mode: PartnerApp
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit" size="lg" disabled={pending || preparingAttachments} className="h-12 bg-accent px-8 text-accent-foreground hover:brightness-105">
+        <Button type="submit" size="lg" disabled={pending || preparingAttachments} className="h-auto min-h-12 w-full whitespace-normal bg-accent px-4 py-3 text-accent-foreground hover:brightness-105 sm:w-auto sm:px-8">
           {pending ? "Sending…" : mode === "service_provider" ? "Submit Partner Profile" : "Submit Subcontracting Opportunity"}
         </Button>
       </div>

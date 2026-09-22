@@ -105,8 +105,8 @@ function ContactPage() {
           )}
         />
         <section className="py-12 md:py-16">
-          <div className="mx-auto grid max-w-6xl gap-8 px-6 lg:grid-cols-[1fr_1.4fr] lg:gap-10">
-            <div className="grid content-start gap-4">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:gap-10">
+            <div className="grid min-w-0 grid-cols-1 content-start gap-4">
               {[
                 {
                   icon: Phone,
@@ -142,7 +142,7 @@ function ContactPage() {
                     <h2 className="font-semibold text-navy">{card.title}</h2>
                     {card.href ? (
                       <a
-                        className="mt-1 block break-words text-sm leading-6 text-primary underline underline-offset-4"
+                        className="mt-1 block [overflow-wrap:anywhere] text-sm leading-6 text-teal-800 underline underline-offset-4"
                         href={card.href}
                       >
                         {card.body}
@@ -164,7 +164,7 @@ function ContactPage() {
               </Link>
             </div>
 
-            <Card className="border-border/60 p-6 shadow-soft md:p-8">
+            <Card className="min-w-0 border-border/60 p-6 shadow-soft md:p-8">
               {savedId ? (
                 <div
                   role="status"

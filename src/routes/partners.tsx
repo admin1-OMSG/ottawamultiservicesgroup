@@ -52,8 +52,8 @@ function PartnersPage() {
 
       <section className="py-16">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="p-7 border-border/70 shadow-soft">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Card className="min-w-0 p-5 sm:p-7 border-border/70 shadow-soft">
               <div className="grid h-12 w-12 place-items-center rounded-xl bg-accent/15 text-accent"><HardHat className="h-6 w-6" /></div>
               <p className="mt-5 text-xs font-bold uppercase tracking-[.18em] text-accent">Service partners & workers</p>
               <h2 className="mt-2 text-2xl font-bold text-navy">I want to work with OMSG</h2>
@@ -63,10 +63,10 @@ function PartnersPage() {
               <div className="mt-5 grid gap-2 text-sm text-foreground/80 sm:grid-cols-2">
                 {["Residential & commercial cleaning","Vehicle detailing / car wash","Landscaping & gardening","Snow removal","Moving","Mobile tire change","Small repairs / renovation","Other related field work"].map(x=><div key={x} className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent"/><span>{x}</span></div>)}
               </div>
-              <Button onClick={() => openForm("service_provider")} className="mt-7 h-11 bg-accent text-accent-foreground">Join our service network</Button>
+              <Button onClick={() => openForm("service_provider")} className="mt-7 h-auto min-h-11 w-full whitespace-normal py-3 bg-accent text-accent-foreground sm:w-auto">Join our service network</Button>
             </Card>
 
-            <Card className="p-7 border-border/70 shadow-soft">
+            <Card className="min-w-0 p-5 sm:p-7 border-border/70 shadow-soft">
               <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary"><Building2 className="h-6 w-6" /></div>
               <p className="mt-5 text-xs font-bold uppercase tracking-[.18em] text-primary">Business subcontracting</p>
               <h2 className="mt-2 text-2xl font-bold text-navy">I need OMSG as a subcontractor</h2>
@@ -76,7 +76,7 @@ function PartnersPage() {
               <div className="mt-5 grid gap-2 text-sm text-foreground/80">
                 {["One-time, recurring or seasonal contracts","Cleaning and property service support","Overflow capacity for your existing contracts","Ottawa, Gatineau and surrounding areas"].map(x=><div key={x} className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary"/><span>{x}</span></div>)}
               </div>
-              <Button onClick={() => openForm("subcontracting_client")} variant="outline" className="mt-7 h-11 border-primary text-primary hover:bg-primary/5">Submit a subcontracting opportunity</Button>
+              <Button onClick={() => openForm("subcontracting_client")} variant="outline" className="mt-7 h-auto min-h-11 w-full whitespace-normal py-3 border-teal-800 text-teal-800 hover:bg-primary/5 sm:w-auto">Submit a subcontracting opportunity</Button>
             </Card>
           </div>
 

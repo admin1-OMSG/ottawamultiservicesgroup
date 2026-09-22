@@ -1,0 +1,607 @@
+{
+  "date": "2026-09-22",
+  "source": "ottawamultiservicesgroup-main (44).zip",
+  "matrix": {
+    "count": 460,
+    "failures": [],
+    "runtimeErrors": [],
+    "paths": [
+      "/",
+      "/services",
+      "/pricing",
+      "/pricing/residential",
+      "/pricing/commercial",
+      "/pricing/estimate",
+      "/pricing-policy",
+      "/quote",
+      "/faq",
+      "/privacy",
+      "/terms",
+      "/contact",
+      "/about",
+      "/partners",
+      "/careers",
+      "/portal",
+      "/admin/login",
+      "/mobile-car-detailing-ottawa",
+      "/landscaping-ottawa",
+      "/moving-services-ottawa",
+      "/snow-removal-ottawa",
+      "/mobile-tire-change-ottawa",
+      "/handyman-ottawa"
+    ],
+    "widths": [
+      320,
+      375,
+      390,
+      768,
+      1024,
+      1180,
+      1280,
+      1440,
+      1536,
+      1920
+    ],
+    "languages": [
+      "en",
+      "fr"
+    ],
+    "quoteSubmit": {
+      "width": 238,
+      "parent": 238,
+      "right": 279,
+      "viewport": 320,
+      "text": "Obtenir mon devis gratuit maintenant"
+    }
+  },
+  "languageAndMenu": {
+    "results": [
+      {
+        "test": "language-persists-after-reload",
+        "language": "fr",
+        "passed": true
+      },
+      {
+        "test": "language-persists-after-reload",
+        "language": "en",
+        "passed": true
+      },
+      {
+        "test": "menu-bottom-cta-and-escape",
+        "viewport": {
+          "width": 320,
+          "height": 700
+        },
+        "dimensions": {
+          "x": 16,
+          "y": 578,
+          "bottom": 622,
+          "right": 304,
+          "width": 320,
+          "height": 700
+        },
+        "passed": true
+      },
+      {
+        "test": "menu-bottom-cta-and-escape",
+        "viewport": {
+          "width": 844,
+          "height": 390
+        },
+        "dimensions": {
+          "x": 560,
+          "y": 330,
+          "bottom": 374,
+          "right": 820,
+          "width": 844,
+          "height": 390
+        },
+        "passed": true
+      },
+      {
+        "test": "single-visible-language-pair-and-touch-targets",
+        "width": 320,
+        "switches": [
+          {
+            "text": "EN",
+            "x": 169,
+            "right": 213,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "text": "FR",
+            "x": 213,
+            "right": 257,
+            "width": 44,
+            "height": 44
+          }
+        ],
+        "passed": true
+      },
+      {
+        "test": "single-visible-language-pair-and-touch-targets",
+        "width": 1024,
+        "switches": [
+          {
+            "text": "EN",
+            "x": 656,
+            "right": 700,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "text": "FR",
+            "x": 700,
+            "right": 744,
+            "width": 44,
+            "height": 44
+          }
+        ],
+        "passed": true
+      },
+      {
+        "test": "single-visible-language-pair-and-touch-targets",
+        "width": 1180,
+        "switches": [
+          {
+            "text": "EN",
+            "x": 812,
+            "right": 856,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "text": "FR",
+            "x": 856,
+            "right": 900,
+            "width": 44,
+            "height": 44
+          }
+        ],
+        "passed": true
+      },
+      {
+        "test": "single-visible-language-pair-and-touch-targets",
+        "width": 1280,
+        "switches": [
+          {
+            "text": "EN",
+            "x": 964,
+            "right": 1008,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "text": "FR",
+            "x": 1008,
+            "right": 1052,
+            "width": 44,
+            "height": 44
+          }
+        ],
+        "passed": true
+      },
+      {
+        "test": "single-visible-language-pair-and-touch-targets",
+        "width": 1536,
+        "switches": [
+          {
+            "text": "EN",
+            "x": 1192,
+            "right": 1236,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "text": "FR",
+            "x": 1236,
+            "right": 1280,
+            "width": 44,
+            "height": 44
+          }
+        ],
+        "passed": true
+      },
+      {
+        "test": "headerless-admin-login-has-fallback",
+        "passed": true
+      },
+      {
+        "test": "back-navigation-removes-floating-duplicate",
+        "passed": true
+      },
+      {
+        "test": "language-works-when-get-and-set-storage-throw",
+        "passed": true
+      }
+    ],
+    "errors": []
+  },
+  "portal": {
+    "results": [
+      {
+        "stage": "portal",
+        "lang": "en",
+        "width": 320,
+        "scrollWidth": 320,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 19,
+            "right": 63,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 63,
+            "right": 107,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "portal",
+        "lang": "en",
+        "width": 375,
+        "scrollWidth": 375,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 19,
+            "right": 63,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 63,
+            "right": 107,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "portal",
+        "lang": "en",
+        "width": 390,
+        "scrollWidth": 390,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 19,
+            "right": 63,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 63,
+            "right": 107,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "portal",
+        "lang": "en",
+        "width": 768,
+        "scrollWidth": 768,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 357,
+            "right": 401,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 401,
+            "right": 445,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "portal",
+        "lang": "en",
+        "width": 1024,
+        "scrollWidth": 1024,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 497.078125,
+            "right": 541.078125,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 541.078125,
+            "right": 585.078125,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "portal",
+        "lang": "en",
+        "width": 1440,
+        "scrollWidth": 1440,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 769.078125,
+            "right": 813.078125,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 813.078125,
+            "right": 857.078125,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "portal",
+        "lang": "fr",
+        "width": 320,
+        "scrollWidth": 320,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 19,
+            "right": 63,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 63,
+            "right": 107,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "portal",
+        "lang": "fr",
+        "width": 375,
+        "scrollWidth": 375,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 19,
+            "right": 63,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 63,
+            "right": 107,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "portal",
+        "lang": "fr",
+        "width": 390,
+        "scrollWidth": 390,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 19,
+            "right": 63,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 63,
+            "right": 107,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "portal",
+        "lang": "fr",
+        "width": 768,
+        "scrollWidth": 768,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 357,
+            "right": 401,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 401,
+            "right": 445,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "portal",
+        "lang": "fr",
+        "width": 1024,
+        "scrollWidth": 1024,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 463.609375,
+            "right": 507.609375,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 507.609375,
+            "right": 551.609375,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "portal",
+        "lang": "fr",
+        "width": 1440,
+        "scrollWidth": 1440,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 735.609375,
+            "right": 779.609375,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 779.609375,
+            "right": 823.609375,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "invoice",
+        "lang": "fr",
+        "width": 320,
+        "scrollWidth": 320,
+        "switches": [
+          {
+            "label": "EN",
+            "x": 19,
+            "right": 63,
+            "width": 44,
+            "height": 44
+          },
+          {
+            "label": "FR",
+            "x": 63,
+            "right": 107,
+            "width": 44,
+            "height": 44
+          }
+        ]
+      },
+      {
+        "stage": "booking",
+        "width": 320,
+        "height": 740,
+        "top": 16,
+        "bottom": 724,
+        "viewport": 740,
+        "clientHeight": 708,
+        "scrollHeight": 1320,
+        "overflow": "auto"
+      },
+      {
+        "stage": "booking",
+        "width": 844,
+        "height": 390,
+        "top": 16,
+        "bottom": 374,
+        "viewport": 390,
+        "clientHeight": 358,
+        "scrollHeight": 880,
+        "overflow": "auto"
+      }
+    ],
+    "tableBounds": {
+      "tableWidth": 500,
+      "containerWidth": 254,
+      "overflow": "auto"
+    },
+    "errors": [],
+    "simulatedOnly": true,
+    "actualWrites": 0
+  },
+  "forms": {
+    "checks": [
+      {
+        "name": "partners initial 320 FR",
+        "width": 320,
+        "scroll": 320
+      },
+      {
+        "name": "partner profile form 320 FR",
+        "width": 320,
+        "scroll": 320
+      },
+      {
+        "name": "partner profile submit 320 FR",
+        "width": 320,
+        "scroll": 320
+      },
+      {
+        "name": "partner subcontracting form 320 FR",
+        "width": 320,
+        "scroll": 320
+      },
+      {
+        "name": "partner subcontracting submit 320 FR",
+        "width": 320,
+        "scroll": 320
+      },
+      {
+        "name": "contact email 320 FR",
+        "width": 320,
+        "scroll": 320
+      },
+      {
+        "name": "moving heading 320 FR",
+        "width": 320,
+        "scroll": 320
+      },
+      {
+        "name": "quote submit 320 FR",
+        "width": 320,
+        "scroll": 320
+      },
+      {
+        "name": "quote submit contrast",
+        "hover": false,
+        "color": "oklch(0.18 0.035 195)",
+        "background": "oklch(0.72 0.14 175)",
+        "ratio": 8.032559960356348
+      },
+      {
+        "name": "quote submit contrast",
+        "hover": true,
+        "color": "oklch(0.18 0.035 195)",
+        "background": "oklch(0.72 0.14 175)",
+        "ratio": 8.032559960356348
+      },
+      {
+        "name": "actual fonts loaded",
+        "inter": true,
+        "poppins": true
+      }
+    ],
+    "errors": [],
+    "submissions": 0
+  },
+  "scope": "Chromium local emulation; synthetic portal data; no real backend submissions or deployment."
+}

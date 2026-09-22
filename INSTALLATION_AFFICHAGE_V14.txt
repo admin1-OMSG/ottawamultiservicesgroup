@@ -1,0 +1,84 @@
+INSTALLATION DU CORRECTIF AFFICHAGE ET LANGUE V14
+Base : ottawamultiservicesgroup-main (44).zip — 22 septembre 2026
+
+CONTENU
+Ce ZIP contient seulement les fichiers modifiés et les documents de vérification.
+Il ne contient pas tout le projet. Aucun fichier .env, secret, node_modules ou
+résultat de compilation n’est inclus. Aucun changement Supabase n’est nécessaire.
+
+1. COPIER
+Conservez une copie de votre dossier local avant le remplacement.
+Extrayez ce ZIP. Copiez src/, docs/ et les deux documents dans la racine de votre
+projet, là où se trouve package.json. Fusionnez les dossiers et acceptez le
+remplacement des fichiers concernés. Ne supprimez pas vos dossiers src/ ou docs/.
+Si vous avez modifié l’un de ces mêmes fichiers depuis l’archive (44), comparez
+ces changements avant de le remplacer.
+
+2. COMPILER DANS POWERSHELL
+Depuis le dossier du projet :
+
+npm.cmd run build
+
+npm.cmd évite le blocage des scripts npm.ps1 par PowerShell.
+Si la compilation échoue, gardez la sortie d’erreur et ne passez pas au déploiement.
+
+3. VÉRIFIER LOCALEMENT
+
+npm.cmd run dev
+
+Ouvrez l’adresse locale affichée dans le terminal. Vérifiez :
+- EN/FR sur téléphone et tablette ; rechargement après changement de langue.
+- Menu déroulant et ses derniers boutons en orientation paysage.
+- Bouton final du devis en français et liens Contact sur petit écran.
+- Ouverture des deux formulaires Partenaires.
+- Dans votre session portail : en-tête, détails de facture, calendrier défilable.
+N’envoyez pas de demande, signature ou réservation réelle pour un simple test visuel.
+Arrêtez le serveur local avec Ctrl+C.
+
+4. PRÉPARER UNIQUEMENT LES FICHIERS DE CE CORRECTIF
+
+$fichiersAffichageV14 = @(
+  "src/components/quote-funnel.tsx",
+  "src/components/service-seo-page.tsx",
+  "src/components/site-header.tsx",
+  "src/components/ui/button.tsx",
+  "src/lib/language.tsx",
+  "src/routes/contact.tsx",
+  "src/routes/handyman-ottawa.tsx",
+  "src/routes/landscaping-ottawa.tsx",
+  "src/routes/mobile-car-detailing-ottawa.tsx",
+  "src/routes/mobile-tire-change-ottawa.tsx",
+  "src/routes/moving-services-ottawa.tsx",
+  "src/routes/partners.tsx",
+  "src/routes/portal.tsx",
+  "src/routes/services.tsx",
+  "src/routes/snow-removal-ottawa.tsx",
+  "INSTALLATION_AFFICHAGE_V14.txt",
+  "VALIDATION_AFFICHAGE_V14.md",
+  "docs/affichage-v14"
+)
+
+git --literal-pathspecs add -- $fichiersAffichageV14
+git diff --cached --stat
+
+Vérifiez que la liste ne contient pas de modifications étrangères à cette mise à jour.
+La commande ajoute ces fichiers à la sélection existante : elle ne retire pas les
+fichiers qui auraient déjà été sélectionnés auparavant.
+Les avertissements LF/CRLF seuls ne signalent pas un échec de cette commande.
+
+5. ENREGISTRER ET ENVOYER, APRÈS VOTRE VÉRIFICATION
+
+git commit -m "Improve responsive layouts and language switcher"
+git push origin main
+
+Attendez ensuite le succès du déploiement chez votre hébergeur.
+Un push GitHub réussi ne prouve pas à lui seul que le site est déjà à jour.
+Vérifiez les pages publiées après déploiement.
+
+SUPABASE
+Aucune migration, aucun db push et aucun déploiement de fonction pour cette V14.
+Les modifications concernent l’affichage, les libellés et le choix de langue.
+
+BILAN ET LIMITES
+Lisez VALIDATION_AFFICHAGE_V14.md : essais réalisés, captures, traductions encore
+partielles sur certaines pages et mentions d’assurance à confirmer sur À propos.
