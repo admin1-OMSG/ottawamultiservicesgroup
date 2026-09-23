@@ -5,131 +5,147 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { requireActiveAdmin } from "@/features/admin/requireAdmin";
 import { formatCad } from "@/features/admin/formatters";
 import { supabase } from "@/lib/supabase";
+import {
+  buildCampaignDashboard,
+  fetchMarketingPages,
+  type Campaign,
+  type Metric,
+  type Lead,
+  type Breakdown,
+  type CityPerf,
+  type BreakdownSummary,
+} from "@/features/admin/marketing-campaigns";
 
 export const Route = createFileRoute("/admin/marketing")({
   component: Page,
 });
 
-type Campaign = {
-  id: string;
-  name: string;
-  status: string;
-  locations: string[];
-  external_campaign_id: string | null;
-};
-
-type Metric = {
-  campaign_id: string;
-  spend: number;
-  conversations: number;
-};
-
-type Lead = {
-  campaign_id: string | null;
-  stage: string;
-  converted_revenue: number;
-};
-
-type Breakdown = {
-  campaign_id: string;
-  breakdown_type: "age" | "region" | "country";
-  breakdown_value: string;
-  spend: number;
-  impressions: number;
-  reach: number;
-  clicks: number;
-  conversations: number;
-  leads: number;
-};
-
-type CityPerf = {
-  city: string;
-  province: string;
-  leads: number;
-  quotes: number;
-  customers: number;
-  revenue: number;
-};
-
-type BreakdownSummary = {
-  value: string;
-  spend: number;
-  impressions: number;
-  reach: number;
-  clicks: number;
-  conversations: number;
-  leads: number;
-  costPerLead: number | null;
+type CampaignSnapshot = {
+  campaignId: string;
+  metrics: Metric[];
+  leads: Lead[];
+  breakdowns: Breakdown[];
+  error: string;
 };
 
 function Page() {
   const nav = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [metrics, setMetrics] = useState<Metric[]>([]);
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [breakdowns, setBreakdowns] = useState<Breakdown[]>([]);
-  const [cities, setCities] = useState<CityPerf[]>([]);
-  const [err, setErr] = useState("");
+  const [selectedCampaignId, setSelectedCampaignId] = useState("");
+  const [snapshot, setSnapshot] = useState<CampaignSnapshot | null>(null);
+  const [campaignError, setCampaignError] = useState("");
+  const [syncError, setSyncError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loadingCampaigns, setLoadingCampaigns] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [refreshVersion, setRefreshVersion] = useState(0);
 
   useEffect(() => {
-    void load();
-  }, []);
+    let cancelled = false;
+    setLoadingCampaigns(true);
+    setCampaignError("");
 
-  async function load() {
-    setLoading(true);
+    async function loadCampaigns() {
+      try {
+        if (!(await requireActiveAdmin())) {
+          if (!cancelled) await nav({ to: "/admin/login" });
+          return;
+        }
+        if (cancelled) return;
 
-    try {
-      if (!(await requireActiveAdmin())) {
-        await nav({ to: "/admin/login" });
-        return;
+        const nextCampaigns = await fetchMarketingPages<Campaign>((from, to) =>
+          supabase
+            .from("marketing_campaigns")
+            .select("id,name,status,locations,external_campaign_id")
+            .order("created_at", { ascending: false })
+            .order("id")
+            .range(from, to),
+        );
+        if (cancelled) return;
+
+        setCampaigns(nextCampaigns);
+        // Keep the user's choice when syncing, including a change made mid-sync.
+        setSelectedCampaignId((current) =>
+          nextCampaigns.some((campaign) => campaign.id === current)
+            ? current
+            : (nextCampaigns[0]?.id ?? ""),
+        );
+      } catch (error) {
+        if (!cancelled) {
+          setCampaignError(error instanceof Error ? error.message : "Unable to load campaigns");
+        }
+      } finally {
+        if (!cancelled) setLoadingCampaigns(false);
       }
-
-      const [c, m, l, b, city] = await Promise.all([
-        supabase
-          .from("marketing_campaigns")
-          .select("id,name,status,locations,external_campaign_id")
-          .order("start_date", { ascending: false }),
-        supabase
-          .from("marketing_campaign_daily_metrics")
-          .select("campaign_id,spend,conversations"),
-        supabase
-          .from("marketing_leads")
-          .select("campaign_id,stage,converted_revenue"),
-        supabase
-          .from("marketing_campaign_breakdown_metrics")
-          .select(
-            "campaign_id,breakdown_type,breakdown_value,spend,impressions,reach,clicks,conversations,leads",
-          ),
-        supabase
-          .from("marketing_city_performance")
-          .select("city,province,leads,quotes,customers,revenue"),
-      ]);
-
-      if (c.error) throw c.error;
-      if (m.error) throw m.error;
-      if (l.error) throw l.error;
-      if (b.error) throw b.error;
-      if (city.error) throw city.error;
-
-      setCampaigns((c.data || []) as Campaign[]);
-      setMetrics((m.data || []) as Metric[]);
-      setLeads((l.data || []) as Lead[]);
-      setBreakdowns((b.data || []) as Breakdown[]);
-      setCities((city.data || []) as CityPerf[]);
-      setErr("");
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Unable to load marketing data");
-    } finally {
-      setLoading(false);
     }
-  }
+
+    void loadCampaigns();
+    return () => {
+      cancelled = true;
+    };
+  }, [nav, refreshVersion]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setSnapshot(null);
+    if (!selectedCampaignId) return;
+
+    async function loadCampaignData() {
+      try {
+        // Filter before pagination; other campaigns cannot consume the row limit.
+        const [metrics, leads, breakdowns] = await Promise.all([
+          fetchMarketingPages<Metric>((from, to) =>
+            supabase
+              .from("marketing_campaign_daily_metrics")
+              .select("campaign_id,spend,conversations,impressions,clicks,leads")
+              .eq("campaign_id", selectedCampaignId)
+              .order("id")
+              .range(from, to),
+          ),
+          fetchMarketingPages<Lead>((from, to) =>
+            supabase
+              .from("marketing_leads")
+              .select("campaign_id,stage,converted_revenue,city,province")
+              .eq("campaign_id", selectedCampaignId)
+              .order("id")
+              .range(from, to),
+          ),
+          fetchMarketingPages<Breakdown>((from, to) =>
+            supabase
+              .from("marketing_campaign_breakdown_metrics")
+              .select(
+                "campaign_id,breakdown_type,breakdown_value,spend,impressions,reach,clicks,conversations,leads",
+              )
+              .eq("campaign_id", selectedCampaignId)
+              .order("id")
+              .range(from, to),
+          ),
+        ]);
+        if (!cancelled) {
+          setSnapshot({ campaignId: selectedCampaignId, metrics, leads, breakdowns, error: "" });
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setSnapshot({
+            campaignId: selectedCampaignId,
+            metrics: [],
+            leads: [],
+            breakdowns: [],
+            error: error instanceof Error ? error.message : "Unable to load campaign statistics",
+          });
+        }
+      }
+    }
+
+    void loadCampaignData();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedCampaignId, refreshVersion]);
 
   async function syncMetaAds() {
     setSyncing(true);
-    setErr("");
+    setSyncError("");
     setSuccess("");
 
     try {
@@ -148,6 +164,7 @@ function Page() {
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       const warningText =
         Array.isArray(data?.warnings) && data.warnings.length
@@ -160,115 +177,36 @@ function Page() {
         }).${warningText}`,
       );
 
-      await load();
+      setRefreshVersion((version) => version + 1);
     } catch (e) {
-      setErr(
-        e instanceof Error ? e.message : "Unable to synchronize Meta Ads",
-      );
+      setSyncError(e instanceof Error ? e.message : "Unable to synchronize Meta Ads");
     } finally {
       setSyncing(false);
     }
   }
 
-  const rows = useMemo(
+  const selectedCampaign = campaigns.find((campaign) => campaign.id === selectedCampaignId);
+  // Never show the previous campaign under the new campaign's name.
+  const currentSnapshot = snapshot?.campaignId === selectedCampaignId ? snapshot : null;
+  const { summary, cityRows, regionRows, ageRows } = useMemo(
     () =>
-      campaigns.map((c) => {
-        const m = metrics.filter((x) => x.campaign_id === c.id);
-        const l = leads.filter((x) => x.campaign_id === c.id);
-        const spend = m.reduce((a, x) => a + Number(x.spend), 0);
-        const messages = m.reduce(
-          (a, x) => a + Number(x.conversations),
-          0,
-        );
-        const clients = l.filter((x) => x.stage === "converted").length;
-        const revenue = l.reduce(
-          (a, x) => a + Number(x.converted_revenue),
-          0,
-        );
-
-        return {
-          ...c,
-          spend,
-          messages,
-          leads: l.length,
-          quotes: l.filter((x) => ["quoted", "converted"].includes(x.stage))
-            .length,
-          clients,
-          revenue,
-          cac: clients ? spend / clients : 0,
-          roas: spend ? revenue / spend : 0,
-        };
-      }),
-    [campaigns, metrics, leads],
-  );
-
-  const summarize = (type: "age" | "region"): BreakdownSummary[] => {
-    const map = new Map<string, BreakdownSummary>();
-
-    for (const x of breakdowns.filter((b) => b.breakdown_type === type)) {
-      const current = map.get(x.breakdown_value) || {
-        value: x.breakdown_value,
-        spend: 0,
-        impressions: 0,
-        reach: 0,
-        clicks: 0,
-        conversations: 0,
-        leads: 0,
-        costPerLead: null,
-      };
-
-      current.spend += Number(x.spend || 0);
-      current.impressions += Number(x.impressions || 0);
-      current.reach += Number(x.reach || 0);
-      current.clicks += Number(x.clicks || 0);
-      current.conversations += Number(x.conversations || 0);
-      current.leads += Number(x.leads || 0);
-      map.set(x.breakdown_value, current);
-    }
-
-    return Array.from(map.values())
-      .map((x) => ({
-        ...x,
-        costPerLead: x.leads > 0 ? x.spend / x.leads : null,
-      }))
-      .sort(
-        (a, b) =>
-          b.leads - a.leads ||
-          b.conversations - a.conversations ||
-          b.clicks - a.clicks ||
-          b.impressions - a.impressions,
-      );
-  };
-
-  const ageRows = useMemo(() => summarize("age"), [breakdowns]);
-  const regionRows = useMemo(() => summarize("region"), [breakdowns]);
-
-  const mostViewedRegion = [...regionRows].sort(
-    (a, b) => b.impressions - a.impressions,
-  )[0];
-
-  const mostViewedAge = [...ageRows].sort(
-    (a, b) => b.impressions - a.impressions,
-  )[0];
-
-  const cityRows = useMemo(
-    () =>
-      [...cities].sort(
-        (a, b) =>
-          b.leads - a.leads ||
-          b.customers - a.customers ||
-          Number(b.revenue) - Number(a.revenue),
+      buildCampaignDashboard(
+        selectedCampaignId,
+        currentSnapshot?.metrics ?? [],
+        currentSnapshot?.leads ?? [],
+        currentSnapshot?.breakdowns ?? [],
       ),
-    [cities],
+    [selectedCampaignId, currentSnapshot],
   );
+  const rows = selectedCampaign ? [{ ...selectedCampaign, ...summary }] : [];
+  const err = campaignError || syncError || currentSnapshot?.error || "";
+  const loading = loadingCampaigns || (!!selectedCampaign && !currentSnapshot);
+  const mostViewedRegion = [...regionRows].sort((a, b) => b.impressions - a.impressions)[0];
+  const mostViewedAge = [...ageRows].sort((a, b) => b.impressions - a.impressions)[0];
 
   const bestLeadCity = [...cityRows].sort((a, b) => b.leads - a.leads)[0];
-  const bestCustomerCity = [...cityRows].sort(
-    (a, b) => b.customers - a.customers,
-  )[0];
-  const bestRevenueCity = [...cityRows].sort(
-    (a, b) => Number(b.revenue) - Number(a.revenue),
-  )[0];
+  const bestCustomerCity = [...cityRows].sort((a, b) => b.customers - a.customers)[0];
+  const bestRevenueCity = [...cityRows].sort((a, b) => Number(b.revenue) - Number(a.revenue))[0];
 
   return (
     <div className="space-y-6">
@@ -278,21 +216,45 @@ function Page() {
         action={
           <button
             onClick={() => void syncMetaAds()}
-            disabled={syncing}
+            disabled={syncing || loadingCampaigns}
             className="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <RefreshCw
-              className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`}
-            />
+            <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
             {syncing ? "Syncing..." : "Sync Meta Ads"}
           </button>
         }
       />
 
+      <div className="rounded-xl border bg-white p-5">
+        <label htmlFor="marketing-campaign" className="mb-2 block text-sm font-semibold">
+          Campaign
+        </label>
+        <select
+          id="marketing-campaign"
+          value={selectedCampaignId}
+          onChange={(event) => setSelectedCampaignId(event.target.value)}
+          disabled={loadingCampaigns || !campaigns.length}
+          aria-describedby="marketing-campaign-help"
+          className="w-full min-w-0 rounded-lg border border-slate-300 bg-white p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:bg-slate-50"
+        >
+          {!campaigns.length && (
+            <option value="">
+              {loadingCampaigns ? "Loading campaigns…" : "No campaigns available"}
+            </option>
+          )}
+          {campaigns.map((campaign) => (
+            <option key={campaign.id} value={campaign.id}>
+              {campaign.name}
+            </option>
+          ))}
+        </select>
+        <p id="marketing-campaign-help" className="mt-2 text-sm text-slate-600">
+          All figures below apply only to the selected campaign, across its imported history.
+        </p>
+      </div>
+
       {err && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
-          {err}
-        </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">{err}</div>
       )}
 
       {success && (
@@ -302,43 +264,42 @@ function Page() {
       )}
 
       {loading ? (
-        <div className="rounded-xl border bg-white p-10 text-center">
-          Loading…
+        <div className="rounded-xl border bg-white p-10 text-center">Loading…</div>
+      ) : campaignError || currentSnapshot?.error ? (
+        <div className="rounded-xl border bg-white p-6 text-slate-600">
+          Campaign statistics are unavailable. Reload the page to try again.
+        </div>
+      ) : !selectedCampaign ? (
+        <div className="rounded-xl border bg-white p-6 text-slate-600">
+          No campaign data yet. Use Sync Meta Ads once your campaign has started delivering.
         </div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-4">
-            <K
-              l="Ad spend"
-              v={formatCad(rows.reduce((a, x) => a + x.spend, 0))}
-            />
-            <K
-              l="Leads"
-              v={String(rows.reduce((a, x) => a + x.leads, 0))}
-            />
-            <K
-              l="Customers"
-              v={String(rows.reduce((a, x) => a + x.clients, 0))}
-            />
-            <K
-              l="Revenue"
-              v={formatCad(rows.reduce((a, x) => a + x.revenue, 0))}
-            />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <K l="Impressions" v={String(summary.impressions)} />
+            <K l="Clicks" v={String(summary.clicks)} />
+            <K l="Meta leads" v={String(summary.metaLeads)} />
+            <K l="Messages" v={String(summary.messages)} />
+            <K l="Ad spend" v={formatCad(rows.reduce((a, x) => a + x.spend, 0))} />
+            <K l="CRM leads" v={String(rows.reduce((a, x) => a + x.leads, 0))} />
+            <K l="Converted CRM leads" v={String(rows.reduce((a, x) => a + x.clients, 0))} />
+            <K l="Revenue" v={formatCad(rows.reduce((a, x) => a + x.revenue, 0))} />
           </div>
+
+          <p className="text-sm text-slate-600">
+            Meta leads are reported by Meta. CRM leads, conversions, city statistics and revenue
+            include only CRM records linked to this campaign. Unassigned requests are excluded.
+          </p>
 
           <div className="grid gap-4 lg:grid-cols-3">
             <InsightCard
               icon={<MapPin className="h-5 w-5" />}
               title="Best city for leads"
-              value={
-                bestLeadCity
-                  ? `${bestLeadCity.city} (${bestLeadCity.leads})`
-                  : "No data yet"
-              }
+              value={bestLeadCity ? `${bestLeadCity.city} (${bestLeadCity.leads})` : "No data yet"}
             />
             <InsightCard
               icon={<Users className="h-5 w-5" />}
-              title="Best city for customers"
+              title="Best city for conversions"
               value={
                 bestCustomerCity
                   ? `${bestCustomerCity.city} (${bestCustomerCity.customers})`
@@ -350,9 +311,7 @@ function Page() {
               title="Highest revenue city"
               value={
                 bestRevenueCity
-                  ? `${bestRevenueCity.city} (${formatCad(
-                      Number(bestRevenueCity.revenue),
-                    )})`
+                  ? `${bestRevenueCity.city} (${formatCad(Number(bestRevenueCity.revenue))})`
                   : "No data yet"
               }
             />
@@ -392,12 +351,15 @@ function Page() {
                     "Campaign",
                     "Status",
                     "Spend",
+                    "Impressions",
+                    "Clicks",
+                    "Meta leads",
                     "Messages",
-                    "Leads",
+                    "CRM leads",
                     "Quotes",
-                    "Clients",
+                    "Converted leads",
                     "Revenue",
-                    "Cost/client",
+                    "Cost/conversion",
                     "ROAS",
                   ].map((x) => (
                     <th className="p-3" key={x}>
@@ -414,17 +376,16 @@ function Page() {
                     </td>
                     <td className="p-3 capitalize">{r.status}</td>
                     <td className="p-3">{formatCad(r.spend)}</td>
+                    <td className="p-3">{r.impressions}</td>
+                    <td className="p-3">{r.clicks}</td>
+                    <td className="p-3">{r.metaLeads}</td>
                     <td className="p-3">{r.messages}</td>
                     <td className="p-3">{r.leads}</td>
                     <td className="p-3">{r.quotes}</td>
                     <td className="p-3">{r.clients}</td>
                     <td className="p-3">{formatCad(r.revenue)}</td>
-                    <td className="p-3">
-                      {r.clients ? formatCad(r.cac) : "—"}
-                    </td>
-                    <td className="p-3">
-                      {r.spend ? `${r.roas.toFixed(2)}×` : "—"}
-                    </td>
+                    <td className="p-3">{r.cac === null ? "—" : formatCad(r.cac)}</td>
+                    <td className="p-3">{r.roas === null ? "—" : `${r.roas.toFixed(2)}×`}</td>
                   </tr>
                 ))}
               </tbody>
@@ -475,14 +436,7 @@ function CityTable({ rows }: { rows: CityPerf[] }) {
         <table className="w-full text-sm">
           <thead className="text-left">
             <tr>
-              {[
-                "City",
-                "Province",
-                "Leads",
-                "Quotes",
-                "Customers",
-                "Revenue",
-              ].map((x) => (
+              {["City", "Province", "Leads", "Quotes", "Converted leads", "Revenue"].map((x) => (
                 <th className="p-3" key={x}>
                   {x}
                 </th>
@@ -492,7 +446,7 @@ function CityTable({ rows }: { rows: CityPerf[] }) {
           <tbody>
             {rows.length ? (
               rows.map((r) => (
-                <tr className="border-t" key={`${r.city}-${r.province}`}>
+                <tr className="border-t" key={JSON.stringify([r.city, r.province])}>
                   <td className="p-3 font-semibold">{r.city}</td>
                   <td className="p-3">{r.province}</td>
                   <td className="p-3">{r.leads}</td>
@@ -515,13 +469,7 @@ function CityTable({ rows }: { rows: CityPerf[] }) {
   );
 }
 
-function BreakdownTable({
-  title,
-  rows,
-}: {
-  title: string;
-  rows: BreakdownSummary[];
-}) {
+function BreakdownTable({ title, rows }: { title: string; rows: BreakdownSummary[] }) {
   return (
     <div className="overflow-hidden rounded-xl border bg-white">
       <div className="border-b bg-slate-50 px-5 py-4">
@@ -534,12 +482,12 @@ function BreakdownTable({
               {[
                 "Segment",
                 "Impressions",
-                "Reach",
+                "Daily reach (sum)",
                 "Clicks",
                 "Messages",
-                "Leads",
+                "Meta leads",
                 "Spend",
-                "Cost/lead",
+                "Cost/Meta lead",
               ].map((x) => (
                 <th className="p-3" key={x}>
                   {x}
@@ -558,11 +506,7 @@ function BreakdownTable({
                   <td className="p-3">{r.conversations}</td>
                   <td className="p-3">{r.leads}</td>
                   <td className="p-3">{formatCad(r.spend)}</td>
-                  <td className="p-3">
-                    {r.costPerLead === null
-                      ? "—"
-                      : formatCad(r.costPerLead)}
-                  </td>
+                  <td className="p-3">{r.costPerLead === null ? "—" : formatCad(r.costPerLead)}</td>
                 </tr>
               ))
             ) : (
