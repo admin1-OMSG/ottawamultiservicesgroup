@@ -23,6 +23,7 @@ type MetaRow = {
   clicks?: string;
   actions?: Array<{ action_type: string; value: string }>;
   age?: string;
+  gender?: string;
   region?: string;
 };
 
@@ -73,24 +74,16 @@ Deno.serve(async (req) => {
     const account = Deno.env.get("META_AD_ACCOUNT_ID");
 
     if (!token || !account) {
-      return out(
-        { error: "Configure META_ACCESS_TOKEN and META_AD_ACCOUNT_ID" },
-        503,
-      );
+      return out({ error: "Configure META_ACCESS_TOKEN and META_AD_ACCOUNT_ID" }, 503);
     }
 
-    const since = new Date(Date.now() - 30 * 864e5)
-      .toISOString()
-      .slice(0, 10);
+    const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
     const until = new Date().toISOString().slice(0, 10);
 
     const db = createClient(u, key);
     const warnings: string[] = [];
 
-    const countAction = (
-      actions: MetaRow["actions"] = [],
-      ...types: string[]
-    ) =>
+    const countAction = (actions: MetaRow["actions"] = [], ...types: string[]) =>
       (actions || [])
         .filter((z) => types.includes(z.action_type))
         .reduce((n, z) => n + Number(z.value || 0), 0);
@@ -131,32 +124,40 @@ Deno.serve(async (req) => {
       return inserted.id as string;
     }
 
-    async function fetchInsights(breakdown?: "age" | "region") {
+    async function fetchInsights(breakdown?: "age" | "region" | "gender") {
       const params = new URLSearchParams({
         access_token: token!,
         level: "campaign",
         time_increment: "1",
-        fields:
-          "campaign_id,campaign_name,spend,impressions,reach,clicks,actions",
+        fields: "campaign_id,campaign_name,spend,impressions,reach,clicks,actions",
         time_range: JSON.stringify({ since, until }),
         limit: "500",
       });
 
       if (breakdown) params.set("breakdowns", breakdown);
 
-      const response = await fetch(
-        `https://graph.facebook.com/v24.0/act_${account!.replace(/^act_/, "")}/insights?${params}`,
-      );
-
-      const body = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          `${breakdown || "campaign"} insights: ${JSON.stringify(body)}`,
-        );
+      const endpoint = `https://graph.facebook.com/v24.0/act_${account!.replace(/^act_/, "")}/insights`;
+      const rows: MetaRow[] = [];
+      const seenCursors = new Set<string>();
+      // Read every page before writing this breakdown, so a failed page cannot
+      // silently publish a truncated demographic report.
+      for (;;) {
+        const response = await fetch(`${endpoint}?${params}`);
+        const body = await response.json();
+        if (!response.ok || body.error) {
+          throw new Error(
+            `${breakdown || "campaign"} insights: ${body.error?.message || response.status}`,
+          );
+        }
+        rows.push(...(body.data || []));
+        if (!body.paging?.next) return rows;
+        const after = body.paging?.cursors?.after;
+        if (!after || seenCursors.has(after)) {
+          throw new Error(`${breakdown || "campaign"} insights: invalid pagination cursor`);
+        }
+        seenCursors.add(after);
+        params.set("after", after);
       }
-
-      return (body.data || []) as MetaRow[];
     }
 
     // 1) Standard campaign totals.
@@ -165,40 +166,44 @@ Deno.serve(async (req) => {
     for (const x of baseRows) {
       const campaignId = await ensureCampaign(x);
 
-      const { error: metricError } = await db
-        .from("marketing_campaign_daily_metrics")
-        .upsert(
-          {
-            campaign_id: campaignId,
-            metric_date: x.date_start,
-            spend: Number(x.spend || 0),
-            impressions: Number(x.impressions || 0),
-            reach: Number(x.reach || 0),
-            clicks: Number(x.clicks || 0),
-            conversations: countAction(
-              x.actions,
-              "onsite_conversion.messaging_conversation_started_7d",
-              "messaging_conversation_started",
-            ),
-            leads: countAction(x.actions, "lead"),
-            raw: x,
-            synced_at: new Date().toISOString(),
-          },
-          { onConflict: "campaign_id,metric_date" },
-        );
+      const { error: metricError } = await db.from("marketing_campaign_daily_metrics").upsert(
+        {
+          campaign_id: campaignId,
+          metric_date: x.date_start,
+          spend: Number(x.spend || 0),
+          impressions: Number(x.impressions || 0),
+          reach: Number(x.reach || 0),
+          clicks: Number(x.clicks || 0),
+          conversations: countAction(
+            x.actions,
+            "onsite_conversion.messaging_conversation_started_7d",
+            "messaging_conversation_started",
+          ),
+          leads: countAction(x.actions, "lead"),
+          raw: x,
+          synced_at: new Date().toISOString(),
+        },
+        { onConflict: "campaign_id,metric_date" },
+      );
 
       if (metricError) throw metricError;
     }
 
     // 2) Demographic + geographic breakdowns.
     // Requested separately because Meta restricts some breakdown combinations.
-    for (const breakdown of ["age", "region"] as const) {
+    for (const breakdown of ["age", "region", "gender"] as const) {
       try {
         const rows = await fetchInsights(breakdown);
 
         for (const x of rows) {
           const campaignId = await ensureCampaign(x);
-          const value = String(x[breakdown] || "Unknown");
+          const rawValue = String(x[breakdown] || "Unknown");
+          const value =
+            breakdown === "gender"
+              ? ["female", "male"].includes(rawValue.toLowerCase())
+                ? rawValue.toLowerCase()
+                : "unknown"
+              : rawValue;
 
           const { error: breakdownError } = await db
             .from("marketing_campaign_breakdown_metrics")
@@ -222,17 +227,14 @@ Deno.serve(async (req) => {
                 synced_at: new Date().toISOString(),
               },
               {
-                onConflict:
-                  "campaign_id,metric_date,breakdown_type,breakdown_value",
+                onConflict: "campaign_id,metric_date,breakdown_type,breakdown_value",
               },
             );
 
           if (breakdownError) throw breakdownError;
         }
       } catch (e) {
-        warnings.push(
-          `${breakdown}: ${e instanceof Error ? e.message : String(e)}`,
-        );
+        warnings.push(`${breakdown}: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
 
@@ -240,15 +242,12 @@ Deno.serve(async (req) => {
       ok: true,
       mode: isCron ? "cron" : "admin",
       rows: baseRows.length,
-      breakdowns: ["age", "region"],
+      breakdowns: ["age", "region", "gender"],
       warnings,
       since,
       until,
     });
   } catch (e) {
-    return out(
-      { error: e instanceof Error ? e.message : String(e) },
-      500,
-    );
+    return out({ error: e instanceof Error ? e.message : String(e) }, 500);
   }
 });

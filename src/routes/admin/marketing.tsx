@@ -188,7 +188,7 @@ function Page() {
   const selectedCampaign = campaigns.find((campaign) => campaign.id === selectedCampaignId);
   // Never show the previous campaign under the new campaign's name.
   const currentSnapshot = snapshot?.campaignId === selectedCampaignId ? snapshot : null;
-  const { summary, cityRows, regionRows, ageRows } = useMemo(
+  const { summary, cityRows, regionRows, ageRows, genderRows } = useMemo(
     () =>
       buildCampaignDashboard(
         selectedCampaignId,
@@ -342,6 +342,20 @@ function Page() {
 
           <BreakdownTable title="Performance by location" rows={regionRows} />
           <BreakdownTable title="Performance by age" rows={ageRows} />
+          <BreakdownTable
+            title="Performance by gender"
+            rows={genderRows.map((row) => ({
+              ...row,
+              value:
+                row.value.toLowerCase() === "female"
+                  ? "Women"
+                  : row.value.toLowerCase() === "male"
+                    ? "Men"
+                    : "Not specified",
+            }))}
+            description="Audience statistics reported by Meta for the selected campaign. These figures do not identify the gender of individual CRM contacts."
+            emptyMessage="No gender data received yet. Sync Meta Ads after enabling gender reporting. Missing data does not mean zero results."
+          />
 
           <div className="overflow-x-auto rounded-xl border bg-white">
             <table className="w-full text-sm">
@@ -469,11 +483,22 @@ function CityTable({ rows }: { rows: CityPerf[] }) {
   );
 }
 
-function BreakdownTable({ title, rows }: { title: string; rows: BreakdownSummary[] }) {
+function BreakdownTable({
+  title,
+  rows,
+  description,
+  emptyMessage = "No breakdown data yet.",
+}: {
+  title: string;
+  rows: BreakdownSummary[];
+  description?: string;
+  emptyMessage?: string;
+}) {
   return (
     <div className="overflow-hidden rounded-xl border bg-white">
       <div className="border-b bg-slate-50 px-5 py-4">
         <h2 className="font-semibold">{title}</h2>
+        {description && <p className="mt-1 text-sm text-slate-600">{description}</p>}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -512,7 +537,7 @@ function BreakdownTable({ title, rows }: { title: string; rows: BreakdownSummary
             ) : (
               <tr className="border-t">
                 <td className="p-5 text-slate-500" colSpan={8}>
-                  No breakdown data yet.
+                  {emptyMessage}
                 </td>
               </tr>
             )}

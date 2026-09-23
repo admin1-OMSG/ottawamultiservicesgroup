@@ -25,7 +25,7 @@ export type Lead = {
 
 export type Breakdown = {
   campaign_id: string;
-  breakdown_type: "age" | "region" | "country";
+  breakdown_type: "age" | "region" | "country" | "gender";
   breakdown_value: string;
   spend: number;
   impressions: number;
@@ -119,7 +119,7 @@ export function buildCampaignDashboard(
     .map((row) => ({ ...row, revenue: money(row.revenue) }))
     .sort((a, b) => b.leads - a.leads || b.customers - a.customers || b.revenue - a.revenue);
 
-  function summarize(type: "age" | "region"): BreakdownSummary[] {
+  function summarize(type: "age" | "region" | "gender"): BreakdownSummary[] {
     const groups = new Map<string, BreakdownSummary>();
     for (const item of campaignBreakdowns) {
       if (item.breakdown_type !== type) continue;
@@ -171,6 +171,7 @@ export function buildCampaignDashboard(
     cityRows,
     ageRows: summarize("age"),
     regionRows: summarize("region"),
+    genderRows: summarize("gender"),
   };
 }
 

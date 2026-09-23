@@ -328,4 +328,25 @@ await test("A later-page backend or network error rejects the complete load inst
   }
 });
 
+await test("Gender rows are scoped to one campaign and do not inflate campaign totals", () => {
+  const rows = [
+    breakdown("a", "gender", "female", { impressions: 100, clicks: 10, spend: 12, leads: 2 }),
+    breakdown("a", "gender", "female", { impressions: 50, clicks: 5, spend: 6, leads: 1 }),
+    breakdown("a", "gender", "male", { impressions: 75, clicks: 3, spend: 4, leads: 0 }),
+    breakdown("a", "gender", "unknown", { impressions: 4 }),
+    breakdown("b", "gender", "female", { impressions: 9999, leads: 99 }),
+  ];
+  const result = buildCampaignDashboard("a", [metric("a", { impressions: 229 })], [], rows);
+  assert.equal(result.summary.impressions, 229);
+  assert.equal(result.summary.metaLeads, 0);
+  assert.equal(result.genderRows.length, 3);
+  const women = result.genderRows.find((row) => row.value === "female");
+  assert.equal(women.impressions, 150);
+  assert.equal(women.clicks, 15);
+  assert.equal(women.leads, 3);
+  assert.equal(women.costPerLead, 6);
+  assert.equal(result.genderRows.find((row) => row.value === "male").costPerLead, null);
+  assert.deepEqual(buildCampaignDashboard("empty", [], [], rows).genderRows, []);
+});
+
 console.log(`${passed} marketing campaign checks passed; all data and page requests were mocked.`);
