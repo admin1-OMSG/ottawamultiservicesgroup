@@ -43,6 +43,25 @@ describe("customer marketplace",()=>{
     await user.click(screen.getByRole("button",{name:"Verify and continue"}));
     expect(mocks.verify).toHaveBeenCalledWith({type:"sms",phone:"+16135550100",token:"123456"});
   });
+  it("verifies a pasted email link in the current tab and rejects other origins", async () => {
+    authSettings(false);
+    mocks.signIn.mockResolvedValue({error:null});
+    mocks.verify.mockResolvedValue({error:null});
+    const user = userEvent.setup();
+    render(<CustomerSignIn/>);
+    await user.type(screen.getByLabelText("Email address"), "client@example.test");
+    await user.click(screen.getByRole("button", {name:"Send my sign-in link"}));
+    const field = screen.getByLabelText("Email link or code");
+    const submit = screen.getByRole("button", {name:"Verify and continue"});
+    await user.click(field);
+    await user.paste("https://other.example/auth/v1/verify?token=test&type=magiclink");
+    await user.click(submit);
+    expect(mocks.verify).not.toHaveBeenCalled();
+    await user.clear(field);
+    await user.paste("https://example.supabase.co/auth/v1/verify?token=test&type=magiclink");
+    await user.click(submit);
+    expect(mocks.verify).toHaveBeenCalledWith({type:"magiclink",token_hash:"test"});
+  });
   it("keeps email sign-in available when SMS is disabled",async()=>{
     authSettings(false);render(<CustomerSignIn/>);
     expect(await screen.findByText(/SMS verification is currently unavailable/)).toBeTruthy();
