@@ -29,6 +29,7 @@ import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PricingPolicyRouteImport } from './routes/pricing-policy'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ProRouteImport } from './routes/pro'
 import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -41,6 +42,7 @@ import { Route as AdminInboxRouteImport } from './routes/admin/inbox'
 import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminMarketingRouteImport } from './routes/admin/marketing'
+import { Route as AdminProfessionalsRouteImport } from './routes/admin/professionals'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminResetPasswordRouteImport } from './routes/admin/reset-password'
 import { Route as AdminScheduleRouteImport } from './routes/admin/schedule'
@@ -170,6 +172,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProRoute = ProRouteImport.update({
+  id: '/pro',
+  path: '/pro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuoteRoute = QuoteRouteImport.update({
   id: '/quote',
   path: '/quote',
@@ -228,6 +235,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 const AdminMarketingRoute = AdminMarketingRouteImport.update({
   id: '/marketing',
   path: '/marketing',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProfessionalsRoute = AdminProfessionalsRouteImport.update({
+  id: '/professionals',
+  path: '/professionals',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminReportsRoute = AdminReportsRouteImport.update({
@@ -384,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRouteWithChildren
   '/pricing-policy': typeof PricingPolicyRoute
   '/privacy': typeof PrivacyRoute
+  '/pro': typeof ProRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -395,6 +408,7 @@ export interface FileRoutesByFullPath {
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/marketing': typeof AdminMarketingRoute
+  '/admin/professionals': typeof AdminProfessionalsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
@@ -442,6 +456,7 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalRoute
   '/pricing-policy': typeof PricingPolicyRoute
   '/privacy': typeof PrivacyRoute
+  '/pro': typeof ProRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -453,6 +468,7 @@ export interface FileRoutesByTo {
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/marketing': typeof AdminMarketingRoute
+  '/admin/professionals': typeof AdminProfessionalsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
@@ -503,6 +519,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRouteWithChildren
   '/pricing-policy': typeof PricingPolicyRoute
   '/privacy': typeof PrivacyRoute
+  '/pro': typeof ProRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -514,6 +531,7 @@ export interface FileRoutesById {
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/marketing': typeof AdminMarketingRoute
+  '/admin/professionals': typeof AdminProfessionalsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
@@ -565,6 +583,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/pricing-policy'
     | '/privacy'
+    | '/pro'
     | '/quote'
     | '/services'
     | '/sitemap.xml'
@@ -576,6 +595,7 @@ export interface FileRouteTypes {
     | '/admin/inventory'
     | '/admin/login'
     | '/admin/marketing'
+    | '/admin/professionals'
     | '/admin/reports'
     | '/admin/reset-password'
     | '/admin/schedule'
@@ -623,6 +643,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/pricing-policy'
     | '/privacy'
+    | '/pro'
     | '/quote'
     | '/services'
     | '/sitemap.xml'
@@ -634,6 +655,7 @@ export interface FileRouteTypes {
     | '/admin/inventory'
     | '/admin/login'
     | '/admin/marketing'
+    | '/admin/professionals'
     | '/admin/reports'
     | '/admin/reset-password'
     | '/admin/schedule'
@@ -683,6 +705,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/pricing-policy'
     | '/privacy'
+    | '/pro'
     | '/quote'
     | '/services'
     | '/sitemap.xml'
@@ -694,6 +717,7 @@ export interface FileRouteTypes {
     | '/admin/inventory'
     | '/admin/login'
     | '/admin/marketing'
+    | '/admin/professionals'
     | '/admin/reports'
     | '/admin/reset-password'
     | '/admin/schedule'
@@ -744,6 +768,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRouteWithChildren
   PricingPolicyRoute: typeof PricingPolicyRoute
   PrivacyRoute: typeof PrivacyRoute
+  ProRoute: typeof ProRoute
   QuoteRoute: typeof QuoteRoute
   ServicesRoute: typeof ServicesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -893,6 +918,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pro': {
+      id: '/pro'
+      path: '/pro'
+      fullPath: '/pro'
+      preLoaderRoute: typeof ProRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quote': {
       id: '/quote'
       path: '/quote'
@@ -975,6 +1007,13 @@ declare module '@tanstack/react-router' {
       path: '/marketing'
       fullPath: '/admin/marketing'
       preLoaderRoute: typeof AdminMarketingRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/professionals': {
+      id: '/admin/professionals'
+      path: '/professionals'
+      fullPath: '/admin/professionals'
+      preLoaderRoute: typeof AdminProfessionalsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/reports': {
@@ -1169,6 +1208,7 @@ interface AdminRouteChildren {
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
+  AdminProfessionalsRoute: typeof AdminProfessionalsRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminResetPasswordRoute: typeof AdminResetPasswordRoute
   AdminScheduleRoute: typeof AdminScheduleRoute
@@ -1201,6 +1241,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminInventoryRoute: AdminInventoryRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminMarketingRoute: AdminMarketingRoute,
+  AdminProfessionalsRoute: AdminProfessionalsRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminResetPasswordRoute: AdminResetPasswordRoute,
   AdminScheduleRoute: AdminScheduleRoute,
@@ -1266,6 +1307,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRouteWithChildren,
   PricingPolicyRoute: PricingPolicyRoute,
   PrivacyRoute: PrivacyRoute,
+  ProRoute: ProRoute,
   QuoteRoute: QuoteRoute,
   ServicesRoute: ServicesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

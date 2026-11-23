@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Building2, BriefcaseBusiness, CheckCircle2, HardHat, Handshake, UsersRound } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PartnerApplicationForm, type PartnerApplicationMode } from "@/components/quote-funnel";
+import { useLanguage } from "@/lib/language";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/partners")({
 });
 
 function PartnersPage() {
+  const { language } = useLanguage();
   const [mode, setMode] = useState<PartnerApplicationMode | null>(null);
 
   const openForm = (next: PartnerApplicationMode) => {
@@ -52,6 +54,10 @@ function PartnersPage() {
 
       <section className="py-16">
         <div className="mx-auto max-w-6xl px-6">
+          <div data-i18n-ignore="true" className="mb-8 flex flex-col items-start justify-between gap-4 rounded-2xl border border-teal-200 bg-teal-50 p-5 sm:flex-row sm:items-center sm:p-6">
+            <div><h2 className="text-lg font-bold text-teal-950">{language === "fr" ? "Votre espace professionnel" : "Your professional account"}</h2><p className="mt-1 text-sm text-teal-900">{language === "fr" ? "Créez votre profil, ajoutez vos pièces justificatives et suivez l’examen de votre dossier." : "Create your profile, add supporting documents and follow your application review."}</p></div>
+            <Button asChild className="min-h-11 shrink-0 bg-teal-800 text-white hover:bg-teal-900"><Link to="/pro">{language === "fr" ? "Accéder à mon espace" : "Open my account"}</Link></Button>
+          </div>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Card className="min-w-0 p-5 sm:p-7 border-border/70 shadow-soft">
               <div className="grid h-12 w-12 place-items-center rounded-xl bg-accent/15 text-accent"><HardHat className="h-6 w-6" /></div>

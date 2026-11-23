@@ -16,6 +16,7 @@ import {
   UserRound,
   Users,
   MessageCircleMore,
+  ShieldCheck,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,7 @@ const mainNavigation = [
   { label: "Marketing", to: "/admin/marketing", icon: Megaphone },
   { label: "Settings", to: "/admin/settings", icon: Settings },
   { label: "Partners", to: "/admin/partners", icon: Handshake },
+  { label: "Professional applications", to: "/admin/professionals", icon: ShieldCheck },
   { label: "Careers", to: "/admin/careers", icon: BriefcaseBusiness },
   { label: "Inventory", to: "/admin/inventory", icon: Package },
 ];
