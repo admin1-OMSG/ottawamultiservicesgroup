@@ -17,7 +17,7 @@ const environment = {
 };
 
 // Run each deployed entrypoint with its two SDK imports replaced by in-memory services.
-function entrypoint(name, stripe, db) {
+function entrypoint(name, stripe, db, env = environment) {
   const source = readFileSync(new URL(`../../supabase/functions/${name}/index.ts`, import.meta.url), "utf8");
   const { outputText } = ts.transpileModule(source, { compilerOptions: {
     target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS,
@@ -33,7 +33,7 @@ function entrypoint(name, stripe, db) {
     throw new Error("Unexpected Edge Function dependency " + specifier);
   };
   let handler;
-  const deno = { env: { get: name => environment[name] }, serve: fn => { handler = fn; } };
+  const deno = { env: { get: name => env[name] }, serve: fn => { handler = fn; } };
   compileFunction(outputText, ["require", "exports", "Deno"])(imports, {}, deno);
   return handler;
 }
@@ -77,6 +77,52 @@ test("208 CAD checkout identifies the same monthly loyalty offer on Stripe's ses
 });
 
 const subId = "sub_fixture208";
+test("managing a subscription selects the provisioned preview portal and preserves the production default", async () => {
+  const tagged = {
+    id: "bpc_market", active: true, livemode: false,
+    metadata: { omsg_market_portal: "v1", omsg_project: "vdeeevxpwjvztsoonuxx" },
+    features: { subscription_cancel: { enabled: true } },
+  };
+  const configs = [
+    { ...tagged, metadata: null }, { ...tagged, metadata: { ...tagged.metadata, omsg_project: "another" } },
+    { ...tagged, active: false }, { ...tagged, livemode: true },
+    { ...tagged, features: { subscription_cancel: { enabled: false } } },
+  ];
+  const sessions = [];
+  const lists = [];
+  const stripe = { billingPortal: {
+    configurations: { list: async function* (args) { lists.push(args); yield* configs; } },
+    sessions: { create: async args => { sessions.push(args); return { url: "https://billing.stripe.com/test" }; } },
+  } };
+  const db = {
+    auth: { getUser: async () => ({ data: { user: { id: "fixture-user" } } }) },
+    rpc: async (name, args) => {
+      assert.equal(name, "market_checkout_customer");
+      assert.deepEqual(args, { p_user_id: "fixture-user" });
+      return { data: "cus_fixture" };
+    },
+  };
+  function manage(env) {
+    const handler = entrypoint("market-checkout", stripe, db, env);
+    return handler(new Request("https://example.test/", {
+      method: "POST", headers: { authorization: "Bearer local-test-session" },
+      body: JSON.stringify({ action: "manage", configuration: "bpc_untrusted" }),
+    }));
+  }
+  assert.equal((await manage(environment)).status, 503);
+  assert.equal(sessions.length, 0);
+  configs.push(tagged);
+  assert.equal((await manage(environment)).status, 200);
+  assert.deepEqual(sessions[0], {
+    customer: "cus_fixture", configuration: "bpc_market",
+    return_url: "https://ottawamultiservicesgroup-git-codex-professional-onboarding-omsg.vercel.app/pro-market",
+  });
+  assert.equal((await manage({ ...environment, SUPABASE_URL: "https://production.supabase.co",
+    MARKET_SITE_ORIGIN: "https://example.com", MARKET_BILLING_MODE: "live", MARKET_STRIPE_SECRET_KEY: "sk_live_fixture" })).status, 200);
+  assert.deepEqual(sessions[1], { customer: "cus_fixture", return_url: "https://example.com/pro-market" });
+  assert.deepEqual(lists, [{ active: true, limit: 100 }, { active: true, limit: 100 }]);
+});
+
 const period = {
   start: Date.parse("2027-01-31T13:00:00Z") / 1000,
   end: Date.parse("2027-02-28T13:00:00Z") / 1000,

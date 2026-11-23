@@ -25,7 +25,7 @@ Enregistrer l’endpoint `https://<projet>.supabase.co/functions/v1/market-strip
 - `invoice.payment_succeeded`
 - `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused` et `customer.subscription.resumed`
 
-Activer le portail client Stripe avec gestion du moyen de paiement et résiliation de l’abonnement. L’abonnement conserve son prix et son nombre de crédits convenus à l’achat. Un paiement mensuel réussi crédite une fois la facture correspondante.
+Activer le portail client Stripe avec gestion du moyen de paiement et résiliation de l’abonnement. Sur la branche d’essai, la configuration active du portail porte les métadonnées `omsg_market_portal=v1` et `omsg_project=vdeeevxpwjvztsoonuxx`. La résiliation est réglée sur la fin de la période payée. L’abonnement conserve son prix et son nombre de crédits convenus à l’achat. Un paiement mensuel réussi crédite une fois la facture correspondante.
 
 Pour la mise en service ultérieure, le projet de production utilise `MARKET_SITE_ORIGIN` (origine HTTPS du site), `MARKET_BILLING_MODE=live`, une clé de paiement en production et le secret de signature de l’endpoint de production. L’aperçu accepte uniquement des identifiants Stripe de test.
 

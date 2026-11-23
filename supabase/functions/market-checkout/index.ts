@@ -1,7 +1,8 @@
 import Stripe from "npm:stripe@18.5.0";
 import { createClient } from "npm:@supabase/supabase-js@2.110.7";
 
-const previewProject = "https://vdeeevxpwjvztsoonuxx.supabase.co";
+const previewRef = "vdeeevxpwjvztsoonuxx";
+const previewProject = `https://${previewRef}.supabase.co`;
 const previewOrigin =
   "https://ottawamultiservicesgroup-git-codex-professional-onboarding-omsg.vercel.app";
 const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
@@ -12,6 +13,16 @@ const cors = {
   "Cache-Control": "no-store",
 };
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: cors });
+
+async function previewPortalConfiguration(stripe: Stripe) {
+  for await (const config of stripe.billingPortal.configurations.list({ active: true, limit: 100 })) {
+    if (config.active && !config.livemode && config.metadata?.omsg_market_portal === "v1" &&
+      config.metadata.omsg_project === previewRef && config.features.subscription_cancel.enabled) {
+      return config.id;
+    }
+  }
+  throw new Error("preview_portal_unavailable");
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
@@ -48,6 +59,7 @@ Deno.serve(async (req) => {
       const portal = await stripe.billingPortal.sessions.create({
         customer,
         return_url: origin + "/pro-market",
+        ...(isPreview ? { configuration: await previewPortalConfiguration(stripe) } : {}),
       });
       return json({ url: portal.url });
     } catch {
