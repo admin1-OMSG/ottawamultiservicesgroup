@@ -70,12 +70,19 @@ export function visibleLeads(leads:MarketLead[],filters:Filters,language:Languag
 const pendingDestination="omsg-professional-alert";
 const notificationId = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 
+function validDestination(kind: string, id: unknown): id is string {
+  if (typeof id !== "string") return false;
+  if (kind === "offer") return /^[a-z][a-z0-9_]{0,47}$/.test(id);
+  return (kind === "contact" || kind === "lead") && notificationId.test(id);
+}
+
 export function rememberProfessionalDestination() {
   try {
     const query = new URLSearchParams(window.location.search);
-    const kind = query.has("contact") ? "contact" : "lead";
+    const kind = query.has("contact") ? "contact" : query.has("lead") ? "lead" : "offer";
     const id = query.get(kind);
-    if (id && notificationId.test(id)) {
+    if (validDestination(kind, id)) {
+      window.localStorage.removeItem("omsg.marketplace.returnTo");
       window.localStorage.setItem(pendingDestination, JSON.stringify({ kind, id, expires: Date.now() + 30 * 60 * 1000 }));
     } else {
       forgetProfessionalDestination();
@@ -89,7 +96,7 @@ export function savedProfessionalDestination(): URLSearchParams | null {
     if (!raw) return null;
     const saved = JSON.parse(raw);
     if (saved && typeof saved.expires === "number" && saved.expires > Date.now() &&
-      (saved.kind === "lead" || saved.kind === "contact") && typeof saved.id === "string" && notificationId.test(saved.id)) {
+      validDestination(saved.kind, saved.id)) {
       return new URLSearchParams({ [saved.kind]: saved.id });
     }
   } catch { /* Ignore invalid or unavailable storage. */ }
@@ -99,7 +106,7 @@ export function savedProfessionalDestination(): URLSearchParams | null {
 
 export function professionalDestination() {
   const query = new URLSearchParams(typeof window === "undefined" ? "" : window.location.search);
-  if (query.has("contact") || query.has("lead") || query.has("checkout")) return query;
+  if (query.has("contact") || query.has("lead") || query.has("checkout") || query.has("offer")) return query;
   return savedProfessionalDestination() ?? query;
 }
 export function forgetProfessionalDestination() {

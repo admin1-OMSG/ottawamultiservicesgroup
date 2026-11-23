@@ -8,6 +8,7 @@ import { LanguageSwitcher, useLanguage } from "@/lib/language";
 const NAV = [
   { to: "/marketplace", label: "My requests", fr: "Mes demandes" },
   { to: "/pro-market", label: "For professionals", fr: "Espace professionnel" },
+  { to: "/pro-pricing", label: "Pro pricing", fr: "Tarifs pros" },
   { to: "/services", label: "OMSG services", fr: "Services OMSG" },
   { to: "/contact", label: "Contact", fr: "Contact" },
 ] as const;

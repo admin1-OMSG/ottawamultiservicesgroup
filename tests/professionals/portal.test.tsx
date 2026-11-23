@@ -366,6 +366,19 @@ describe("returning from a notification after sign-in", () => {
     expect(mocks.from).not.toHaveBeenCalledWith("professional_documents");
   });
 
+  it("returns an approved professional to the selected offer from the registered email callback", async () => {
+    window.history.replaceState(null, "", "/pro?offer=monthly208");
+    const signIn = render(<Portal />);
+    await screen.findByRole("heading", { name: "Create or access your account" });
+    signIn.unmount();
+    window.history.replaceState(null, "", "/pro");
+    signedIn({ ...account, review_status: "approved" });
+    render(<Portal />);
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({
+      href: "/pro-market?offer=monthly208", replace: true, reloadDocument: true,
+    }));
+  });
+
   it("keeps a pending professional on the profile page", async () => {
     followProfessionalLink("contact");
     signedIn({ ...account, review_status: "pending_review" });

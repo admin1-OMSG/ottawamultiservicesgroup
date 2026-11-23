@@ -21,7 +21,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { LanguageSwitcher, useLanguage } from "@/lib/language";
 import { InteracSandboxPanel } from "@/features/interac/InteracSandboxPanel";
-import { savedProfessionalDestination } from "@/features/marketplace/pro/model";
+import { rememberProfessionalDestination, savedProfessionalDestination } from "@/features/marketplace/pro/model";
 import { professionalSignInErrorMessage } from "@/features/professionals/sign-in-errors";
 import {
   CANADIAN_PROVINCES,
@@ -93,6 +93,9 @@ function ProfessionalPortal() {
   const fileInput = useRef<HTMLInputElement>(null);
   const activeUser = useRef<string | null>(null);
   const userId = session?.user.id ?? null;
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).has("offer")) rememberProfessionalDestination();
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -509,7 +512,8 @@ function ProfessionalPortal() {
               </span>
             </span>
           </Link>
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            <a href="/pro-pricing" className="text-sm font-semibold text-teal-800 hover:underline">{t("Pro pricing", "Tarifs pros")}</a>
             <a href="/marketplace" className="text-sm font-semibold text-teal-800 hover:underline">{t("Client area", "Espace client")}</a>
             {account?.review_status === "approved" && <a href="/pro-market" className={primaryClass}>{t("View requests", "Voir les demandes")}</a>}
             <LanguageSwitcher compact />

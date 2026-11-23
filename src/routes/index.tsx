@@ -80,7 +80,8 @@ function MarketplaceHome() {
               <p className="mt-2 max-w-xl text-base leading-relaxed text-teal-50">{fr ? "Présentez votre entreprise, indiquez où vous travaillez et recevez les demandes qui vous correspondent." : "Introduce your business, choose your service area and receive requests that match your work."}</p>
             </div>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-              <Link to="/pro" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#d7eaa9] px-5 font-bold text-[#173e31] hover:bg-white">{fr ? "Créer mon profil" : "Create my profile"} <ArrowRight size={16} /></Link>
+              <Link to="/pro-pricing" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#d7eaa9] px-5 font-bold text-[#173e31] hover:bg-white">{fr ? "Voir les tarifs pros" : "See pro pricing"} <ArrowRight size={16} /></Link>
+              <Link to="/pro" className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4">{fr ? "Créer mon profil" : "Create my profile"}</Link>
               <Link to="/pro-market" className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4">{fr ? "Mon tableau de bord" : "My dashboard"}</Link>
             </div>
           </div>

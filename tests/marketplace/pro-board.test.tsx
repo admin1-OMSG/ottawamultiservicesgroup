@@ -112,6 +112,18 @@ describe("professional contact workflow",()=>{
     await user.click(screen.getByRole("button",{name:/Pack de crédits.*208/}));
     expect(invoke).toHaveBeenCalledWith("market-checkout",{body:expect.objectContaining({offer_code:"pack208"})});
   });
+  it("opens the chosen offer in the wallet and starts checkout only on a payment click", async () => {
+    window.history.replaceState(null, "", "/pro-market?offer=p208");
+    invoke.mockResolvedValue({data:null,error:new Error("Test checkout")});
+    const user = userEvent.setup();
+    show();
+    const payment = await screen.findByRole("button", {name:/Your selection.*CAD\s*208.*Continue to payment/});
+    expect(rpc.mock.calls.some(([name])=>name==="market_requests")).toBe(false);
+    expect(invoke).not.toHaveBeenCalled();
+    await user.click(payment);
+    expect(invoke).toHaveBeenCalledWith("market-checkout",{body:expect.objectContaining({offer_code:"p208"})});
+  });
+
   it("opens the linked conversation when it becomes available to the signed-in professional", async () => {
     const conversationId = "8e41c86a-1c97-45e8-b69d-4b88e66ee1a7";
     const row = { id: conversationId, request_id: lead.id, request_title: lead.title, credit_cost: 6, created_at: lead.created_at };

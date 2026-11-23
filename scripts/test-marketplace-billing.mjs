@@ -299,6 +299,24 @@ try {
     /permission denied/,
   );
   await test208Loyalty(historicalPaid, historicalOpen);
+  await migrate("20261123191753_market_public_credit_offers");
+  const publicCatalog = () => value("select public.market_public_credit_offers()");
+  await query("update market_billing.offers set enabled=false");
+  assert.deepEqual(await role("anon", null, publicCatalog), []);
+  await query("update market_billing.offers set enabled=true where code in ('pack104','monthly208')");
+  const offers = await role("anon", null, publicCatalog);
+  assert.deepEqual(offers.map((o) => [o.code, o.price_cents, o.credits, o.loyalty_bonus_credits]), [
+    ["pack104", 10400, 110, 0],
+    ["monthly208", 20800, 240, 20],
+  ]);
+  assert.deepEqual(Object.keys(offers[0]).sort(), [
+    "code", "credits", "enabled", "kind", "loyalty_bonus_credits", "name", "price_cents",
+  ]);
+  assert.deepEqual(await member(pro, publicCatalog), offers);
+  await assert.rejects(
+    role("anon", null, () => query("select * from market_billing.offers")),
+    /permission denied/,
+  );
   console.log(
     "PASS marketplace billing: tariff snapshots, credits, refunds, subscriptions and independent pack/monthly 208 loyalty with duplicate, gapped and out-of-order payments.",
   );

@@ -108,6 +108,7 @@ export function SiteFooter() {
               { label: "Cleaning Prices", to: "/pricing" },
               { label: "About", to: "/about" },
               { label: "FAQ", to: "/faq" },
+              { label: language === "fr" ? "Tarifs pros" : "Pro pricing", to: "/pro-pricing" },
               { label: "Blog", to: "/blog" },
               { label: "Contact", to: "/contact" },
               { label: language === "fr" ? "Carrières" : "Careers", to: "/careers" },

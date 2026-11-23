@@ -21,6 +21,7 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as HandymanOttawaRouteImport } from './routes/handyman-ottawa'
 import { Route as HouseCleaningOttawaRouteImport } from './routes/house-cleaning-ottawa'
 import { Route as LandscapingOttawaRouteImport } from './routes/landscaping-ottawa'
+import { Route as MarketplaceRouteImport } from './routes/marketplace'
 import { Route as MobileCarDetailingOttawaRouteImport } from './routes/mobile-car-detailing-ottawa'
 import { Route as MobileTireChangeOttawaRouteImport } from './routes/mobile-tire-change-ottawa'
 import { Route as MovingServicesOttawaRouteImport } from './routes/moving-services-ottawa'
@@ -30,8 +31,8 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PricingPolicyRouteImport } from './routes/pricing-policy'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProRouteImport } from './routes/pro'
-import { Route as MarketplaceRouteImport } from './routes/marketplace'
 import { Route as ProMarketRouteImport } from './routes/pro-market'
+import { Route as ProPricingRouteImport } from './routes/pro-pricing'
 import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -44,8 +45,8 @@ import { Route as AdminInboxRouteImport } from './routes/admin/inbox'
 import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminMarketingRouteImport } from './routes/admin/marketing'
-import { Route as AdminProfessionalsRouteImport } from './routes/admin/professionals'
 import { Route as AdminMarketplaceRouteImport } from './routes/admin/marketplace'
+import { Route as AdminProfessionalsRouteImport } from './routes/admin/professionals'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminResetPasswordRouteImport } from './routes/admin/reset-password'
 import { Route as AdminScheduleRouteImport } from './routes/admin/schedule'
@@ -137,6 +138,11 @@ const LandscapingOttawaRoute = LandscapingOttawaRouteImport.update({
   path: '/landscaping-ottawa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MarketplaceRoute = MarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MobileCarDetailingOttawaRoute =
   MobileCarDetailingOttawaRouteImport.update({
     id: '/mobile-car-detailing-ottawa',
@@ -183,14 +189,14 @@ const ProRoute = ProRouteImport.update({
   path: '/pro',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MarketplaceRoute = MarketplaceRouteImport.update({
-  id: '/marketplace',
-  path: '/marketplace',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ProMarketRoute = ProMarketRouteImport.update({
   id: '/pro-market',
   path: '/pro-market',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProPricingRoute = ProPricingRouteImport.update({
+  id: '/pro-pricing',
+  path: '/pro-pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuoteRoute = QuoteRouteImport.update({
@@ -253,14 +259,14 @@ const AdminMarketingRoute = AdminMarketingRouteImport.update({
   path: '/marketing',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminProfessionalsRoute = AdminProfessionalsRouteImport.update({
-  id: '/professionals',
-  path: '/professionals',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminMarketplaceRoute = AdminMarketplaceRouteImport.update({
   id: '/marketplace',
   path: '/marketplace',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProfessionalsRoute = AdminProfessionalsRouteImport.update({
+  id: '/professionals',
+  path: '/professionals',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminReportsRoute = AdminReportsRouteImport.update({
@@ -424,6 +430,7 @@ export interface FileRoutesByFullPath {
   '/handyman-ottawa': typeof HandymanOttawaRoute
   '/house-cleaning-ottawa': typeof HouseCleaningOttawaRoute
   '/landscaping-ottawa': typeof LandscapingOttawaRoute
+  '/marketplace': typeof MarketplaceRoute
   '/mobile-car-detailing-ottawa': typeof MobileCarDetailingOttawaRoute
   '/mobile-tire-change-ottawa': typeof MobileTireChangeOttawaRoute
   '/moving-services-ottawa': typeof MovingServicesOttawaRoute
@@ -433,8 +440,8 @@ export interface FileRoutesByFullPath {
   '/pricing-policy': typeof PricingPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/pro': typeof ProRoute
-  '/marketplace': typeof MarketplaceRoute
   '/pro-market': typeof ProMarketRoute
+  '/pro-pricing': typeof ProPricingRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -446,8 +453,8 @@ export interface FileRoutesByFullPath {
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/marketing': typeof AdminMarketingRoute
-  '/admin/professionals': typeof AdminProfessionalsRoute
   '/admin/marketplace': typeof AdminMarketplaceRoute
+  '/admin/professionals': typeof AdminProfessionalsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
@@ -491,6 +498,7 @@ export interface FileRoutesByTo {
   '/handyman-ottawa': typeof HandymanOttawaRoute
   '/house-cleaning-ottawa': typeof HouseCleaningOttawaRoute
   '/landscaping-ottawa': typeof LandscapingOttawaRoute
+  '/marketplace': typeof MarketplaceRoute
   '/mobile-car-detailing-ottawa': typeof MobileCarDetailingOttawaRoute
   '/mobile-tire-change-ottawa': typeof MobileTireChangeOttawaRoute
   '/moving-services-ottawa': typeof MovingServicesOttawaRoute
@@ -499,8 +507,8 @@ export interface FileRoutesByTo {
   '/pricing-policy': typeof PricingPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/pro': typeof ProRoute
-  '/marketplace': typeof MarketplaceRoute
   '/pro-market': typeof ProMarketRoute
+  '/pro-pricing': typeof ProPricingRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -512,8 +520,8 @@ export interface FileRoutesByTo {
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/marketing': typeof AdminMarketingRoute
-  '/admin/professionals': typeof AdminProfessionalsRoute
   '/admin/marketplace': typeof AdminMarketplaceRoute
+  '/admin/professionals': typeof AdminProfessionalsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
@@ -559,6 +567,7 @@ export interface FileRoutesById {
   '/handyman-ottawa': typeof HandymanOttawaRoute
   '/house-cleaning-ottawa': typeof HouseCleaningOttawaRoute
   '/landscaping-ottawa': typeof LandscapingOttawaRoute
+  '/marketplace': typeof MarketplaceRoute
   '/mobile-car-detailing-ottawa': typeof MobileCarDetailingOttawaRoute
   '/mobile-tire-change-ottawa': typeof MobileTireChangeOttawaRoute
   '/moving-services-ottawa': typeof MovingServicesOttawaRoute
@@ -568,8 +577,8 @@ export interface FileRoutesById {
   '/pricing-policy': typeof PricingPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/pro': typeof ProRoute
-  '/marketplace': typeof MarketplaceRoute
   '/pro-market': typeof ProMarketRoute
+  '/pro-pricing': typeof ProPricingRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -581,8 +590,8 @@ export interface FileRoutesById {
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/marketing': typeof AdminMarketingRoute
-  '/admin/professionals': typeof AdminProfessionalsRoute
   '/admin/marketplace': typeof AdminMarketplaceRoute
+  '/admin/professionals': typeof AdminProfessionalsRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
@@ -629,6 +638,7 @@ export interface FileRouteTypes {
     | '/handyman-ottawa'
     | '/house-cleaning-ottawa'
     | '/landscaping-ottawa'
+    | '/marketplace'
     | '/mobile-car-detailing-ottawa'
     | '/mobile-tire-change-ottawa'
     | '/moving-services-ottawa'
@@ -638,8 +648,8 @@ export interface FileRouteTypes {
     | '/pricing-policy'
     | '/privacy'
     | '/pro'
-    | '/marketplace'
     | '/pro-market'
+    | '/pro-pricing'
     | '/quote'
     | '/services'
     | '/sitemap.xml'
@@ -651,8 +661,8 @@ export interface FileRouteTypes {
     | '/admin/inventory'
     | '/admin/login'
     | '/admin/marketing'
-    | '/admin/professionals'
     | '/admin/marketplace'
+    | '/admin/professionals'
     | '/admin/reports'
     | '/admin/reset-password'
     | '/admin/schedule'
@@ -696,6 +706,7 @@ export interface FileRouteTypes {
     | '/handyman-ottawa'
     | '/house-cleaning-ottawa'
     | '/landscaping-ottawa'
+    | '/marketplace'
     | '/mobile-car-detailing-ottawa'
     | '/mobile-tire-change-ottawa'
     | '/moving-services-ottawa'
@@ -704,8 +715,8 @@ export interface FileRouteTypes {
     | '/pricing-policy'
     | '/privacy'
     | '/pro'
-    | '/marketplace'
     | '/pro-market'
+    | '/pro-pricing'
     | '/quote'
     | '/services'
     | '/sitemap.xml'
@@ -717,8 +728,8 @@ export interface FileRouteTypes {
     | '/admin/inventory'
     | '/admin/login'
     | '/admin/marketing'
-    | '/admin/professionals'
     | '/admin/marketplace'
+    | '/admin/professionals'
     | '/admin/reports'
     | '/admin/reset-password'
     | '/admin/schedule'
@@ -763,6 +774,7 @@ export interface FileRouteTypes {
     | '/handyman-ottawa'
     | '/house-cleaning-ottawa'
     | '/landscaping-ottawa'
+    | '/marketplace'
     | '/mobile-car-detailing-ottawa'
     | '/mobile-tire-change-ottawa'
     | '/moving-services-ottawa'
@@ -772,8 +784,8 @@ export interface FileRouteTypes {
     | '/pricing-policy'
     | '/privacy'
     | '/pro'
-    | '/marketplace'
     | '/pro-market'
+    | '/pro-pricing'
     | '/quote'
     | '/services'
     | '/sitemap.xml'
@@ -785,8 +797,8 @@ export interface FileRouteTypes {
     | '/admin/inventory'
     | '/admin/login'
     | '/admin/marketing'
-    | '/admin/professionals'
     | '/admin/marketplace'
+    | '/admin/professionals'
     | '/admin/reports'
     | '/admin/reset-password'
     | '/admin/schedule'
@@ -832,6 +844,7 @@ export interface RootRouteChildren {
   HandymanOttawaRoute: typeof HandymanOttawaRoute
   HouseCleaningOttawaRoute: typeof HouseCleaningOttawaRoute
   LandscapingOttawaRoute: typeof LandscapingOttawaRoute
+  MarketplaceRoute: typeof MarketplaceRoute
   MobileCarDetailingOttawaRoute: typeof MobileCarDetailingOttawaRoute
   MobileTireChangeOttawaRoute: typeof MobileTireChangeOttawaRoute
   MovingServicesOttawaRoute: typeof MovingServicesOttawaRoute
@@ -841,8 +854,8 @@ export interface RootRouteChildren {
   PricingPolicyRoute: typeof PricingPolicyRoute
   PrivacyRoute: typeof PrivacyRoute
   ProRoute: typeof ProRoute
-  MarketplaceRoute: typeof MarketplaceRoute
   ProMarketRoute: typeof ProMarketRoute
+  ProPricingRoute: typeof ProPricingRoute
   QuoteRoute: typeof QuoteRoute
   ServicesRoute: typeof ServicesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -939,6 +952,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LandscapingOttawaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/marketplace': {
+      id: '/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof MarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mobile-car-detailing-ottawa': {
       id: '/mobile-car-detailing-ottawa'
       path: '/mobile-car-detailing-ottawa'
@@ -1002,18 +1022,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/marketplace': {
-      id: '/marketplace'
-      path: '/marketplace'
-      fullPath: '/marketplace'
-      preLoaderRoute: typeof MarketplaceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/pro-market': {
       id: '/pro-market'
       path: '/pro-market'
       fullPath: '/pro-market'
       preLoaderRoute: typeof ProMarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pro-pricing': {
+      id: '/pro-pricing'
+      path: '/pro-pricing'
+      fullPath: '/pro-pricing'
+      preLoaderRoute: typeof ProPricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quote': {
@@ -1100,18 +1120,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMarketingRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/professionals': {
-      id: '/admin/professionals'
-      path: '/professionals'
-      fullPath: '/admin/professionals'
-      preLoaderRoute: typeof AdminProfessionalsRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/marketplace': {
       id: '/admin/marketplace'
       path: '/marketplace'
       fullPath: '/admin/marketplace'
       preLoaderRoute: typeof AdminMarketplaceRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/professionals': {
+      id: '/admin/professionals'
+      path: '/professionals'
+      fullPath: '/admin/professionals'
+      preLoaderRoute: typeof AdminProfessionalsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/reports': {
@@ -1327,8 +1347,8 @@ interface AdminRouteChildren {
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
-  AdminProfessionalsRoute: typeof AdminProfessionalsRoute
   AdminMarketplaceRoute: typeof AdminMarketplaceRoute
+  AdminProfessionalsRoute: typeof AdminProfessionalsRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminResetPasswordRoute: typeof AdminResetPasswordRoute
   AdminScheduleRoute: typeof AdminScheduleRoute
@@ -1361,8 +1381,8 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminInventoryRoute: AdminInventoryRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminMarketingRoute: AdminMarketingRoute,
-  AdminProfessionalsRoute: AdminProfessionalsRoute,
   AdminMarketplaceRoute: AdminMarketplaceRoute,
+  AdminProfessionalsRoute: AdminProfessionalsRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminResetPasswordRoute: AdminResetPasswordRoute,
   AdminScheduleRoute: AdminScheduleRoute,
@@ -1420,6 +1440,7 @@ const rootRouteChildren: RootRouteChildren = {
   HandymanOttawaRoute: HandymanOttawaRoute,
   HouseCleaningOttawaRoute: HouseCleaningOttawaRoute,
   LandscapingOttawaRoute: LandscapingOttawaRoute,
+  MarketplaceRoute: MarketplaceRoute,
   MobileCarDetailingOttawaRoute: MobileCarDetailingOttawaRoute,
   MobileTireChangeOttawaRoute: MobileTireChangeOttawaRoute,
   MovingServicesOttawaRoute: MovingServicesOttawaRoute,
@@ -1429,8 +1450,8 @@ const rootRouteChildren: RootRouteChildren = {
   PricingPolicyRoute: PricingPolicyRoute,
   PrivacyRoute: PrivacyRoute,
   ProRoute: ProRoute,
-  MarketplaceRoute: MarketplaceRoute,
   ProMarketRoute: ProMarketRoute,
+  ProPricingRoute: ProPricingRoute,
   QuoteRoute: QuoteRoute,
   ServicesRoute: ServicesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
