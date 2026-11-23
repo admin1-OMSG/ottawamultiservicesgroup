@@ -42,6 +42,7 @@ try {
   await migrate("20261123075205_marketplace.sql");
   await migrate("20261123075212_marketplace_billing.sql");
   await migrate("20261123075858_market_request_withdrawal.sql");
+  await migrate("20261123160426_market_notification_inbox.sql");
   await rows("insert into market_billing.tariffs(service,credits) values('cleaning',3)");
   for (const id of [client, phoneClient, unverified, admin, near, far, draft]) {
     await rows(`insert into auth.users(id,email,email_confirmed_at,phone,phone_confirmed_at)
@@ -159,6 +160,42 @@ try {
     await auth(far,()=>assert.rejects(unlock(id),/request_closed/));
     assert.equal(await auth(near,()=>unlock(id)),thread);
   }
+  // The same signed-in user can post as a customer and reply as a professional.
+  const ownRequest=randomUUID();
+  await auth(near,()=>create(ownRequest,[farId]));
+  const incoming=await auth(far,()=>unlock(ownRequest));
+  await auth(far,()=>value("select public.market_send_message($1,$2,'Available Monday')",[incoming,randomUUID()]));
+  await auth(phoneClient,async()=>{
+    const proThread=await value("select id from public.market_my_contacts() where request_id=$1",[byPhone]);
+    await rows("select public.market_send_message($1,gen_random_uuid(),'Next week?') from generate_series(1,29)",[proThread]);
+  });
+  const inbox=(asProvider,includeItems=true,before=null)=>value("select public.market_inbox($1,$2,$3,$4)",
+    [asProvider,includeItems,before?.created_at??null,before?.id??null]);
+  await as("anon",null,()=>assert.rejects(inbox(true),/permission denied/));
+  await auth(near,async()=>{
+    const customer=await inbox(false);
+    assert.deepEqual(customer.items.map(n=>n.kind).sort(),["contact","message"]);
+    assert.ok(customer.items.every(n=>n.request_id===ownRequest && n.provider_name==="Remote"));
+    const pro=await inbox(true);
+    assert.equal(pro.items.length,25);
+    assert.ok(pro.has_older);
+    assert.deepEqual(await inbox(true,false),{items:[],unread:pro.unread,has_older:false});
+    const older=await inbox(true,true,pro.items.at(-1));
+    const all=[...pro.items,...older.items];
+    assert.equal(older.has_older,false);
+    assert.equal(new Set(all.map(n=>n.id)).size,all.length);
+    assert.equal(all.filter(n=>n.kind==="message").length,29);
+    assert.ok(all.every(n=>n.request_id===byPhone));
+    assert.equal(pro.unread,all.filter(n=>!n.read_at).length);
+    await rows("select public.market_read_notification($1)",[customer.items[0].id]);
+    assert.equal((await inbox(false,false)).unread,customer.unread-1);
+    assert.equal((await inbox(true,false)).unread,pro.unread);
+  });
+  await rows("update professional_accounts set review_status='draft' where id=$1",[nearId]);
+  await auth(near,async()=>{
+    assert.deepEqual(await inbox(true),{items:[],unread:0,has_older:false});
+    assert.equal((await inbox(false)).items.length,2);
+  });
   console.log("PASS verified contacts, matching, invitations, message privacy, idempotent debits, ratings, worker leases, withdrawals and reviewed refunds.");
 } finally {
   await db.close();

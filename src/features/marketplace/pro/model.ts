@@ -13,10 +13,6 @@ export interface Reply {
   request_status?:MarketLead["status"]; created_at:string; completed_at:string|null;
   client_email:string|null; client_phone:string|null;
 }
-export interface MarketAlert {
-  id:string; kind:"match"|"invitation"|"contact"|"message"; request_id:string; contact_id:string|null;
-  created_at:string; read_at:string|null;
-}
 export interface Offer {
   code:string; kind:"pack"|"subscription"; price_cents:number|null; credits:number|null; enabled:boolean; name:string;
 }
@@ -72,24 +68,39 @@ export function visibleLeads(leads:MarketLead[],filters:Filters,language:Languag
 }
 
 const pendingDestination="omsg-professional-alert";
+const notificationId = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+
 export function rememberProfessionalDestination() {
   try {
-    const query=new URLSearchParams(window.location.search);
-    const kind=query.has("contact")?"contact":"lead";
-    const id=query.get(kind);
-    if(id && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id))
-      window.localStorage.setItem(pendingDestination,JSON.stringify({kind,id,expires:Date.now()+30*60*1000}));
+    const query = new URLSearchParams(window.location.search);
+    const kind = query.has("contact") ? "contact" : "lead";
+    const id = query.get(kind);
+    if (id && notificationId.test(id)) {
+      window.localStorage.setItem(pendingDestination, JSON.stringify({ kind, id, expires: Date.now() + 30 * 60 * 1000 }));
+    } else {
+      forgetProfessionalDestination();
+    }
   } catch { /* Browser storage is optional for sign-in. */ }
 }
-export function professionalDestination() {
-  const query=new URLSearchParams(typeof window==="undefined"?"":window.location.search);
-  if(query.has("contact")||query.has("lead")||query.has("checkout")) return query;
+
+export function savedProfessionalDestination(): URLSearchParams | null {
   try {
-    const saved=JSON.parse(window.localStorage.getItem(pendingDestination)||"null");
-    if(saved && saved.expires>Date.now() && (saved.kind==="lead"||saved.kind==="contact") && typeof saved.id==="string")
-      query.set(saved.kind,saved.id);
-  } catch { /* No saved destination. */ }
-  return query;
+    const raw = window.localStorage.getItem(pendingDestination);
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    if (saved && typeof saved.expires === "number" && saved.expires > Date.now() &&
+      (saved.kind === "lead" || saved.kind === "contact") && typeof saved.id === "string" && notificationId.test(saved.id)) {
+      return new URLSearchParams({ [saved.kind]: saved.id });
+    }
+  } catch { /* Ignore invalid or unavailable storage. */ }
+  forgetProfessionalDestination();
+  return null;
+}
+
+export function professionalDestination() {
+  const query = new URLSearchParams(typeof window === "undefined" ? "" : window.location.search);
+  if (query.has("contact") || query.has("lead") || query.has("checkout")) return query;
+  return savedProfessionalDestination() ?? query;
 }
 export function forgetProfessionalDestination() {
   try {window.localStorage.removeItem(pendingDestination);} catch { /* Storage is optional. */ }

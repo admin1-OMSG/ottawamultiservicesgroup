@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, Bell, BriefcaseBusiness, ClipboardList, LogOut, 
 import { supabase } from "@/lib/supabase";
 import { LanguageSwitcher, useLanguage } from "@/lib/language";
 import { PROFESSIONAL_SERVICE_OPTIONS } from "@/features/professionals/model";
+import { MarketInbox, useMarketInbox } from "@/features/marketplace/MarketInbox";
 import { readMarketRows } from "@/features/marketplace/market-read";
 import { CustomerSignIn, MARKET_RETURN_KEY } from "@/features/marketplace/CustomerSignIn";
 import { CustomerDirectory } from "@/features/marketplace/CustomerDirectory";
@@ -59,15 +60,14 @@ function Marketplace(){
   </div>;
 }
 async function loadDashboard(){
-  const [requests,contacts,directory,notifications]=await Promise.all([
+  const [requests,contacts,directory]=await Promise.all([
     readMarketRows<MarketRequest>("market_requests",{}, {field:"is_owner",value:true}),
     readMarketRows<MarketContact>("market_my_contacts",{}, {field:"my_provider",value:false}),
-    readMarketRows<DirectoryProvider>("market_directory"),readMarketRows<MarketNotice>("market_notifications")
+    readMarketRows<DirectoryProvider>("market_directory")
   ]);
   const ownRequests=requests.filter(r=>r.is_owner);
   const ownIds=new Set(ownRequests.map(r=>r.id));
-  return {requests:ownRequests,contacts:contacts.filter(c=>!c.my_provider&&ownIds.has(c.request_id)),directory,
-    notifications:notifications.filter(n=>(n.kind==="contact"||n.kind==="message")&&ownIds.has(n.request_id))};
+  return {requests:ownRequests,contacts:contacts.filter(c=>!c.my_provider&&ownIds.has(c.request_id)),directory};
 }
 function Dashboard({userId}:{userId:string}){
   const {language}=useLanguage();
@@ -77,7 +77,8 @@ function Dashboard({userId}:{userId:string}){
   const go=(next:MarketSearch)=>{void navigate({search:next});};
   const [selected,setSelected]=useState<string[]>([]);
   const [notices,setNotices]=useState(false);
-  const [noticeError,setNoticeError]=useState(false);
+  const inbox=useMarketInbox(userId,false,notices);
+  const [noticeError,setNoticeError]=useState("");
   const [published,setPublished]=useState("");
   const dashboard=useQuery({queryKey:["customer-market",userId],queryFn:loadDashboard,retry:1,refetchInterval:30000});
   useEffect(()=>{
@@ -87,24 +88,36 @@ function Dashboard({userId}:{userId:string}){
   const chosenContact=data?.contacts.find(c=>c.id===search.contact);
   const request=data?.requests.find(r=>r.id===(chosenContact?.request_id??search.request));
   const view=search.new || search.category ? "new" : search.providers ? "providers" : request ? "detail" : "requests";
-  const unread=data?.notifications.filter(n=>!n.read_at).length??0;
+  const unread=inbox.page.data?.unread??0;
   async function openNotice(notice:MarketNotice){
+    setNoticeError("");
+    const hasTarget=(snapshot:typeof data)=>snapshot?.requests.some(r=>r.id===notice.request_id)
+      && (!notice.contact_id || snapshot.contacts.some(c=>c.id===notice.contact_id && c.request_id===notice.request_id));
+    if(!hasTarget(data)){
+      try{
+        const refreshed=await dashboard.refetch({throwOnError:true});
+        if(!hasTarget(refreshed.data)){
+          setNoticeError(t("This request or conversation is no longer available.","Cette demande ou conversation n’est plus disponible."));return;
+        }
+      }
+      catch{setNoticeError(t("Could not open this notification. Try again.","Impossible d’ouvrir cette notification. Réessayez."));return;}
+    }
     go(notice.contact_id?{contact:notice.contact_id}:{request:notice.request_id});
-    setNotices(false);setNoticeError(false);
-    try{const {error}=await supabase.rpc("market_read_notification",{p_id:notice.id});if(error)throw error;await dashboard.refetch();}
-    catch{setNoticeError(true);}
+    setNotices(false);
+    try{await inbox.markRead(notice);}
+    catch{setNoticeError(t("The notification may still appear as unread.","La notification pourrait encore apparaître comme non lue."));}
   }
   return <main className="mx-auto max-w-6xl px-5 py-7 sm:px-8 sm:py-10">
-    <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{t("My service requests","Mes demandes de services")}</h1><p className="mt-2 flex items-center gap-1.5 text-sm text-slate-600"><MapPin size={15}/>Ottawa–Gatineau</p></div><div className="flex flex-wrap items-center gap-2"><button className={marketSecondary} aria-expanded={notices} onClick={()=>setNotices(!notices)}><Bell size={16}/>{t("Notifications","Notifications")}{unread>0 && <span className="rounded-full bg-teal-800 px-2 text-xs text-white">{unread}</span>}</button><button className={marketPrimary} onClick={()=>go({new:1})}><Plus size={18}/>{t("Create a request","Créer une demande")}</button></div></div>
+    <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{t("My service requests","Mes demandes de services")}</h1><p className="mt-2 flex items-center gap-1.5 text-sm text-slate-600"><MapPin size={15}/>Ottawa–Gatineau</p></div><div className="flex flex-wrap items-center gap-2"><button className={marketSecondary} aria-expanded={notices} onClick={()=>{inbox.first();setNotices(!notices);}}><Bell size={16}/>{t("Notifications","Notifications")}{unread>0 && <span className="rounded-full bg-teal-800 px-2 text-xs text-white">{unread}</span>}</button><button className={marketPrimary} onClick={()=>go({new:1})}><Plus size={18}/>{t("Create a request","Créer une demande")}</button></div></div>
     <nav aria-label={t("Customer dashboard","Espace client")} className="my-6 flex flex-wrap gap-2 border-b border-slate-200 pb-3">
       <button className={view==="requests"||view==="detail"?marketPrimary:marketSecondary} aria-current={view==="requests"||view==="detail"?"page":undefined} onClick={()=>go({})}><ClipboardList size={16}/>{t("My requests","Mes demandes")}</button>
       <button className={view==="providers"?marketPrimary:marketSecondary} aria-current={view==="providers"?"page":undefined} onClick={()=>go({providers:1})}><Users size={16}/>{t("Find professionals","Choisir des professionnels")}</button>
     </nav>
-    {noticeError && <p role="status" className="mb-4 text-sm text-slate-600">{t("The notification may still appear as unread.","La notification pourrait encore apparaître comme non lue.")}</p>}
+    {noticeError && <p role="status" className="mb-4 text-sm text-slate-600">{noticeError}</p>}
+    {notices && <MarketInbox inbox={inbox} language={language} t={t} onOpen={openNotice}/>}
     {dashboard.isPending && <p role="status">{t("Loading your dashboard…","Chargement de votre espace…")}</p>}
     {dashboard.isError && <div role="alert" className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm">{t("Your dashboard could not be loaded.","Votre tableau de bord n’a pas pu être chargé.")} <button className="font-bold underline" onClick={()=>void dashboard.refetch()}>{t("Retry","Réessayer")}</button></div>}
     {data && <>
-      {notices && <section className="mb-5 rounded-2xl border bg-white p-5"><h2 className="text-lg font-bold">{t("Notifications","Notifications")}</h2>{!data.notifications.length && <p className="mt-3 text-sm text-slate-600">{t("No notifications yet.","Aucune notification pour le moment.")}</p>}<ul className="mt-3 grid gap-2">{data.notifications.map(n=><li key={n.id}><button className={"flex w-full flex-wrap items-center justify-between gap-2 rounded-xl p-3 text-left text-sm "+(n.read_at?"bg-slate-50":"bg-teal-50 font-semibold")} onClick={()=>void openNotice(n)}><span>{n.provider_name || t("A professional","Un professionnel")}{n.kind==="contact"?t(" wants to contact you"," souhaite vous contacter"):t(" sent you a message"," vous a envoyé un message")} · {data.requests.find(r=>r.id===n.request_id)?.title}</span><span>{dateLabel(n.created_at,language,true)}</span></button></li>)}</ul></section>}
       {view==="new" && <CustomerRequestForm key={search.category??""} category={search.category} providers={data.directory} preferred={selected} select={setSelected} onCreated={id=>{setSelected([]);setPublished(id);void dashboard.refetch().then(()=>go({request:id}));}}/>}
       {view==="providers" && <section className="rounded-2xl border bg-white p-5 sm:p-7"><div className="mb-5 flex flex-wrap items-center justify-between gap-3"><h2 className="text-2xl font-bold">{t("Choose professionals","Choisir des professionnels")}</h2><button className={marketPrimary} onClick={()=>go({new:1})}>{t("Create request","Créer une demande")}{selected.length>0?" ("+selected.length+")":""}<ArrowRight size={16}/></button></div><CustomerDirectory providers={data.directory} selected={selected} onChange={setSelected}/></section>}
       {view==="detail" && request && <><button onClick={()=>go({})} className="mb-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-teal-900"><ArrowLeft size={15}/>{t("All my requests","Toutes mes demandes")}</button>{published===request.id && <p role="status" className="mb-3 rounded-xl bg-teal-50 px-4 py-3 text-sm font-semibold text-teal-800">{t("Your request is published.","Votre demande est publiée.")}</p>}<CustomerRequestDetail key={request.id} request={request} contacts={data.contacts.filter(c=>c.request_id===request.id)} providers={data.directory} activeId={chosenContact?.id} select={id=>go({contact:id})} refresh={dashboard.refetch}/></>}

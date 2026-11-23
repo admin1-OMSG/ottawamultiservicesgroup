@@ -140,7 +140,8 @@ export function createDispatcher(env: Env, network: typeof fetch = fetch) {
     if (req.method !== "POST") return ok(405);
     const incoming = new URL(req.url);
     const isCallback = /^(?:\/functions\/v1)?\/market-dispatch\/sms-status$/.test(incoming.pathname);
-    if (!isCallback && !/^(?:\/functions\/v1)?\/market-dispatch\/?$/.test(incoming.pathname)) return ok(404);
+    const isReadiness = /^(?:\/functions\/v1)?\/market-dispatch\/readiness$/.test(incoming.pathname);
+    if (!isCallback && !isReadiness && !/^(?:\/functions\/v1)?\/market-dispatch\/?$/.test(incoming.pathname)) return ok(404);
     if (!cfg) return ok(503);
     const rpc: Rpc = async(name,args) => {
       const res = await network(cfg.origin+"/rest/v1/rpc/"+name,{
@@ -171,6 +172,11 @@ export function createDispatcher(env: Env, network: typeof fetch = fetch) {
       }
       const token = req.headers.get("X-Market-Ticket") || "";
       if (!/^[0-9a-f]{64}$/.test(token) || await rpc("market_consume_dispatch_ticket",{p_token:token}) !== true) return ok(401);
+      if (isReadiness) {
+        return Response.json({ email_enabled: Boolean(cfg.mail), sms_enabled: Boolean(cfg.sms) }, {
+          headers: { "Cache-Control": "no-store" },
+        });
+      }
       if (!cfg.mail && !cfg.sms) return ok();
       const rows = await rpc("market_claim_deliveries",{p_limit:6,p_email:!!cfg.mail,p_sms:!!cfg.sms});
       if (!Array.isArray(rows)) return ok(503);

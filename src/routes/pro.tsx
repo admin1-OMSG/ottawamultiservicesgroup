@@ -21,6 +21,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { LanguageSwitcher, useLanguage } from "@/lib/language";
 import { InteracSandboxPanel } from "@/features/interac/InteracSandboxPanel";
+import { savedProfessionalDestination } from "@/features/marketplace/pro/model";
 import { professionalSignInErrorMessage } from "@/features/professionals/sign-in-errors";
 import {
   CANADIAN_PROVINCES,
@@ -66,6 +67,7 @@ function isSetupError(error: unknown) {
 }
 
 function ProfessionalPortal() {
+  const navigate = Route.useNavigate();
   const { language } = useLanguage();
   const t = (en: string, fr: string) => (language === "fr" ? fr : en);
   const [session, setSession] = useState<Session | null | undefined>(undefined);
@@ -148,7 +150,7 @@ function ProfessionalPortal() {
               const destination = new URL(returnTo, window.location.origin);
               window.localStorage.removeItem("omsg.marketplace.returnTo");
               if (destination.origin === window.location.origin && destination.pathname === "/marketplace") {
-                window.location.replace(destination.pathname + destination.search);
+                await navigate({ href: destination.pathname + destination.search, replace: true, reloadDocument: true });
                 return;
               }
             }
@@ -168,6 +170,13 @@ function ProfessionalPortal() {
         if (result.error) throw result.error;
         if (cancelled) return;
         const row = result.data as ProfessionalAccount | null;
+        if (row?.review_status === "approved") {
+          const destination = savedProfessionalDestination();
+          if (destination) {
+            await navigate({ href: "/pro-market?" + destination.toString(), replace: true, reloadDocument: true });
+            return;
+          }
+        }
         setAccount(row);
         if (row) {
           setForm(profileToForm(row));
@@ -192,7 +201,7 @@ function ProfessionalPortal() {
       cancelled = true;
       if (activeUser.current === userId) activeUser.current = null;
     };
-  }, [userId, loadAttempt]);
+  }, [userId, loadAttempt, navigate]);
 
   useEffect(() => {
     if (!cooldown) return;

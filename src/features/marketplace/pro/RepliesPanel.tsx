@@ -14,6 +14,10 @@ export function RepliesPanel({replies,wallet,selected,open,t,language,reload}:{r
     </article>
     <RefundPanel key={reply.id} reply={reply} refund={wallet.refunds.find(row=>row.contact_id===reply.id)} t={t} reload={reload}/>
   </div>;
+  if (selected) return <div className="space-y-3">
+    <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm">{t("This conversation isn’t available in your account.", "Cette conversation n’est pas disponible dans votre compte.")}</p>
+    <Button variant="outline" onClick={()=>open(null)}><ArrowLeft/>{t("All my responses","Toutes mes réponses")}</Button>
+  </div>;
   return <section className="space-y-3">{!replies.length && <div className="rounded-2xl border bg-white p-8 text-center"><MessagesSquare className="mx-auto mb-3 text-teal-700"/><h2 className="font-semibold">{t("You haven’t contacted any clients yet.","Vous n’avez encore contacté aucun client.")}</h2></div>}
     {replies.map(item=><article key={item.id} className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-white p-5"><div><h2 className="break-words font-bold">{item.request_title}</h2><p className="mt-1 text-sm text-slate-600">{dateText(item.created_at,language)} · {credits(item.credit_cost,t)}{item.request_status==="withdrawn" && " · "+t("Request withdrawn","Demande retirée")}{item.completed_at && " · "+t("Completed","Terminé")}</p></div><Button variant="outline" onClick={()=>open(item.id)}>{t("Open conversation","Ouvrir la conversation")}<ArrowUpRight/></Button></article>)}</section>;
 }

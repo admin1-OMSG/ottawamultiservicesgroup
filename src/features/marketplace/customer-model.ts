@@ -14,7 +14,7 @@ export type MarketContact = {
 };
 export type MarketNotice = {
   id: string; kind: "match" | "invitation" | "contact" | "message"; request_id: string; contact_id: string | null;
-  provider_name: string | null; created_at: string; read_at: string | null;
+  provider_name: string | null; request_title: string; created_at: string; read_at: string | null;
 };
 export const marketInput = "mt-1.5 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-base font-normal text-slate-950 outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/20";
 export const marketPrimary = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-teal-800 px-5 py-2.5 text-sm font-bold text-white hover:bg-teal-900 focus-visible:outline-teal-800 disabled:opacity-50";

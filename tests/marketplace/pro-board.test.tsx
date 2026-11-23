@@ -1,6 +1,6 @@
 import React from "react";
 import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
-import {cleanup,render,screen,within} from "@testing-library/react";
+import {act,cleanup,render,screen,within} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {QueryClient,QueryClientProvider} from "@tanstack/react-query";
 import {ProfessionalDashboard} from "@/features/marketplace/pro/ProfessionalDashboard";
@@ -17,8 +17,7 @@ const t=(en:string,_fr:string)=>en;
 const deals=[52,104,208].map(n=>({code:"p"+n,kind:"pack",enabled:true,price_cents:n*100,credits:n}));
 let balance=8;
 let unlocked=false;
-function show(){
-  const client=new QueryClient({defaultOptions:{queries:{retry:false}}});
+function show(client=new QueryClient({defaultOptions:{queries:{retry:false}}})){
   return render(<QueryClientProvider client={client}><ProfessionalDashboard userId="u" profileId="p" name="Cleaning Pro" t={t} language="en"/></QueryClientProvider>);
 }
 beforeEach(()=>{
@@ -28,7 +27,7 @@ beforeEach(()=>{
       case "market_requests":return {data:[lead]};
       case "market_my_contacts":return {data:unlocked?[{id:"c",request_id:lead.id,provider_id:"p",request_title:lead.title,credit_cost:6,created_at:lead.created_at}]:[]};
       case "market_wallet":return {data:{balance,packs:deals,discount_percent:0,subscription:null,refunds:[],preview_checkout_enabled:true}};
-      case "market_notifications":return {data:[]};
+      case "market_inbox":return {data:{unread:0,items:[],has_older:false}};
       case "market_unlock":unlocked=true;balance-=6;return {data:"c"};
       default:return {data:null};
     }
@@ -36,6 +35,39 @@ beforeEach(()=>{
 });
 afterEach(()=>{cleanup();window.history.replaceState(null,"","/");});
 describe("professional contact workflow",()=>{
+  it("refreshes a newly notified conversation before navigating without a second debit",async()=>{
+    const fallback=rpc.getMockImplementation()!;
+    let read=false;
+    rpc.mockImplementation(async(name,args)=>{
+      if(name==="market_read_notification"){read=true;return {error:null};}
+      if(name==="market_inbox")return {data:{unread:read?0:1,has_older:false,items:args.p_include_items?[{
+        id:"alert",kind:"message",request_id:lead.id,request_title:lead.title,contact_id:"c",created_at:lead.created_at,read_at:null,
+      }]:[]}};
+      return fallback(name,args);
+    });
+    const user=userEvent.setup();show();
+    await screen.findByRole("heading",{name:lead.title});
+    expect(rpc).toHaveBeenCalledWith("market_inbox",{p_as_provider:true,p_include_items:false,p_before_at:null,p_before_id:null});
+    // The notification arrived after the last full dashboard refresh.
+    unlocked=true;
+    await user.click(await screen.findByRole("button",{name:/Notifications.*1/}));
+    await user.click(await screen.findByRole("button",{name:/New message.*Kitchen cleaning/}));
+    expect(await screen.findByText("Conversation c")).toBeTruthy();
+    expect(rpc).toHaveBeenCalledWith("market_read_notification",{p_id:"alert"});
+    expect(rpc.mock.calls.some(([name])=>name==="market_unlock")).toBe(false);
+  });
+  it("keeps a notification unread if the conversation has become unavailable",async()=>{
+    const fallback=rpc.getMockImplementation()!;
+    rpc.mockImplementation(async(name,args)=>name==="market_inbox"?{data:{unread:1,has_older:false,items:args.p_include_items?[{
+      id:"old",kind:"message",request_id:lead.id,request_title:lead.title,contact_id:"gone",created_at:lead.created_at,read_at:null,
+    }]:[]}}:fallback(name,args));
+    const user=userEvent.setup();show();
+    await user.click(await screen.findByRole("button",{name:/Notifications.*1/}));
+    await user.click(await screen.findByRole("button",{name:/New message.*Kitchen cleaning/}));
+    expect(await screen.findByText("This request or conversation is no longer available.")).toBeTruthy();
+    expect(screen.getByRole("heading",{name:"Notifications"})).toBeTruthy();
+    expect(rpc.mock.calls.some(([name])=>name==="market_read_notification")).toBe(false);
+  });
   it("shows the cost before contact and charges only after confirmation",async()=>{
     const user=userEvent.setup();show();
     const card=(await screen.findByRole("heading",{name:lead.title})).closest("article")!;
@@ -56,6 +88,25 @@ describe("professional contact workflow",()=>{
     for(const n of [52,104,208])expect(within(dialog).getByRole("button",{name:new RegExp("CAD\\s*"+n)})).toBeTruthy();
     expect(rpc.mock.calls.filter(([name])=>name==="market_unlock")).toHaveLength(0);
   });
+  it("opens the linked conversation when it becomes available to the signed-in professional", async () => {
+    const conversationId = "8e41c86a-1c97-45e8-b69d-4b88e66ee1a7";
+    const row = { id: conversationId, request_id: lead.id, request_title: lead.title, credit_cost: 6, created_at: lead.created_at };
+    let currentProvider = "another-professional";
+    const read = rpc.getMockImplementation()!;
+    rpc.mockImplementation((name: string) => name === "market_my_contacts"
+      ? Promise.resolve({ data: [{ ...row, provider_id: currentProvider }] })
+      : read(name));
+    window.history.replaceState(null, "", "/pro-market?contact=" + conversationId);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    show(client);
+    await screen.findByText("This conversation isn’t available in your account.");
+    expect(screen.queryByText("Conversation " + conversationId)).toBeNull();
+    currentProvider = "p";
+    await act(() => client.invalidateQueries({ queryKey: ["professional-market-desk"] }));
+    expect(await screen.findByText("Conversation " + conversationId)).toBeTruthy();
+    expect(rpc.mock.calls.some(([name]) => name === "market_unlock")).toBe(false);
+  });
+
   it("reopens an existing response and sends a refund reason for administrator review",async()=>{
     unlocked=true;const user=userEvent.setup();show();
     await user.click(await screen.findByRole("button",{name:"Open conversation"}));

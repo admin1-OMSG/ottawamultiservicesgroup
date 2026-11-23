@@ -7,18 +7,14 @@ import { PGlite } from "@electric-sql/pglite";
 test("the scheduler issues an expiring single-use ticket and SMS reservations belong to the current lease", async () => {
   const db=new PGlite();
   try {
-    // Only pg_cron, Vault, and pg_net are stubbed in WASM. No external providers.
+    // Only pg_net is stubbed in WASM. No external providers.
     await db.exec(`
       create role anon; create role authenticated; create role service_role;
       create schema market_private; grant usage on schema market_private to authenticated,service_role;
       create table market_private.notifications(id uuid primary key, delivered_at timestamptz, retry_at timestamptz default now(), lease uuid, attempts int default 1);
-      create schema vault; create table vault.decrypted_secrets(name text,decrypted_secret text);
       create schema net; create table net.outbox(url text,headers jsonb);
       create function net.http_post(url text,headers jsonb,body jsonb,timeout_milliseconds integer) returns bigint language sql as $$
         insert into net.outbox values($1,$2) returning 1::bigint; $$;
-      create schema cron; create table cron.job(name text,schedule text,command text);
-      create function cron.schedule(text,text,text) returns bigint language sql as $$
-        insert into cron.job values($1,$2,$3) returning 1::bigint; $$;
     `);
     const sql=readFileSync(new URL("../../supabase/migrations/20261123075645_market_notification_dispatch.sql",import.meta.url),"utf8");
     await db.exec(sql.replace(/^create extension if not exists .+;$/gm,""));
@@ -30,7 +26,7 @@ test("the scheduler issues an expiring single-use ticket and SMS reservations be
     await db.query("insert into market_private.notifications(id,lease) values($1,$2)",[id,lease]);
     await db.exec("select market_private.schedule_dispatch()");
     assert.equal(await value("select count(*) from net.outbox"),0);
-    await db.exec("insert into vault.decrypted_secrets values('market_dispatch_project_ref','vdeeevxpwjvztsoonuxx'); select market_private.schedule_dispatch()");
+    await db.exec("insert into market_private.dispatch_config(project_ref) values('vdeeevxpwjvztsoonuxx'); select market_private.schedule_dispatch()");
     const [out]=await read("select * from net.outbox");
     assert.equal(out.url,"https://vdeeevxpwjvztsoonuxx.supabase.co/functions/v1/market-dispatch");
     const key=out.headers["X-Market-Ticket"]; assert.match(key,/^[0-9a-f]{64}$/);

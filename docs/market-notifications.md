@@ -13,7 +13,16 @@ Deploy `market-dispatch` with the per-function configuration in `supabase/config
 | Email | `MARKET_RESEND_API_KEY` and `MARKET_MAIL_FROM` (a verified sender email address) |
 | SMS | `MARKET_TWILIO_ACCOUNT_SID`, `MARKET_TWILIO_AUTH_TOKEN` and `MARKET_TWILIO_FROM` (an SMS-capable E.164 number) |
 
-Use credentials assigned to the preview. One configured channel is sufficient. Save the case-sensitive secret name `market_dispatch_project_ref` in Supabase Vault with the preview project reference `vdeeevxpwjvztsoonuxx`. The database reads this value to enable the job on this branch. Each minute with pending notifications, it issues a single-use request ticket valid for 90 seconds. Removing the Vault entry disables future scheduler requests.
+Use credentials assigned to the preview. One configured channel is sufficient. After configuring the sender and test recipient, enable scheduled delivery on that same branch. These commands use the public project reference. Credentials remain in the Edge Function secrets.
+
+```sql
+create extension if not exists pg_cron;
+insert into market_private.dispatch_config(project_ref) values ('vdeeevxpwjvztsoonuxx')
+on conflict(singleton) do update set project_ref=excluded.project_ref;
+select cron.schedule('omsg-market-notifications','* * * * *','select market_private.schedule_dispatch()');
+```
+
+An operator can POST to the worker’s `/readiness` route with a single-use dispatch ticket to check which channels are configured without claiming or sending any notifications. The scheduler contacts the worker only when notifications are due. To pause delivery, remove the configuration row and unschedule the job.
 
 Production requires its own project, sender configuration, `MARKET_DISPATCH_ENV=production`, `MARKET_PRODUCTION_PROJECT_REF` matching that project, and the HTTPS OMSG customer site in `MARKET_SITE_ORIGIN`. The preview project accepts only preview mode. Production activation can also process existing undelivered inbox entries. Review their age and intended audience before turning it on.
 

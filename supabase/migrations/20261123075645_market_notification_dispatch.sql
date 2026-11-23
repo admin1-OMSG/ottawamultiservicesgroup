@@ -1,7 +1,12 @@
 -- A scheduled request carries a single-use, short-lived ticket instead of a service role key.
-create extension if not exists pg_cron;
 create extension if not exists pg_net;
-create extension if not exists supabase_vault with schema vault;
+-- The project reference is routing information, not a credential.
+create table market_private.dispatch_config (
+  singleton boolean primary key default true check (singleton),
+  project_ref text not null check (project_ref ~ '^[a-z0-9]{20}$')
+);
+alter table market_private.dispatch_config enable row level security;
+revoke all on market_private.dispatch_config from public, anon, authenticated, service_role;
 
 create table market_private.dispatch_tickets (
   digest bytea primary key,
@@ -23,8 +28,7 @@ declare project_ref text; token text;
 begin
   delete from market_private.dispatch_tickets where expires_at<=now();
   if not exists(select 1 from market_private.notifications where delivered_at is null and retry_at<=now()) then return; end if;
-  -- An operator enables this project's job by setting its own project reference in Vault.
-  select decrypted_secret into project_ref from vault.decrypted_secrets where name='market_dispatch_project_ref';
+  select c.project_ref into project_ref from market_private.dispatch_config c where c.singleton;
   if project_ref is null or project_ref !~ '^[a-z0-9]{20}$' then return; end if;
   token := replace(gen_random_uuid()::text||gen_random_uuid()::text,'-','');
   insert into market_private.dispatch_tickets values(sha256(convert_to(token,'UTF8')), now()+interval '90 seconds');
@@ -90,4 +94,4 @@ public.market_consume_dispatch_ticket(text),public.market_reserve_sms(uuid,uuid,
 grant execute on function market_private.consume_dispatch_ticket(text),market_private.reserve_sms(uuid,uuid,uuid),market_private.sms_result(uuid,uuid,text,text),
 public.market_consume_dispatch_ticket(text),public.market_reserve_sms(uuid,uuid,uuid),public.market_sms_result(uuid,uuid,text,text) to service_role;
 
-select cron.schedule('omsg-market-notifications','* * * * *','select market_private.schedule_dispatch()');
+-- Scheduling is enabled with the sender. See docs/market-notifications.md.

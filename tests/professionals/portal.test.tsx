@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ComponentType } from "react";
 
 const mocks = vi.hoisted(() => ({
+  navigate: vi.fn(),
   getSession: vi.fn(),
   getUser: vi.fn(),
   onAuthStateChange: vi.fn(),
@@ -39,7 +40,7 @@ vi.mock("@/lib/language", () => ({
 }));
 
 vi.mock("@tanstack/react-router", () => ({
-  createFileRoute: () => (options: { component: ComponentType }) => ({ options }),
+  createFileRoute: () => (options: { component: ComponentType }) => ({ options, useNavigate: () => mocks.navigate }),
   Link: ({ to, children, ...props }: { to: string; children: React.ReactNode }) => (
     <a href={to} {...props}>
       {children}
@@ -48,6 +49,7 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 import { Route } from "@/routes/pro";
+import { rememberProfessionalDestination } from "@/features/marketplace/pro/model";
 
 const Portal = (Route as unknown as { options: { component: ComponentType } }).options.component;
 const userId = "11111111-1111-1111-1111-111111111111";
@@ -336,6 +338,63 @@ describe.each(["en", "fr"] as const)("sign-in delivery failures in %s", (languag
     );
     expect(alert.textContent).not.toContain("PRIVATE_NETWORK_URL");
     expect(screen.queryByRole("status")).toBeNull();
+  });
+});
+
+describe("returning from a notification after sign-in", () => {
+  const id = "137f49eb-22d0-4cad-a44a-a488e23e5eb9";
+  function followProfessionalLink(kind: "contact" | "lead") {
+    window.history.replaceState(null, "", "/pro-market?" + kind + "=" + id);
+    rememberProfessionalDestination();
+    window.history.replaceState(null, "", "/pro");
+  }
+
+  afterEach(() => {
+    window.localStorage.clear();
+    window.history.replaceState(null, "", "/");
+  });
+
+  it.each(["lead", "contact"] as const)("resumes the approved professional’s %s after sign-in", async (kind) => {
+    followProfessionalLink(kind);
+    render(<Portal />);
+    await screen.findByRole("heading", { name: "Create or access your account" });
+    signedIn({ ...account, review_status: "approved" });
+    act(() => authCallback?.("SIGNED_IN", { user: verifiedUser }));
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({
+      href: "/pro-market?" + kind + "=" + id, replace: true, reloadDocument: true,
+    }));
+    expect(mocks.from).not.toHaveBeenCalledWith("professional_documents");
+  });
+
+  it("keeps a pending professional on the profile page", async () => {
+    followProfessionalLink("contact");
+    signedIn({ ...account, review_status: "pending_review" });
+    render(<Portal />);
+    await screen.findByDisplayValue("Alex Cleaning Inc.");
+    expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { kind: "contact", id, expires: 1 },
+    { kind: "elsewhere", id, expires: Date.now() + 60_000 },
+    { kind: "lead", id: "/elsewhere", expires: Date.now() + 60_000 },
+  ])("discards a stale or malformed stored link", async (saved) => {
+    window.localStorage.setItem("omsg-professional-alert", JSON.stringify(saved));
+    signedIn({ ...account, review_status: "approved" });
+    render(<Portal />);
+    await screen.findByDisplayValue("Alex Cleaning Inc.");
+    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem("omsg-professional-alert")).toBeNull();
+  });
+
+  it("returns a customer to their conversation before loading any professional account", async () => {
+    followProfessionalLink("lead");
+    const href = "/marketplace?contact=" + id;
+    window.localStorage.setItem("omsg.marketplace.returnTo", href);
+    signedIn({ ...account, review_status: "approved" });
+    render(<Portal />);
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({ href, replace: true, reloadDocument: true }));
+    expect(mocks.from).not.toHaveBeenCalled();
   });
 });
 

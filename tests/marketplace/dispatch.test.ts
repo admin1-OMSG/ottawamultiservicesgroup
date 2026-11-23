@@ -63,6 +63,22 @@ test("unsigned, invalid, and replayed scheduler calls never claim notifications"
   assert.equal(db.by("/market_claim_deliveries").length,1);
 });
 
+test("readiness consumes a ticket and reports only channel availability without claiming deliveries", async () => {
+  for (const [settings, enabled] of [[{}, true], [{MARKET_DISPATCH_ENV:""}, false]] as const) {
+    const d = setup({ settings });
+    const check = (ticket: string) => d.handler(new Request(endpoint+"/readiness", {
+      method:"POST", headers:{"X-Market-Ticket":ticket},
+    }));
+    assert.equal((await check("")).status, 401);
+    const result = await check(token);
+    assert.equal(result.status, 200);
+    assert.equal(result.headers.get("Cache-Control"), "no-store");
+    assert.deepEqual(await result.json(), {email_enabled:enabled, sms_enabled:enabled});
+    assert.equal((await check(token)).status, 401);
+    assert.ok(d.calls.every(call => call.url.endsWith("/market_consume_dispatch_ticket")));
+  }
+});
+
 test("absent settings or wrong preview/production config never claim a notification",async()=>{
   for (const settings of [
     {MARKET_DISPATCH_ENV:""}, {MARKET_PREVIEW_RECIPIENTS:""},
