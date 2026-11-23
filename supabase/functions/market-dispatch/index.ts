@@ -12,7 +12,22 @@ type Row = {
   recipient_is_provider: boolean;
 };
 const uuid = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
-const email = /^[^\s<>,@]+@[^\s<>,@]+\.[^\s<>,@]+$/;
+// Single ASCII mailbox in dot-atom form. Exclude headers, display names and recipient lists.
+function bareEmail(input: unknown): input is string {
+  if (typeof input !== "string" || input.length > 254 || /[\s\x00-\x1f\x7f]/.test(input)) return false;
+  const [local, domain, extra] = input.split("@");
+  return extra === undefined && Boolean(local && local.length <= 64 && domain) &&
+    /^[a-z0-9_!#$%&'*+\/=?^`{|}~-]+(?:\.[a-z0-9_!#$%&'*+\/=?^`{|}~-]+)*$/i.test(local) &&
+    /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i.test(domain);
+}
+function crmSender(input: string) {
+  if (bareEmail(input)) return input;
+  const match = /^([\p{L}\p{N}][\p{L}\p{N}\p{M} '.&-]{0,79}) <([^<>]+)>$/u.exec(input);
+  return match && match[0] === input && bareEmail(match[2]) ? input : "";
+}
+function keyPresent(input: string | undefined): input is string {
+  return Boolean(input && !/[\s\x00-\x1f\x7f]/.test(input));
+}
 const e164 = /^\+[1-9]\d{7,14}$/;
 const preview = "https://vdeeevxpwjvztsoonuxx.supabase.co";
 const previewSite = "https://ottawamultiservicesgroup-git-codex-professional-onboarding-omsg.vercel.app";
@@ -26,21 +41,24 @@ function configuration(env: Env) {
   const mode = env("MARKET_DISPATCH_ENV");
   const production = mode === "production" && origin !== preview &&
     origin === "https://" + env("MARKET_PRODUCTION_PROJECT_REF") + ".supabase.co";
-  const isPreview = mode === "preview" && origin === preview;
+  const recipients = env("MARKET_PREVIEW_RECIPIENTS");
+  const isPreview = origin === preview && (mode === "preview" || (mode === undefined && recipients === undefined));
   const productionSite = env("MARKET_SITE_ORIGIN") || "";
   const site = isPreview ? previewSite : production &&
     /^https:\/\/(?:www\.)?(?:ottawamultiservicesgroup|canadamultiservicesgroup)\.com$/.test(productionSite)
     ? productionSite : "";
-  const allowed = new Set((env("MARKET_PREVIEW_RECIPIENTS") || "").toLowerCase().split(",").map(x=>x.trim()).filter(Boolean));
+  const addresses = (recipients ?? "").toLowerCase().split(",").map(x=>x.trim());
+  const validList = recipients && !/[\x00-\x1f\x7f]/.test(recipients) && addresses.every(x=>bareEmail(x) || e164.test(x));
+  const allowed = new Set(validList ? addresses : []);
   const mailKey = env("MARKET_RESEND_API_KEY");
-  const from = env("MARKET_MAIL_FROM") || "";
+  const from = env("MARKET_MAIL_FROM");
   const sid = env("MARKET_TWILIO_ACCOUNT_SID") || "";
   const auth = env("MARKET_TWILIO_AUTH_TOKEN");
   const number = env("MARKET_TWILIO_FROM") || "";
-  const mail = site && mailKey && email.test(from) && (!isPreview || [...allowed].some(x => email.test(x))) ? { key: mailKey, from } : null;
+  const mail = site && keyPresent(mailKey) && bareEmail(from) && !isPreview ? { key: mailKey, from } : null;
   const sms = site && /^AC[\da-f]{32}$/i.test(sid) && auth && e164.test(number) &&
-    (!isPreview || [...allowed].some(x => e164.test(x))) ? { sid, auth, number } : null;
-  return { origin, secret, site, mail, sms, allowed, isPreview };
+    (!isPreview || (mode === "preview" && [...allowed].some(x => e164.test(x)))) ? { sid, auth, number } : null;
+  return { origin, secret, site, mail, sms, allowed, isPreview, recipients, mailKey, from };
 }
 type Config = NonNullable<ReturnType<typeof configuration>>;
 
@@ -91,6 +109,33 @@ async function smallBody(request: Request, max: number) {
 }
 type Rpc = (name: string, args: Record<string,unknown>) => Promise<unknown>;
 
+// The branch-only CRM settings and optional recipient record are read only after a ticket has been consumed.
+async function previewMail(cfg: Config, env: Env, rpc: Rpc) {
+  let allowed = cfg.allowed;
+  let databaseSender = "";
+  let lookupFailed = false;
+  if (cfg.recipients === undefined) {
+    try {
+      const settings = await rpc("market_preview_mail_settings", {}) as { recipient?: unknown; sender?: unknown } | null;
+      if (bareEmail(settings?.recipient)) {
+        allowed = new Set([settings.recipient.toLowerCase()]);
+        if (bareEmail(settings.sender)) databaseSender = settings.sender;
+      }
+    } catch { lookupFailed = true; }
+  }
+  const key = cfg.mailKey ?? env("RESEND_API_KEY");
+  const fallbackFrom = cfg.from === undefined && cfg.mailKey === undefined ? env("EMAIL_FROM") : undefined;
+  const from = cfg.from !== undefined ? (bareEmail(cfg.from) ? cfg.from : "") :
+    fallbackFrom !== undefined ? crmSender(fallbackFrom) : databaseSender;
+  const keyOk = keyPresent(key);
+  const recipientOk = [...allowed].some(bareEmail);
+  return {
+    config: { ...cfg, allowed, mail: keyOk && from && recipientOk ? { key, from } : null },
+    readiness: { email_key_present: keyOk, email_sender_configured: Boolean(from), email_recipient_configured: recipientOk,
+      preview_settings_lookup_failed: lookupFailed },
+  };
+}
+
 async function deliver(row: Row, cfg: Config, rpc: Rpc, network: typeof fetch) {
   if (!uuid.test(row.id) || !uuid.test(row.lease)) return;
   const finish = (success: boolean) => rpc("market_finish_delivery",{p_id:row.id,p_lease:row.lease,p_ok:success});
@@ -101,7 +146,7 @@ async function deliver(row: Row, cfg: Config, rpc: Rpc, network: typeof fetch) {
   // Supabase Auth can return a verified number with digits only.
   const phoneTo = /^\d+$/.test(rawPhone) ? "+" + rawPhone : rawPhone;
   const allowed = (to:string) => !cfg.isPreview || cfg.allowed.has(to);
-  if (cfg.mail && email.test(emailTo) && allowed(emailTo)) {
+  if (cfg.mail && bareEmail(emailTo) && allowed(emailTo)) {
     const res = await network("https://api.resend.com/emails",{
       method:"POST", redirect:"error", signal:timeout(), headers:{
         Authorization:"Bearer "+cfg.mail.key,"Content-Type":"application/json","Idempotency-Key":"market-notice/"+row.id,
@@ -172,15 +217,18 @@ export function createDispatcher(env: Env, network: typeof fetch = fetch) {
       }
       const token = req.headers.get("X-Market-Ticket") || "";
       if (!/^[0-9a-f]{64}$/.test(token) || await rpc("market_consume_dispatch_ticket",{p_token:token}) !== true) return ok(401);
+      const previewSettings = cfg.isPreview ? await previewMail(cfg,env,rpc) : null;
+      const delivery = previewSettings?.config ?? cfg;
       if (isReadiness) {
-        return Response.json({ email_enabled: Boolean(cfg.mail), sms_enabled: Boolean(cfg.sms) }, {
+        return Response.json({ email_enabled: Boolean(delivery.mail), sms_enabled: Boolean(delivery.sms), ...previewSettings?.readiness }, {
           headers: { "Cache-Control": "no-store" },
         });
       }
-      if (!cfg.mail && !cfg.sms) return ok();
-      const rows = await rpc("market_claim_deliveries",{p_limit:6,p_email:!!cfg.mail,p_sms:!!cfg.sms});
+      if (previewSettings?.readiness.preview_settings_lookup_failed) return ok(503);
+      if (!delivery.mail && !delivery.sms) return ok();
+      const rows = await rpc("market_claim_deliveries",{p_limit:6,p_email:!!delivery.mail,p_sms:!!delivery.sms});
       if (!Array.isArray(rows)) return ok(503);
-      const results = await Promise.allSettled(rows.map(row => deliver(row,cfg,rpc,network)));
+      const results = await Promise.allSettled(rows.map(row => deliver(row,delivery,rpc,network)));
       return ok(results.some(r=>r.status==="rejected")?503:204);
     } catch { return ok(503); }
   };

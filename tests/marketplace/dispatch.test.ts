@@ -23,20 +23,26 @@ const notification = {
 };
 type Captured = {url:string, init?:RequestInit};
 function setup(opts:{
-  settings?: Record<string,string>,rows?:object[],reserve?:boolean,
+  settings?: Record<string,string|undefined>,rows?:object[],reserve?:boolean,
+  previewMail?:unknown, settingsFail?:boolean,
   send?:(call:Captured)=>Response, validated?:boolean
 }={}) {
-  const settings = {...config,...opts.settings};
+  const settings:Record<string,string|undefined> = {...config,...opts.settings};
+  const envReads:string[]=[];
+  const project=settings.SUPABASE_URL||origin;
   const calls:Captured[]=[];
   let consumed = false;
-  const handler = createDispatcher(k=>settings[k as keyof typeof settings],async(input,init) => {
+  const handler = createDispatcher(k=>{envReads.push(k);return settings[k];},async(input,init) => {
     const call = {url:String(input),init}; calls.push(call);
     assert.equal(init?.redirect,"error");
-    if (call.url.startsWith(origin+"/rest/v1/rpc/")) {
+    if (call.url.startsWith(project+"/rest/v1/rpc/")) {
       assert.equal(new Headers(init?.headers).get("apikey"),config.SUPABASE_SERVICE_ROLE_KEY);
       if (call.url.endsWith("/market_consume_dispatch_ticket")) {
         const allowed=!consumed && opts.validated!==false;
         consumed=true; return Response.json(allowed);
+      }
+      if (call.url.endsWith("/market_preview_mail_settings")) {
+        return opts.settingsFail ? new Response(null,{status:503}) : Response.json(opts.previewMail ?? null);
       }
       if (call.url.endsWith("/market_claim_deliveries")) return Response.json(opts.rows||[notification]);
       if (call.url.endsWith("/market_reserve_sms")) return Response.json(opts.reserve!==false);
@@ -50,7 +56,10 @@ function setup(opts:{
   const run = (headers:Record<string,string>={"X-Market-Ticket":token}) => handler(new Request(endpoint,{method:"POST",headers}));
   const by = (suffix:string) => calls.filter(c=>c.url.endsWith(suffix));
   const rpcArgs=(suffix:string) => by(suffix).map(c=>JSON.parse(String(c.init?.body)));
-  return {handler,run,calls,by,rpcArgs};
+  const probe=(ticket=token)=>handler(new Request(project+"/functions/v1/market-dispatch/readiness",{
+    method:"POST",headers:{"X-Market-Ticket":ticket},
+  }));
+  return {handler,run,probe,calls,by,rpcArgs,envReads};
 }
 
 test("unsigned, invalid, and replayed scheduler calls never claim notifications",async()=>{
@@ -73,7 +82,9 @@ test("readiness consumes a ticket and reports only channel availability without 
     const result = await check(token);
     assert.equal(result.status, 200);
     assert.equal(result.headers.get("Cache-Control"), "no-store");
-    assert.deepEqual(await result.json(), {email_enabled:enabled, sms_enabled:enabled});
+    assert.deepEqual(await result.json(), enabled ? {email_enabled:true, sms_enabled:true,
+      email_key_present:true,email_sender_configured:true,email_recipient_configured:true,preview_settings_lookup_failed:false} :
+      {email_enabled:false,sms_enabled:false});
     assert.equal((await check(token)).status, 401);
     assert.ok(d.calls.every(call => call.url.endsWith("/market_consume_dispatch_ticket")));
   }
@@ -151,4 +162,119 @@ test("SMS status requires a signed callback bound to the exact path, fields, and
   assert.equal((await call(path,signature)).status,204);
   assert.deepEqual(d.rpcArgs("/market_sms_result"),[{p_id:notification.id,p_attempt:attempt,p_state:"accepted",p_sid:sid}]);
   assert.equal(d.by("/market_claim_deliveries").length,0);
+});
+
+
+const crmSettings = { MARKET_DISPATCH_ENV:undefined, MARKET_PREVIEW_RECIPIENTS:undefined,
+  MARKET_RESEND_API_KEY:undefined, MARKET_MAIL_FROM:undefined, RESEND_API_KEY:"test-crm-key" };
+const previewMail = { recipient, sender:"preview@example.test" };
+
+test("only a ticket on the pinned preview can read its CRM and DB fallback; probes report booleans without dispatch",async()=>{
+  for (const mode of [undefined,"preview"]) {
+    const d=setup({settings:{...crmSettings,MARKET_DISPATCH_ENV:mode},previewMail});
+    assert.equal((await d.probe("")).status,401);
+    assert.equal(d.calls.length,0);
+    assert.ok(!d.envReads.includes("RESEND_API_KEY"));
+    const res=await d.probe();
+    assert.equal(res.status,200);
+    assert.deepEqual(await res.json(),{email_enabled:true,sms_enabled:false,email_key_present:true,
+      email_sender_configured:true,email_recipient_configured:true,preview_settings_lookup_failed:false});
+    assert.deepEqual(d.calls.map(c=>c.url.split("/").at(-1)),["market_consume_dispatch_ticket","market_preview_mail_settings"]);
+    assert.equal((await d.probe()).status,401);
+    assert.equal(d.by("/market_preview_mail_settings").length,1);
+  }
+  const invalid=setup({settings:crmSettings,previewMail,validated:false});
+  assert.equal((await invalid.probe()).status,401);
+  assert.equal(invalid.by("/market_preview_mail_settings").length,0);
+  assert.ok(!invalid.envReads.includes("RESEND_API_KEY"));
+});
+
+test("CRM fallback sends only to the exact approved recipient and accepts one safe sender",async()=>{
+  for(const [setting,from] of [[undefined,previewMail.sender],["customer-service@example.test","customer-service@example.test"],
+    ["OMSG <sender@example.test>","OMSG <sender@example.test>"]] as const){
+    const d=setup({settings:{...crmSettings,EMAIL_FROM:setting},previewMail,
+      rows:[notification,{...notification,id:randomUUID(),email:"elsewhere@example.test"},{...notification,id:randomUUID(),email:null}]});
+    assert.equal((await d.run()).status,204);
+    assert.deepEqual(d.rpcArgs("/market_claim_deliveries"),[{p_limit:6,p_email:true,p_sms:false}]);
+    const sends=d.by("resend.com/emails");assert.equal(sends.length,1);
+    assert.deepEqual(JSON.parse(String(sends[0].init?.body)).to,[recipient]);
+    assert.equal(JSON.parse(String(sends[0].init?.body)).from,from);
+    assert.equal(new Headers(sends[0].init?.headers).get("Authorization"),"Bearer "+crmSettings.RESEND_API_KEY);
+    assert.equal(d.by("/Messages.json").length,0);
+  }
+});
+
+test("explicit recipients and sender take precedence; invalid explicit values do not widen the audience",async()=>{
+  const explicit=setup({settings:{...crmSettings,MARKET_DISPATCH_ENV:"preview",MARKET_PREVIEW_RECIPIENTS:recipient,MARKET_MAIL_FROM:config.MARKET_MAIL_FROM,
+    EMAIL_FROM:"OMSG <ignored@example.test>"},previewMail:{recipient:"different@example.test",sender:"other@example.test"}});
+  assert.equal((await explicit.run()).status,204);
+  assert.equal(explicit.by("/market_preview_mail_settings").length,0);
+  assert.ok(!explicit.envReads.includes("EMAIL_FROM"));
+  assert.equal(JSON.parse(String(explicit.by("resend.com/emails")[0].init?.body)).from,config.MARKET_MAIL_FROM);
+  const dedicated=setup({settings:{RESEND_API_KEY:"alternative",EMAIL_FROM:"ignored@example.test"}});
+  await dedicated.run();
+  assert.ok(!dedicated.envReads.includes("RESEND_API_KEY"));
+  assert.ok(!dedicated.envReads.includes("EMAIL_FROM"));
+  const source=setup({settings:{...crmSettings,MARKET_DISPATCH_ENV:"preview",MARKET_PREVIEW_RECIPIENTS:recipient},previewMail});
+  assert.equal((await source.run()).status,204);
+  assert.equal(source.by("/market_preview_mail_settings").length,0);
+  assert.equal(source.by("/market_claim_deliveries").length,0);
+  for(const value of ["",recipient+",*",recipient+"\r\n",recipient+","+phone+",bad"]) {
+    const denied=setup({settings:{...crmSettings,MARKET_DISPATCH_ENV:"preview",MARKET_PREVIEW_RECIPIENTS:value},previewMail});
+    await denied.run();assert.equal(denied.by("/market_preview_mail_settings").length,0);
+    assert.equal(denied.by("/market_claim_deliveries").length,0);
+  }
+});
+
+test("malformed database values and overrides remain disabled and never disclose addresses or credentials",async()=>{
+  for(const options of [
+    {previewMail:null}, {previewMail:[previewMail]}, {previewMail:{...previewMail,recipient:recipient+",c@example.test"}},
+    {previewMail:{...previewMail,recipient:"OMSG <"+recipient+">"}}, {previewMail:{...previewMail,recipient:phone}},
+    {previewMail:{...previewMail,recipient:"bad@-example.test"}}, {previewMail:{...previewMail,recipient:recipient+"\n"}},
+    {previewMail:{...previewMail,sender:"OMSG <sender@example.test>"}}, {previewMail:{...previewMail,sender:"x@y.test, b@y.test"}},
+    {settings:{EMAIL_FROM:"OMSG <x@y.test>\nBcc: z@y.test"}}, {settings:{EMAIL_FROM:"OMSG <x@y.test>, x@y.test"}},
+    {settings:{EMAIL_FROM:""}}, {settings:{MARKET_MAIL_FROM:"bad",EMAIL_FROM:"good@example.test"}},
+    {settings:{MARKET_RESEND_API_KEY:""}}, {settings:{RESEND_API_KEY:"test\nkey"}},
+  ]) {
+    const input={...options,previewMail:"previewMail" in options?options.previewMail:previewMail,settings:{...crmSettings,...options.settings}};
+    const d=setup(input);assert.equal((await d.run()).status,204);
+    assert.equal(d.by("/market_claim_deliveries").length,0);
+    const readiness=await (await setup(input).probe()).json();
+    assert.equal(readiness.email_enabled,false);assert.equal(readiness.sms_enabled,false);
+    assert.ok(Object.values(readiness).every(v=>typeof v==="boolean"));
+  }
+  const noKey=setup({settings:{...crmSettings,RESEND_API_KEY:undefined},previewMail});
+  assert.deepEqual(await (await noKey.probe()).json(),{email_enabled:false,sms_enabled:false,email_key_present:false,
+    email_sender_configured:true,email_recipient_configured:true,preview_settings_lookup_failed:false});
+  const down=setup({settings:crmSettings,settingsFail:true});assert.equal((await down.run()).status,503);
+  assert.equal(down.by("/market_claim_deliveries").length,0);
+  const downProbe=setup({settings:crmSettings,settingsFail:true});
+  assert.deepEqual(await (await downProbe.probe()).json(),{email_enabled:false,sms_enabled:false,email_key_present:true,
+    email_sender_configured:false,email_recipient_configured:false,preview_settings_lookup_failed:true});
+});
+
+test("an explicit preview recipient list always requires explicit preview mode",async()=>{
+  const settings={...crmSettings,MARKET_PREVIEW_RECIPIENTS:recipient+","+phone,MARKET_MAIL_FROM:config.MARKET_MAIL_FROM};
+  const d=setup({settings,previewMail});
+  assert.equal((await d.run()).status,204);
+  assert.deepEqual(d.calls.map(c=>c.url.split("/").at(-1)),["market_consume_dispatch_ticket"]);
+  assert.ok(!d.envReads.includes("RESEND_API_KEY"));
+  assert.deepEqual(await (await setup({settings,previewMail}).probe()).json(),{email_enabled:false,sms_enabled:false});
+});
+
+test("production, unpinned projects and explicit invalid modes never read CRM keys or the preview settings",async()=>{
+  const prod="b".repeat(20);
+  for(const settings of [
+    {MARKET_DISPATCH_ENV:""}, {MARKET_DISPATCH_ENV:"development"}, {MARKET_DISPATCH_ENV:"production"},
+    {SUPABASE_URL:"https://"+prod+".supabase.co",MARKET_DISPATCH_ENV:"preview"},
+    {SUPABASE_URL:"https://"+prod+".supabase.co",MARKET_DISPATCH_ENV:undefined},
+    {SUPABASE_URL:"https://"+prod+".supabase.co",MARKET_DISPATCH_ENV:"production",
+     MARKET_PRODUCTION_PROJECT_REF:prod,MARKET_SITE_ORIGIN:"https://ottawamultiservicesgroup.com"},
+  ]) {
+    const d=setup({settings:{...crmSettings,...settings,MARKET_TWILIO_AUTH_TOKEN:undefined},previewMail});
+    const res=await d.probe();assert.equal(res.status,200);
+    assert.deepEqual(await res.json(),{email_enabled:false,sms_enabled:false});
+    assert.equal(d.by("/market_preview_mail_settings").length,0);
+    assert.ok(!d.envReads.includes("RESEND_API_KEY"));assert.ok(!d.envReads.includes("EMAIL_FROM"));
+  }
 });
