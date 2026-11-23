@@ -10,7 +10,7 @@ export function WalletPanel({wallet,language,t,leadId=null,packsOnly=false,selec
   const [error,setError]=useState(false);
   const attempts=useRef(new Map<string,string>());
   const guard=useRef(false);
-  const formatPrice=(cents:number)=>new Intl.NumberFormat(language==="fr"?"fr-CA":"en-CA",{style:"currency",currency:"CAD",currencyDisplay:"code",minimumFractionDigits:0,maximumFractionDigits:2}).format(cents/100);
+  const formatPrice=(cents:number)=>new Intl.NumberFormat(language==="fr"?"fr-CA":"en-CA",{style:"currency",currency:"CAD",currencyDisplay:"narrowSymbol",minimumFractionDigits:0,maximumFractionDigits:2}).format(cents/100);
   const offers=wallet.packs.filter(o=>!packsOnly||o.kind==="pack");
   const selected = offers.find(offer => offer.code === selectedCode && offer.enabled && offer.credits !== null && offer.price_cents !== null);
   const orderedOffers = selected ? [selected, ...offers.filter(offer => offer.code !== selected.code)] : offers;

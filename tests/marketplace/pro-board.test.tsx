@@ -86,7 +86,7 @@ describe("professional contact workflow",()=>{
     const dialog=await screen.findByRole("dialog");
     expect(within(dialog).getByText(/Credits needed.*5 credits/)).toBeTruthy();
     expect(within(dialog).queryByRole("button",{name:"Confirm contact"})).toBeNull();
-    for(const n of [52,104,208])expect(within(dialog).getByRole("button",{name:new RegExp("CAD\\s*"+n)})).toBeTruthy();
+    for(const n of [52,104,208])expect(within(dialog).getByRole("button",{name:new RegExp("\\$\\s*"+n)})).toBeTruthy();
     expect(rpc.mock.calls.filter(([name])=>name==="market_unlock")).toHaveLength(0);
   });
   it("shows separate pack and subscription rewards and opens the selected 208 CAD checkout", async () => {
@@ -117,7 +117,7 @@ describe("professional contact workflow",()=>{
     invoke.mockResolvedValue({data:null,error:new Error("Test checkout")});
     const user = userEvent.setup();
     show();
-    const payment = await screen.findByRole("button", {name:/Your selection.*CAD\s*208.*Continue to payment/});
+    const payment = await screen.findByRole("button", {name:/Your selection.*\$\s*208.*Continue to payment/});
     expect(rpc.mock.calls.some(([name])=>name==="market_requests")).toBe(false);
     expect(invoke).not.toHaveBeenCalled();
     await user.click(payment);

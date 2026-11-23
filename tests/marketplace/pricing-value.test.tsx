@@ -60,7 +60,7 @@ it.each(["fr", "en"])(
     for (const code of ["pack208", "monthly208"]) {
       expect(card(code)).toMatch(/(?<!\d)80\s+(?:clients|contacts)/i);
       expect(card(code)).toMatch(/(?<!\d)86\s+(?:clients|contacts)/i);
-      expect(card(code)).toMatch(/(?:save|économisez)\s+(?:CAD\s*)?52(?:\s*CAD)?/i);
+      expect(card(code)).toMatch(/(?:save|économisez)\s+(?:\$\s*52|52\s*\$)/i);
     }
     expect(card("pack52")).toMatch(/3\s+cr[ée]dits\s+(?:par|per)\s+contact/i);
     expect(card("pack104")).toMatch(/(?<!\d)6\s+(?:(?:more|extra|additional) )?cr[ée]dits/i);

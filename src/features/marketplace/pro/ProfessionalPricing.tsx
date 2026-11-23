@@ -36,7 +36,7 @@ export function ProfessionalPricing({ initialOffers }: { initialOffers?: CreditO
   const currency = new Intl.NumberFormat(language === "fr" ? "fr-CA" : "en-CA", {
     style: "currency",
     currency: "CAD",
-    currencyDisplay: "code",
+    currencyDisplay: "narrowSymbol",
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
