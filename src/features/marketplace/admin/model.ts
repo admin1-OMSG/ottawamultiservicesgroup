@@ -1,3 +1,5 @@
+import type { CreditOffer } from "../credit-offer";
+
 export type Language = "en" | "fr";
 export type Translate = (english: string, french: string) => string;
 export type Refund = {
@@ -15,14 +17,7 @@ export type Refund = {
   note?: string | null;
   request_note?: string | null;
 };
-export type Offer = {
-  code: string;
-  kind: "pack" | "subscription";
-  price_cents: number | null;
-  credits: number | null;
-  enabled: boolean;
-  name: string;
-};
+export type Offer = CreditOffer;
 export type Partner = { account_id: string; business_name: string; email: string; discount_percent: number };
 export type Tariff = { service: string; credits: number | null };
 export type AdminData = { refunds: Refund[]; offers: Offer[]; partners: Partner[]; tariffs: Tariff[] };

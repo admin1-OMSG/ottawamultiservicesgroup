@@ -1,10 +1,19 @@
 # Paiements professionnels OMSG
 
-Les trois packs sont libellés en CAD. L’administrateur configure les crédits par pack, les tarifs par service, le prix mensuel et les crédits mensuels dans l’espace Marketplace. Les montants et crédits de chaque commande sont enregistrés au moment de l’achat. Le coût d’un contact est enregistré sur la demande. Une réduction attribuée à un partenaire approuvé s’applique à ses nouveaux achats.
+Les trois packs sont libellés en CAD. L’administrateur gère les offres et les tarifs par service dans l’espace Marketplace. Les formules de fidélité à 208 CAD ont un montant et un nombre de crédits fixes. Les montants et crédits de chaque commande sont enregistrés au moment de l’achat. Le coût d’un contact est enregistré sur la demande. Une réduction attribuée à un partenaire approuvé s’applique à ses nouveaux achats.
+
+## Fidélité des offres de 208 CAD
+
+Le pack ponctuel et l’abonnement mensuel à 208 CAD ont des compteurs indépendants. Chaque offre accorde 240 crédits aux deux premiers paiements admissibles, puis 260 à partir du troisième.
+
+- Pour le pack, les achats payés de cette offre se cumulent par professionnel, même dans le même mois. Les achats des autres packs ne font pas avancer le compteur.
+- Pour l’abonnement, trois périodes mensuelles consécutives payées du même abonnement déclenchent le premier bonus. Une interruption des périodes payées ou un nouvel abonnement ouvre une nouvelle série. Les renouvellements utilisent les périodes facturées par Stripe. Une nouvelle tentative de paiement de la même facture conserve sa période.
+
+Le calcul utilise les conditions enregistrées à la création de la commande. Les partenaires bénéficiant d’une réduction cumulent les crédits de l’offre achetée. Une nouvelle livraison du même événement Stripe conserve le crédit déjà attribué.
 
 ## Aperçu
 
-Le mode de simulation des packs nécessite le projet Supabase d’essai `vdeeevxpwjvztsoonuxx` et le réglage privé `market_billing.settings.preview_checkout_enabled`. La migration laisse ce réglage désactivé et les offres non configurées. Les crédits simulés sont enregistrés dans le registre du projet d’essai. Les abonnements utilisent Stripe, y compris en mode test.
+Le mode de simulation des packs nécessite le projet Supabase d’essai `vdeeevxpwjvztsoonuxx` et le réglage privé `market_billing.settings.preview_checkout_enabled`. La simulation et les achats sont désactivés par défaut à la création du projet. Les crédits simulés sont enregistrés dans le registre du projet d’essai. Les abonnements utilisent Stripe, y compris en mode test.
 
 ## Stripe
 

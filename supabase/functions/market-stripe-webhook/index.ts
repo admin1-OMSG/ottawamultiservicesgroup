@@ -7,6 +7,25 @@ const idOf = (value: string | { id: string } | null | undefined) =>
 const isMarket = (metadata: Stripe.Metadata | null) =>
   metadata?.omsg_market === "v1" && !!metadata.order_id;
 
+async function paidSubscriptionPeriod(stripe: Stripe, invoiceId: string, subscription: Stripe.Subscription) {
+  // Fetch every line in the SDK's API version. A webhook snapshot can be truncated
+  // or use an older API version, and a late invoice covers its original period.
+  let period: Stripe.InvoiceLineItem.Period | undefined;
+  for await (const line of stripe.invoices.listLineItems(invoiceId, { limit: 100 })) {
+    const item = line.parent?.subscription_item_details;
+    if (!item || item.proration || line.amount <= 0) continue;
+    const matches = item.subscription
+      ? item.subscription === subscription.id
+      : subscription.items.data.some(entry => entry.id === item.subscription_item);
+    if (!matches) continue;
+    if (period || !Number.isSafeInteger(line.period.start) || !Number.isSafeInteger(line.period.end) ||
+      line.period.end <= line.period.start) throw new Error("invalid_subscription_period");
+    period = line.period;
+  }
+  if (!period) throw new Error("missing_subscription_period");
+  return { p_period_start: period.start, p_period_end: period.end };
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response(null, { status: 405 });
   const dbUrl = Deno.env.get("SUPABASE_URL")?.replace(/\/$/, "");
@@ -80,6 +99,10 @@ Deno.serve(async (req) => {
       ) {
         const sub = await stripe.subscriptions.retrieve(subId);
         if (isMarket(sub.metadata)) {
+          if (!invoice.id) throw new Error("missing_paid_invoice_id");
+          const period = sub.metadata.offer_code === "monthly208"
+            ? await paidSubscriptionPeriod(stripe, invoice.id, sub)
+            : {};
           await record("market_payment_credit", {
             p_order_id: sub.metadata.order_id,
             p_object: invoice.id,
@@ -87,6 +110,7 @@ Deno.serve(async (req) => {
             p_currency: invoice.currency,
             p_customer: idOf(invoice.customer),
             p_subscription: sub.id,
+            ...period,
           });
         }
       }

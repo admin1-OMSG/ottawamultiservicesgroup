@@ -22,7 +22,7 @@ async function init(){
  create table storage.objects(id uuid default gen_random_uuid(),bucket_id text,name text,metadata jsonb);
  grant usage on schema storage to anon,authenticated; grant all on storage.objects to anon,authenticated;`);
  const folder=path.join(repo,'supabase/migrations');
- for(const match of ['_professional_onboarding.sql','_marketplace.sql','_marketplace_billing.sql','_professional_google_maps_link.sql','_market_request_withdrawal.sql','_market_notification_inbox.sql']){
+ for(const match of ['_professional_onboarding.sql','_marketplace.sql','_marketplace_billing.sql','_professional_google_maps_link.sql','_market_request_withdrawal.sql','_marketplace_subscription_retry.sql','_market_notification_inbox.sql','_market_loyalty_208.sql']){
   const name=fs.readdirSync(folder).find(f=>f.endsWith(match));
   await db.exec(fs.readFileSync(path.join(folder,name),'utf8'));
  }

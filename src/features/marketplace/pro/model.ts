@@ -1,5 +1,7 @@
 import { PROFESSIONAL_SERVICE_OPTIONS } from "@/features/professionals/model";
 
+import type { CreditOffer } from "../credit-offer";
+
 export type Language = "en" | "fr";
 export type Translate = (en:string,fr:string) => string;
 export interface MarketLead {
@@ -13,9 +15,7 @@ export interface Reply {
   request_status?:MarketLead["status"]; created_at:string; completed_at:string|null;
   client_email:string|null; client_phone:string|null;
 }
-export interface Offer {
-  code:string; kind:"pack"|"subscription"; price_cents:number|null; credits:number|null; enabled:boolean; name:string;
-}
+export type Offer = CreditOffer;
 export interface Wallet {
   balance:number; discount_percent:number; preview_checkout_enabled:boolean; packs:Offer[];
   subscription:{status:string;offer_code:string}|null;

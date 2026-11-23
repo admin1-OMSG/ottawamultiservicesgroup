@@ -42,7 +42,9 @@ try {
   await migrate("20261123075205_marketplace.sql");
   await migrate("20261123075212_marketplace_billing.sql");
   await migrate("20261123075858_market_request_withdrawal.sql");
+  await migrate("20261123080102_marketplace_subscription_retry.sql");
   await migrate("20261123160426_market_notification_inbox.sql");
+  await migrate("20261123185435_market_loyalty_208.sql");
   await rows("insert into market_billing.tariffs(service,credits) values('cleaning',3)");
   for (const id of [client, phoneClient, unverified, admin, near, far, draft]) {
     await rows(`insert into auth.users(id,email,email_confirmed_at,phone,phone_confirmed_at)

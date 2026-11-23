@@ -69,6 +69,24 @@ describe("marketplace administration",()=>{
       p_code:"pack52",p_credits:30,p_enabled:true,p_price_cents:5200,
     }));
   });
+  it("keeps the 208 CAD subscription terms fixed while the other subscription stays configurable", async () => {
+    const monthly = {code:"monthly",kind:"subscription",name:"Monthly",price_cents:null,credits:null,enabled:false};
+    const loyalty = {...monthly,code:"monthly208",price_cents:20800,credits:240,loyalty_bonus_credits:20};
+    mocks.rpc.mockImplementation(async name=>({error:null,data:name==="market_billing_admin" ? {...data,offers:[monthly,loyalty]} : null}));
+    const user = userEvent.setup();
+    render(<Page/>);
+    await user.click(await screen.findByRole("button",{name:"Pricing"}));
+    const fixed = within(screen.getByRole("heading",{name:/Monthly subscription.*208/}).closest("form")!);
+    expect((fixed.getByLabelText("Monthly price (CAD)") as HTMLInputElement).readOnly).toBe(true);
+    expect((fixed.getByLabelText("Credits per paid month") as HTMLInputElement).readOnly).toBe(true);
+    const configurable = within(screen.getByRole("heading",{name:"Monthly subscription",exact:true}).closest("form")!);
+    expect((configurable.getByLabelText("Monthly price (CAD)") as HTMLInputElement).readOnly).toBe(false);
+    await user.click(fixed.getByLabelText("Available to purchase"));
+    await user.click(fixed.getByRole("button",{name:"Save offer"}));
+    await waitFor(()=>expect(mocks.rpc).toHaveBeenCalledWith("market_save_offer",{
+      p_code:"monthly208",p_credits:240,p_enabled:true,p_price_cents:20800,
+    }));
+  });
   it("requires review before assigning a partner discount and produces a French invitation draft",async()=>{
     const user = userEvent.setup();
     render(<Page/>);

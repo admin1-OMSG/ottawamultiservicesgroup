@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
   }
   if (
     !uuid.test(String(body.attempt_id)) ||
-    !["pack52", "pack104", "pack208", "monthly"].includes(body.offer_code) ||
+    !["pack52", "pack104", "pack208", "monthly", "monthly208"].includes(body.offer_code) ||
     (body.return_request_id != null && !uuid.test(String(body.return_request_id)))
   ) {
     return json({ error: "invalid_order" }, 400);
@@ -99,7 +99,8 @@ Deno.serve(async (req) => {
   }
   if (!stripe) return json({ error: "billing_unavailable" }, 503);
   if (order.paid_at) return json({ url: back("success") });
-  const metadata = { omsg_market: "v1", order_id: order.id };
+  const metadata: Stripe.MetadataParam = { omsg_market: "v1", order_id: order.id };
+  if (order.offer_code === "monthly208") metadata.offer_code = "monthly208";
   try {
     if (order.stripe_session) {
       const old = await stripe.checkout.sessions.retrieve(order.stripe_session);

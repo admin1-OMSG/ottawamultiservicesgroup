@@ -4,11 +4,12 @@ import {act,cleanup,render,screen,within} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {QueryClient,QueryClientProvider} from "@tanstack/react-query";
 import {ProfessionalDashboard} from "@/features/marketplace/pro/ProfessionalDashboard";
-import {defaultFilters,visibleLeads,type MarketLead} from "@/features/marketplace/pro/model";
+import {WalletPanel} from "@/features/marketplace/pro/WalletPanel";
+import {defaultFilters,visibleLeads,type MarketLead,type Wallet} from "@/features/marketplace/pro/model";
 
-const rpc=vi.hoisted(()=>vi.fn());
+const {rpc,invoke}=vi.hoisted(()=>({rpc:vi.fn(),invoke:vi.fn()}));
 vi.mock("@/features/marketplace/market-read",()=>({readMarketRows:async(name:string)=>(await rpc(name)).data}));
-vi.mock("@/lib/supabase",()=>({supabase:{rpc,functions:{invoke:vi.fn()}}}));
+vi.mock("@/lib/supabase",()=>({supabase:{rpc,functions:{invoke}}}));
 vi.mock("@/features/marketplace/MarketConversation",()=>({MarketConversation:({contactId}:{contactId:string})=><p>Conversation {contactId}</p>}));
 const day=86400000;
 const now=Date.now();
@@ -87,6 +88,29 @@ describe("professional contact workflow",()=>{
     expect(within(dialog).queryByRole("button",{name:"Confirm contact"})).toBeNull();
     for(const n of [52,104,208])expect(within(dialog).getByRole("button",{name:new RegExp("CAD\\s*"+n)})).toBeTruthy();
     expect(rpc.mock.calls.filter(([name])=>name==="market_unlock")).toHaveLength(0);
+  });
+  it("shows separate pack and subscription rewards and opens the selected 208 CAD checkout", async () => {
+    const offer = {price_cents:20800,credits:240,enabled:true,name:"208 CAD",loyalty_bonus_credits:20};
+    const wallet: Wallet = {balance:0,discount_percent:0,subscription:null,refunds:[],preview_checkout_enabled:false,packs:[
+      {...offer,code:"pack208",kind:"pack"},
+      {...offer,code:"monthly208",kind:"subscription"},
+      {...offer,code:"pack104",kind:"pack",price_cents:10400,credits:110,loyalty_bonus_credits:0},
+    ]};
+    const fr = (_en:string, french:string) => french;
+    const user = userEvent.setup();
+    invoke.mockResolvedValue({data:null,error:new Error("Test checkout")});
+    const panel = render(<WalletPanel wallet={wallet} language="fr" t={fr}/>);
+    const pack = screen.getByRole("button",{name:/Pack de crédits.*208/});
+    const subscription = screen.getByRole("button",{name:/Abonnement mensuel.*208/});
+    expect(pack.textContent).toMatch(/260 crédits.*20 en prime.*3e achat/);
+    expect(subscription.textContent).toMatch(/260 crédits.*20 en prime.*3e mois payé consécutif/);
+    expect(screen.getByRole("button",{name:/Pack de crédits.*104/}).textContent).not.toContain("prime");
+    await user.click(subscription);
+    expect(invoke).toHaveBeenCalledWith("market-checkout",{body:expect.objectContaining({offer_code:"monthly208"})});
+    panel.rerender(<WalletPanel wallet={wallet} language="fr" t={fr} packsOnly/>);
+    expect(screen.queryByRole("button",{name:/Abonnement mensuel/})).toBeNull();
+    await user.click(screen.getByRole("button",{name:/Pack de crédits.*208/}));
+    expect(invoke).toHaveBeenCalledWith("market-checkout",{body:expect.objectContaining({offer_code:"pack208"})});
   });
   it("opens the linked conversation when it becomes available to the signed-in professional", async () => {
     const conversationId = "8e41c86a-1c97-45e8-b69d-4b88e66ee1a7";
