@@ -77,10 +77,10 @@ describe("marketplace administration",()=>{
     render(<Page/>);
     await user.click(await screen.findByRole("button",{name:"Pricing"}));
     const fixed = within(screen.getByRole("heading",{name:/Monthly subscription.*208/}).closest("form")!);
-    expect((fixed.getByLabelText("Monthly price (CAD)") as HTMLInputElement).readOnly).toBe(true);
+    expect((fixed.getByLabelText("Monthly price ($)") as HTMLInputElement).readOnly).toBe(true);
     expect((fixed.getByLabelText("Credits per paid month") as HTMLInputElement).readOnly).toBe(true);
     const configurable = within(screen.getByRole("heading",{name:"Monthly subscription",exact:true}).closest("form")!);
-    expect((configurable.getByLabelText("Monthly price (CAD)") as HTMLInputElement).readOnly).toBe(false);
+    expect((configurable.getByLabelText("Monthly price ($)") as HTMLInputElement).readOnly).toBe(false);
     await user.click(fixed.getByLabelText("Available to purchase"));
     await user.click(fixed.getByRole("button",{name:"Save offer"}));
     await waitFor(()=>expect(mocks.rpc).toHaveBeenCalledWith("market_save_offer",{
