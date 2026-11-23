@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { LanguageSwitcher, useLanguage } from "@/lib/language";
+import { professionalSignInErrorMessage } from "@/features/professionals/sign-in-errors";
 import {
   CANADIAN_PROVINCES,
   EMPTY_PROFESSIONAL_PROFILE,
@@ -222,13 +223,8 @@ function ProfessionalPortal() {
           "Consultez votre courriel et suivez le lien de connexion sécurisé. Si le message contient un code, vous pouvez le saisir ci-dessous.",
         ),
       );
-    } catch {
-      setError(
-        t(
-          "We could not send the sign-in email. Check the address and try again in a moment.",
-          "L’envoi du courriel a échoué. Vérifiez l’adresse et réessayez dans un instant.",
-        ),
-      );
+    } catch (failure) {
+      setError(professionalSignInErrorMessage(failure, language));
     } finally {
       setBusy(null);
     }

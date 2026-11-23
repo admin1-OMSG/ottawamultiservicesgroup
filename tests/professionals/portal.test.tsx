@@ -205,6 +205,140 @@ describe("professional sign-in", () => {
   });
 });
 
+describe.each(["en", "fr"] as const)("sign-in delivery failures in %s", (language) => {
+  const cases = [
+    {
+      label: "email quota",
+      failure: { code: "over_email_send_rate_limit", status: 429 },
+      en: "email or request limit has been reached",
+      fr: "limite d’envoi de courriels ou de demandes est atteinte",
+    },
+    {
+      label: "request quota",
+      failure: { code: "over_request_rate_limit" },
+      en: "email or request limit has been reached",
+      fr: "limite d’envoi de courriels ou de demandes est atteinte",
+    },
+    {
+      label: "HTTP quota without a code",
+      failure: { status: 429 },
+      en: "email or request limit has been reached",
+      fr: "limite d’envoi de courriels ou de demandes est atteinte",
+    },
+    {
+      label: "network failure without an HTTP response",
+      failure: { name: "AuthRetryableFetchError", status: 0 },
+      en: "Check your internet connection",
+      fr: "Vérifiez votre connexion Internet",
+    },
+    {
+      label: "network failure without a status",
+      failure: { name: "AuthRetryableFetchError" },
+      en: "Check your internet connection",
+      fr: "Vérifiez votre connexion Internet",
+    },
+    {
+      label: "restricted email service",
+      failure: { code: "email_address_not_authorized", status: 403 },
+      en: "Delivery of sign-in links is currently restricted",
+      fr: "L’envoi des liens de connexion est actuellement restreint",
+    },
+    {
+      label: "disabled email provider",
+      failure: { code: "email_provider_disabled" },
+      en: "Email sign-in is currently unavailable",
+      fr: "La connexion par courriel n’est pas disponible actuellement",
+    },
+    {
+      label: "disabled magic links",
+      failure: { code: "otp_disabled" },
+      en: "Email sign-in is currently unavailable",
+      fr: "La connexion par courriel n’est pas disponible actuellement",
+    },
+    {
+      label: "server error reported as a retryable fetch error",
+      failure: { name: "AuthRetryableFetchError", status: 503 },
+      en: "service is temporarily unavailable",
+      fr: "service de connexion est temporairement indisponible",
+    },
+    {
+      label: "unexpected server failure",
+      failure: { code: "unexpected_failure" },
+      en: "service is temporarily unavailable",
+      fr: "service de connexion est temporairement indisponible",
+    },
+    {
+      label: "unclassified error",
+      failure: { code: "future_unknown_code", status: 400 },
+      en: "could not send the sign-in email",
+      fr: "courriel de connexion n’a pas pu être envoyé",
+    },
+    {
+      label: "unknown account without exposing account existence",
+      failure: { code: "user_not_found", status: 400 },
+      en: "could not send the sign-in email",
+      fr: "courriel de connexion n’a pas pu être envoyé",
+    },
+    {
+      label: "existing account without exposing account existence",
+      failure: { code: "email_exists", status: 400 },
+      en: "could not send the sign-in email",
+      fr: "courriel de connexion n’a pas pu être envoyé",
+    },
+  ];
+
+  it.each(cases)("gives actionable neutral guidance for $label", async ({ failure, en, fr }) => {
+    const user = userEvent.setup();
+    mocks.language = language;
+    const privateDetails = "private-member@example.ca access_token=PRIVATE_TOKEN_DO_NOT_RENDER";
+    mocks.signInWithOtp.mockResolvedValue({ error: { ...failure, message: privateDetails } });
+    render(<Portal />);
+    const sendLabel =
+      language === "fr" ? "Recevoir mon lien de connexion" : "Email me a sign-in link";
+    await screen.findByRole("button", { name: sendLabel });
+    await user.type(
+      screen.getByLabelText(language === "fr" ? "Adresse courriel" : "Email address"),
+      "alex@example.ca",
+    );
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("button", { name: sendLabel }));
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain(language === "fr" ? fr : en);
+    expect(alert.textContent).not.toContain("private-member@example.ca");
+    expect(alert.textContent).not.toContain("PRIVATE_TOKEN_DO_NOT_RENDER");
+    expect(alert.textContent).not.toContain("alex@example.ca");
+    expect(alert.textContent).not.toContain("user_not_found");
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(
+      screen.queryByRole("heading", {
+        name: /Your professional profile|Votre profil professionnel/,
+      }),
+    ).toBeNull();
+  });
+
+  it("handles a rejected browser network request without rendering its details", async () => {
+    const user = userEvent.setup();
+    mocks.language = language;
+    mocks.signInWithOtp.mockRejectedValue(new TypeError("Failed to fetch PRIVATE_NETWORK_URL"));
+    render(<Portal />);
+    const sendLabel =
+      language === "fr" ? "Recevoir mon lien de connexion" : "Email me a sign-in link";
+    await screen.findByRole("button", { name: sendLabel });
+    await user.type(
+      screen.getByLabelText(language === "fr" ? "Adresse courriel" : "Email address"),
+      "alex@example.ca",
+    );
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("button", { name: sendLabel }));
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain(
+      language === "fr" ? "Vérifiez votre connexion Internet" : "Check your internet connection",
+    );
+    expect(alert.textContent).not.toContain("PRIVATE_NETWORK_URL");
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+});
+
 describe("professional account loading and mutations", () => {
   it("loads the confirmed user's stored account and coverage", async () => {
     signedIn();

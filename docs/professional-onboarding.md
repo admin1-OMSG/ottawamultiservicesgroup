@@ -38,6 +38,15 @@ on the Supabase **test branch**. Use a test mailbox that the configured mailer
 can deliver to. A page that loads successfully does not prove that the email
 was delivered or that its link returns the professional to the preview.
 
+If the request for the email fails, inspect the test branch's **Auth logs** at
+the time of the attempt. For example, a failure on `POST /auth/v1/otp` with
+HTTP 500 and an Auth log reporting SMTP `535 Authentication credentials invalid`
+means the sending mail server rejected Supabase's credentials. Check the
+branch's SMTP settings before asking the professional to try again. Changing the
+recipient's password, the redirect URL, or the professional tables does not fix
+SMTP authentication. Keep SMTP credentials, one-time codes and sign-in links
+out of logs and support messages.
+
 The preview also upgrades TanStack Start to `1.169.7` and aligns its Router
 packages. The resolved `@tanstack/start-server-core` is `1.169.45`, above the
 `1.169.39` minimum for [CVE-2026-102989](https://tanstack.com/blog/tanstack-start-security-update-cve-2026-102989).
