@@ -25,6 +25,19 @@ Real email delivery, allowed sign-in redirects, Storage HTTP requests and a comp
 professional/admin round trip must be checked in a dedicated test environment
 before enabling public registrations.
 
+The OMSG preview uses an isolated Supabase branch without production data. The
+legacy CRM migration history cannot rebuild the whole CRM on an empty database.
+For this test only, [the staging fixture](../tests/fixtures/professional-staging-prerequisites.sql)
+supplies the admin membership table that the professional module expects.
+It creates no administrators. Never merge this Supabase test branch into
+production or apply its fixture to the live CRM.
+
+For the email sign-in test, open the stable Vercel branch alias and allow the
+exact same origin followed by `/pro` in **Authentication → URL Configuration**
+on the Supabase **test branch**. Use a test mailbox that the configured mailer
+can deliver to. A page that loads successfully does not prove that the email
+was delivered or that its link returns the professional to the preview.
+
 The preview also upgrades TanStack Start to `1.169.7` and aligns its Router
 packages. The resolved `@tanstack/start-server-core` is `1.169.45`, above the
 `1.169.39` minimum for [CVE-2026-102989](https://tanstack.com/blog/tanstack-start-security-update-cve-2026-102989).
