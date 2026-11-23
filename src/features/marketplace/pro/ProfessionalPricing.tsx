@@ -41,6 +41,9 @@ export function ProfessionalPricing({ initialOffers }: { initialOffers?: CreditO
     maximumFractionDigits: 2,
   });
 
+  const starter = catalog.data?.find((offer) => offer.code === "pack52");
+  const formatPrice = (cents: number) => currency.format(cents / 100);
+
   return (
     <main data-i18n-ignore="true">
       <header className="border-b border-teal-900 bg-teal-950 text-white">
@@ -50,8 +53,8 @@ export function ProfessionalPricing({ initialOffers }: { initialOffers?: CreditO
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-teal-50 sm:text-lg">
             {t(
-              "Use credits to contact clients about their requests. Posting a service request is free for clients.",
-              "Utilisez vos crédits pour contacter les clients qui ont publié une demande. Publier une demande de service est gratuit pour les clients.",
+              "See how many clients you could reach with each offer. Each request shows its credit cost before you contact the client. Clients can post for free.",
+              "Découvrez combien de clients vous pouvez contacter avec chaque offre. Le coût en crédits est affiché sur chaque demande avant la prise de contact. Les clients publient gratuitement.",
             )}
           </p>
         </div>
@@ -90,50 +93,16 @@ export function ProfessionalPricing({ initialOffers }: { initialOffers?: CreditO
                       : t("One-time credit packs", "Packs de crédits ponctuels")}
                   </h2>
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {offers.map((offer) => {
-                      const terms = loyaltyTerms(offer, t);
-                      const price = currency.format(offer.price_cents / 100);
-                      const action = monthly
-                        ? t("Start subscription", "Souscrire à l’abonnement")
-                        : t("Buy this pack", "Acheter ce pack");
-                      return (
-                        <article
-                          key={offer.code}
-                          className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
-                        >
-                          <h3 className="text-2xl font-bold text-teal-950">
-                            {price}
-                            {monthly && (
-                              <span className="text-base font-medium">
-                                {t(" / month", " / mois")}
-                              </span>
-                            )}
-                          </h3>
-                          <p className="mt-2 text-base font-semibold">
-                            {terms?.base ?? credits(offer.credits, t)}
-                          </p>
-                          {terms && (
-                            <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                              {terms.bonus}
-                            </p>
-                          )}
-                          <div className="mt-auto pt-5">
-                            <Button
-                              asChild
-                              className="min-h-11 w-full justify-between rounded-lg px-4"
-                            >
-                              <a
-                                href={`/pro-market?offer=${encodeURIComponent(offer.code)}`}
-                                aria-label={`${action} (${price})`}
-                              >
-                                {action}
-                                <ArrowRight aria-hidden="true" />
-                              </a>
-                            </Button>
-                          </div>
-                        </article>
-                      );
-                    })}
+                    {offers.map((offer) => (
+                      <PricingCard
+                        key={offer.code}
+                        offer={offer}
+                        starter={starter}
+                        formatPrice={formatPrice}
+                        wide={monthly && offers.length === 1}
+                        t={t}
+                      />
+                    ))}
                   </div>
                 </section>
               );
@@ -148,5 +117,123 @@ export function ProfessionalPricing({ initialOffers }: { initialOffers?: CreditO
         )}
       </div>
     </main>
+  );
+}
+
+function PricingCard({
+  offer,
+  starter,
+  formatPrice,
+  wide,
+  t,
+}: {
+  offer: AvailableOffer;
+  starter?: AvailableOffer;
+  formatPrice: (cents: number) => string;
+  wide: boolean;
+  t: Translate;
+}) {
+  const monthly = offer.kind === "subscription";
+  const action = monthly
+    ? t("Start subscription", "Souscrire à l’abonnement")
+    : t("Buy this pack", "Acheter ce pack");
+  const price = formatPrice(offer.price_cents);
+  const terms = loyaltyTerms(offer, t);
+  const bonus = terms ? (offer.loyalty_bonus_credits ?? 0) : 0;
+  const totalCredits = offer.credits + bonus;
+  const cost = offer.example_contact_credits;
+  const contacts = cost && cost > 0 ? Math.floor(offer.credits / cost) : 0;
+  const bonusContacts = cost && cost > 0 ? Math.floor(totalCredits / cost) : 0;
+  const additionalContacts = bonusContacts - contacts;
+
+  // Use whole starter packs at the same spend or with the same number of credits.
+  const packsAtSamePrice =
+    starter && starter.price_cents > 0 ? offer.price_cents / starter.price_cents : 0;
+  const extraCredits =
+    starter && Number.isInteger(packsAtSamePrice) && packsAtSamePrice > 0
+      ? offer.credits - packsAtSamePrice * starter.credits
+      : 0;
+  const packsForSameCredits = starter && starter.credits > 0 ? totalCredits / starter.credits : 0;
+  const savings =
+    starter && Number.isInteger(packsForSameCredits) && packsForSameCredits > 0
+      ? packsForSameCredits * starter.price_cents - offer.price_cents
+      : 0;
+  const starterPrice = starter ? formatPrice(starter.price_cents) : "";
+  const packLabel = (n: number) =>
+    n === 1
+      ? t(`one ${starterPrice} pack`, `un pack de ${starterPrice}`)
+      : t(`${n} packs at ${starterPrice} each`, `${n} packs de ${starterPrice}`);
+
+  return (
+    <article
+      className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 ${wide ? "flex flex-col md:col-span-2 md:grid md:grid-cols-2 md:gap-x-8 lg:col-span-3" : "flex flex-col"}`}
+    >
+      <div>
+        <h3 className="text-2xl font-bold text-teal-950">
+          {price}
+          {monthly && <span className="text-base font-medium">{t(" / month", " / mois")}</span>}
+        </h3>
+        {contacts > 0 && (
+          <p className="mt-4 text-lg font-semibold leading-snug text-teal-900">
+            {t(
+              `Reach up to ${contacts} ${contacts === 1 ? "client" : "clients"}`,
+              `Contactez jusqu’à ${contacts} ${contacts === 1 ? "client" : "clients"}`,
+            )}
+            {monthly && t(" per month", " par mois")}
+          </p>
+        )}
+        <p className="mt-2 text-sm text-slate-600">
+          {credits(offer.credits, t)}
+          {cost != null &&
+            cost > 0 &&
+            t(
+              ` · example at ${credits(cost, t)} per contact`,
+              ` · exemple à ${credits(cost, t)} par contact`,
+            )}
+        </p>
+        {extraCredits > 0 && (
+          <p className="mt-3 text-sm leading-relaxed">
+            {t(
+              `${extraCredits} more ${extraCredits === 1 ? "credit" : "credits"} than ${packLabel(packsAtSamePrice)}.`,
+              `${credits(extraCredits, t)} de plus qu’avec ${packLabel(packsAtSamePrice)}.`,
+            )}
+          </p>
+        )}
+      </div>
+      {terms && (
+        <div
+          className={`mt-4 rounded-xl bg-teal-50 p-4 text-sm leading-relaxed text-teal-950 ${wide ? "md:col-start-2 md:row-span-2 md:row-start-1 md:mt-0" : ""}`}
+        >
+          {additionalContacts > 0 && (
+            <p className="mb-1 font-bold">
+              {t(
+                `Up to ${bonusContacts} ${bonusContacts === 1 ? "contact" : "contacts"} — ${additionalContacts} more for the same price`,
+                `Jusqu’à ${bonusContacts} ${bonusContacts === 1 ? "contact" : "contacts"}, soit ${additionalContacts} de plus au même prix`,
+              )}
+            </p>
+          )}
+          <p>{terms.bonus}</p>
+          {savings > 0 && (
+            <p className="mt-2 font-medium">
+              {t(
+                `Save ${formatPrice(savings)} on ${credits(totalCredits, t)} compared with ${packLabel(packsForSameCredits)}.`,
+                `Économisez ${formatPrice(savings)} sur ${credits(totalCredits, t)} par rapport à ${packLabel(packsForSameCredits)}.`,
+              )}
+            </p>
+          )}
+        </div>
+      )}
+      <div className="mt-auto pt-5">
+        <Button asChild className="min-h-11 w-full justify-between rounded-lg px-4">
+          <a
+            href={`/pro-market?offer=${encodeURIComponent(offer.code)}`}
+            aria-label={`${action} (${price})`}
+          >
+            {action}
+            <ArrowRight aria-hidden="true" />
+          </a>
+        </Button>
+      </div>
+    </article>
   );
 }

@@ -6,6 +6,7 @@ export interface CreditOffer {
   enabled: boolean;
   name: string;
   loyalty_bonus_credits?: number;
+  example_contact_credits?: number | null;
 }
 
 export function loyaltyTerms(offer: CreditOffer, t: (en: string, fr: string) => string) {

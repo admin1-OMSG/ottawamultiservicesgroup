@@ -300,6 +300,7 @@ try {
   );
   await test208Loyalty(historicalPaid, historicalOpen);
   await migrate("20261123191753_market_public_credit_offers");
+  await migrate("20261123201147_market_public_contact_example");
   const publicCatalog = () => value("select public.market_public_credit_offers()");
   await query("update market_billing.offers set enabled=false");
   assert.deepEqual(await role("anon", null, publicCatalog), []);
@@ -310,9 +311,21 @@ try {
     ["monthly208", 20800, 240, 20],
   ]);
   assert.deepEqual(Object.keys(offers[0]).sort(), [
-    "code", "credits", "enabled", "kind", "loyalty_bonus_credits", "name", "price_cents",
+    "code", "credits", "enabled", "example_contact_credits", "kind", "loyalty_bonus_credits", "name", "price_cents",
   ]);
+  assert.deepEqual(offers.map((o) => o.example_contact_credits), [3, 3]);
   assert.deepEqual(await member(pro, publicCatalog), offers);
+  const contactExamples = async () => (await role("anon", null, publicCatalog)).map((o) => o.example_contact_credits);
+  await query("insert into market_billing.tariffs (service, credits) values ('moving', 5)");
+  assert.deepEqual(await contactExamples(), [5, 5]); // Higher cost breaks a tie.
+  await query("insert into market_billing.tariffs (service, credits) values ('coaching', 3)");
+  assert.deepEqual(await contactExamples(), [3, 3]);
+  await query("delete from market_billing.tariffs");
+  assert.deepEqual(await contactExamples(), [null, null]);
+  await assert.rejects(
+    role("anon", null, () => query("select * from market_billing.tariffs")),
+    /permission denied/,
+  );
   await assert.rejects(
     role("anon", null, () => query("select * from market_billing.offers")),
     /permission denied/,
