@@ -422,6 +422,28 @@ describe("professional account loading and mutations", () => {
     expect(screen.queryByText("Under review")).toBeNull();
   });
 
+  it("keeps manual approval distinct from an Interac sandbox result", async () => {
+    vi.stubEnv("VITE_INTERAC_SANDBOX_ENABLED", "true");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({ available: false, status: "not_started" })),
+    );
+    try {
+      signedIn({ ...account, review_status: "approved" });
+      mocks.getSession.mockResolvedValue({
+        data: { session: { user: verifiedUser, access_token: "sandbox-session" } },
+        error: null,
+      });
+      render(<Portal />);
+      expect((await screen.findAllByText("Application approved")).length).toBeGreaterThan(0);
+      expect(await screen.findByText(/Interac test is not available yet/)).toBeTruthy();
+      expect(screen.queryByText("Simulation completed with a test identity.")).toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+      vi.unstubAllEnvs();
+    }
+  });
+
   it.each(["pending_review", "approved", "suspended"])(
     "locks an account with status %s",
     async (status) => {

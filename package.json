@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "audit:launch": "node scripts/launch-audit.mjs",
+    "test:interac": "node --test tests/interac/protocol.test.mjs tests/interac/bridge.test.ts && node scripts/test-interac-sandbox-database.mjs && vitest run --config vitest.professionals.config.ts tests/interac",
     "test:professionals": "node --test scripts/test-professional-profile.mjs && node scripts/test-professional-database.mjs && vitest run --config vitest.professionals.config.ts"
   },
   "dependencies": {
@@ -53,6 +54,7 @@
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
+    "jose": "6.2.18",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.575.0",
     "react": "^19.2.0",

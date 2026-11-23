@@ -6,3 +6,8 @@ verify_jwt = true
 
 [functions.meta-inbox-webhook]
 verify_jwt = false
+
+# This preview-only function publishes the public JWK and authenticates every
+# database operation with a short-lived, body-bound backend signature.
+[functions.interac-sandbox-bridge]
+verify_jwt = false

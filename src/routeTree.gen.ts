@@ -69,6 +69,9 @@ import { Route as AdminPartnersIndexRouteImport } from './routes/admin/partners.
 import { Route as AdminPaymentsIndexRouteImport } from './routes/admin/payments.index'
 import { Route as AdminQuotesIndexRouteImport } from './routes/admin/quotes.index'
 import { Route as AdminQuotesRequestIdRouteImport } from './routes/admin/quotes.$requestId'
+import { Route as ApiInteracCallbackRouteImport } from './routes/api/interac/callback'
+import { Route as ApiInteracStartRouteImport } from './routes/api/interac/start'
+import { Route as ApiInteracStatusRouteImport } from './routes/api/interac/status'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -374,6 +377,21 @@ const AdminQuotesRequestIdRoute = AdminQuotesRequestIdRouteImport.update({
   path: '/quotes/$requestId',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiInteracCallbackRoute = ApiInteracCallbackRouteImport.update({
+  id: '/api/interac/callback',
+  path: '/api/interac/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiInteracStartRoute = ApiInteracStartRouteImport.update({
+  id: '/api/interac/start',
+  path: '/api/interac/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiInteracStatusRoute = ApiInteracStatusRouteImport.update({
+  id: '/api/interac/status',
+  path: '/api/interac/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -427,6 +445,9 @@ export interface FileRoutesByFullPath {
   '/admin/jobs/$jobId': typeof AdminJobsJobIdRoute
   '/admin/jobs/new': typeof AdminJobsNewRoute
   '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
+  '/api/interac/callback': typeof ApiInteracCallbackRoute
+  '/api/interac/start': typeof ApiInteracStartRoute
+  '/api/interac/status': typeof ApiInteracStatusRoute
   '/admin/contracts/': typeof AdminContractsIndexRoute
   '/admin/customers/': typeof AdminCustomersIndexRoute
   '/admin/employees/': typeof AdminEmployeesIndexRoute
@@ -487,6 +508,9 @@ export interface FileRoutesByTo {
   '/admin/jobs/$jobId': typeof AdminJobsJobIdRoute
   '/admin/jobs/new': typeof AdminJobsNewRoute
   '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
+  '/api/interac/callback': typeof ApiInteracCallbackRoute
+  '/api/interac/start': typeof ApiInteracStartRoute
+  '/api/interac/status': typeof ApiInteracStatusRoute
   '/admin/contracts': typeof AdminContractsIndexRoute
   '/admin/customers': typeof AdminCustomersIndexRoute
   '/admin/employees': typeof AdminEmployeesIndexRoute
@@ -550,6 +574,9 @@ export interface FileRoutesById {
   '/admin/jobs/$jobId': typeof AdminJobsJobIdRoute
   '/admin/jobs/new': typeof AdminJobsNewRoute
   '/admin/quotes/$requestId': typeof AdminQuotesRequestIdRoute
+  '/api/interac/callback': typeof ApiInteracCallbackRoute
+  '/api/interac/start': typeof ApiInteracStartRoute
+  '/api/interac/status': typeof ApiInteracStatusRoute
   '/admin/contracts/': typeof AdminContractsIndexRoute
   '/admin/customers/': typeof AdminCustomersIndexRoute
   '/admin/employees/': typeof AdminEmployeesIndexRoute
@@ -614,6 +641,9 @@ export interface FileRouteTypes {
     | '/admin/jobs/$jobId'
     | '/admin/jobs/new'
     | '/admin/quotes/$requestId'
+    | '/api/interac/callback'
+    | '/api/interac/start'
+    | '/api/interac/status'
     | '/admin/contracts/'
     | '/admin/customers/'
     | '/admin/employees/'
@@ -674,6 +704,9 @@ export interface FileRouteTypes {
     | '/admin/jobs/$jobId'
     | '/admin/jobs/new'
     | '/admin/quotes/$requestId'
+    | '/api/interac/callback'
+    | '/api/interac/start'
+    | '/api/interac/status'
     | '/admin/contracts'
     | '/admin/customers'
     | '/admin/employees'
@@ -736,6 +769,9 @@ export interface FileRouteTypes {
     | '/admin/jobs/$jobId'
     | '/admin/jobs/new'
     | '/admin/quotes/$requestId'
+    | '/api/interac/callback'
+    | '/api/interac/start'
+    | '/api/interac/status'
     | '/admin/contracts/'
     | '/admin/customers/'
     | '/admin/employees/'
@@ -774,6 +810,9 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SnowRemovalOttawaRoute: typeof SnowRemovalOttawaRoute
   TermsRoute: typeof TermsRoute
+  ApiInteracCallbackRoute: typeof ApiInteracCallbackRoute
+  ApiInteracStartRoute: typeof ApiInteracStartRoute
+  ApiInteracStatusRoute: typeof ApiInteracStatusRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1198,6 +1237,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminQuotesRequestIdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/interac/callback': {
+      id: '/api/interac/callback'
+      path: '/api/interac/callback'
+      fullPath: '/api/interac/callback'
+      preLoaderRoute: typeof ApiInteracCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/interac/start': {
+      id: '/api/interac/start'
+      path: '/api/interac/start'
+      fullPath: '/api/interac/start'
+      preLoaderRoute: typeof ApiInteracStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/interac/status': {
+      id: '/api/interac/status'
+      path: '/api/interac/status'
+      fullPath: '/api/interac/status'
+      preLoaderRoute: typeof ApiInteracStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1313,6 +1373,9 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SnowRemovalOttawaRoute: SnowRemovalOttawaRoute,
   TermsRoute: TermsRoute,
+  ApiInteracCallbackRoute: ApiInteracCallbackRoute,
+  ApiInteracStartRoute: ApiInteracStartRoute,
+  ApiInteracStatusRoute: ApiInteracStatusRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

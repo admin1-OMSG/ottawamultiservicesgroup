@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { LanguageSwitcher, useLanguage } from "@/lib/language";
+import { InteracSandboxPanel } from "@/features/interac/InteracSandboxPanel";
 import { professionalSignInErrorMessage } from "@/features/professionals/sign-in-errors";
 import {
   CANADIAN_PROVINCES,
@@ -823,6 +824,17 @@ function ProfessionalPortal() {
                   <p className="mt-1 whitespace-pre-wrap">{account.review_message}</p>
                 </Notice>
               )}
+              {import.meta.env.VITE_INTERAC_SANDBOX_ENABLED === "true" &&
+                account &&
+                session.access_token &&
+                verifiedUser?.id === session.user.id &&
+                account.user_id === session.user.id && (
+                  <InteracSandboxPanel
+                    key={account.id}
+                    accessToken={session.access_token}
+                    language={language}
+                  />
+                )}
               <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <form
                   onSubmit={(event) => {
