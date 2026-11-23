@@ -25,6 +25,13 @@ Real email delivery, allowed sign-in redirects, Storage HTTP requests and a comp
 professional/admin round trip must be checked in a dedicated test environment
 before enabling public registrations.
 
+The preview also upgrades TanStack Start to `1.169.7` and aligns its Router
+packages. The resolved `@tanstack/start-server-core` is `1.169.45`, above the
+`1.169.39` minimum for [CVE-2026-102989](https://tanstack.com/blog/tanstack-start-security-update-cve-2026-102989).
+Deploying the updated build is required to patch an existing deployment. The
+upgrade does not change the Supabase account/session model. Its SSR response
+handling must be smoke-tested on Vercel as well as compiled locally.
+
 ## Scope
 
 This is the professional onboarding stage, not the complete marketplace. It does
