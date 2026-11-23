@@ -10,6 +10,7 @@ export type ProfessionalProfileForm = {
   province: string;
   postal_code: string;
   website: string;
+  google_maps_url: string;
   services: string[];
   service_areas: string;
 };
@@ -52,6 +53,8 @@ export const PROFESSIONAL_SERVICE_OPTIONS = [
   { value: "handyman", en: "Minor repairs and maintenance", fr: "Petits travaux et entretien" },
   { value: "tutoring", en: "Tutoring and lessons", fr: "Tutorat et cours" },
   { value: "coaching", en: "Coaching", fr: "Accompagnement et coaching" },
+  { value: "driving_instruction", en: "Driving lessons", fr: "Cours de conduite" },
+  { value: "real_estate", en: "Real estate brokerage", fr: "Courtage immobilier" },
   { value: "other", en: "Other services", fr: "Autres services" },
 ] as const;
 
@@ -80,6 +83,7 @@ export const EMPTY_PROFESSIONAL_PROFILE: ProfessionalProfileForm = {
   province: "ON",
   postal_code: "",
   website: "",
+  google_maps_url: "",
   services: [],
   service_areas: "",
 };
@@ -109,6 +113,7 @@ export function profileToForm(account: ProfessionalAccount): ProfessionalProfile
     province: account.province ?? "ON",
     postal_code: account.postal_code ?? "",
     website: account.website ?? "",
+    google_maps_url: account.google_maps_url ?? "",
     services: account.services ?? [],
     service_areas: (account.service_areas ?? []).join(", "),
   };
@@ -127,6 +132,7 @@ export function professionalProfilePayload(form: ProfessionalProfileForm, langua
       .toUpperCase()
       .replace(/^(.{3})(.{3})$/, "$1 $2"),
     website: form.website.trim() || null,
+    google_maps_url: form.google_maps_url?.trim() || null,
     services: [...new Set(form.services)],
     service_areas: [
       ...new Set(
@@ -157,6 +163,7 @@ export function validateProfessionalProfile(
     )
   )
     invalid.push("postal_code");
+  if (form.google_maps_url?.trim() && !googleListingUrl(form.google_maps_url.trim())) invalid.push("google_maps_url");
   if (form.website.trim()) {
     try {
       const url = new URL(form.website.trim());
@@ -202,4 +209,10 @@ export function professionalDocumentPath(
   const extension = fileName.split(".").pop()?.toLowerCase() ?? "";
   if (!["pdf", "jpg", "jpeg", "png"].includes(extension)) throw new Error("Invalid document type.");
   return `${userId}/${accountId}/${documentId}.${extension}`;
+}
+
+export function googleListingUrl(value: string | null | undefined): string | null {
+  if (!value || value.length > 2048 || /[\\\s]/.test(value)) return null;
+  const valid = /^https:\/\/(?:maps\.app\.goo\.gl\/[A-Za-z0-9_-]+\/?$|goo\.gl\/maps\/[A-Za-z0-9_-]+\/?$|(?:(?:www|maps)\.)?google\.(?:com|ca)\/maps\/(?:place|search)\/|(?:(?:www|maps)\.)?google\.(?:com|ca)\/maps\/?\?cid=\d+$|maps\.google\.(?:com|ca)\/\?cid=\d+$)/.test(value);
+  return valid ? value : null;
 }

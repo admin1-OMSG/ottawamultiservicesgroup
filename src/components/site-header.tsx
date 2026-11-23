@@ -6,14 +6,10 @@ import brandLogo from "@/assets/omsg-logo.png";
 import { LanguageSwitcher, useLanguage } from "@/lib/language";
 
 const NAV = [
-  { to: "/", label: "Home" },
-  { to: "/services", label: "Services" },
-  { to: "/pricing", label: "Cleaning Prices" },
-  { to: "/about", label: "About" },
-  { to: "/partners", label: "Partners" },
-  { to: "/careers", label: "Careers" },
-  { to: "/portal", label: "Customer Portal" },
-  { to: "/contact", label: "Contact" },
+  { to: "/marketplace", label: "My requests", fr: "Mes demandes" },
+  { to: "/pro-market", label: "For professionals", fr: "Espace professionnel" },
+  { to: "/services", label: "OMSG services", fr: "Services OMSG" },
+  { to: "/contact", label: "Contact", fr: "Contact" },
 ] as const;
 
 export function BrandMark({ light = false, compact = false }: { light?: boolean; compact?: boolean }) {
@@ -78,9 +74,9 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
               to={n.to}
               className={`${linkClass} inline-flex min-h-11 items-center whitespace-nowrap rounded-lg px-1.5 py-2 transition-colors hover:bg-secondary/70`}
               activeProps={{ className: "font-semibold text-accent" }}
-              activeOptions={{ exact: n.to === "/" }}
+              activeOptions={{ exact: true }}
             >
-              {n.label}
+              {language === "fr" ? n.fr : n.label}
             </Link>
           ))}
         </nav>
@@ -88,7 +84,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <LanguageSwitcher compact />
           <Button asChild className="hidden h-11 rounded-xl bg-teal-800 px-4 font-semibold text-white shadow-sm hover:bg-teal-900 sm:inline-flex">
-            <Link to="/quote">Get a Quote</Link>
+            <a href="/marketplace?new=1">{language === "fr" ? "Créer une demande" : "Post a request"}</a>
           </Button>
           <Button
             ref={menuButtonRef}
@@ -115,7 +111,7 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
                 onClick={() => setOpen(false)}
                 className="flex min-h-11 items-center rounded-lg px-3 py-2.5 text-base font-medium text-foreground/80 hover:bg-secondary hover:text-navy"
               >
-                {n.label}
+                {language === "fr" ? n.fr : n.label}
               </Link>
             ))}
             <div className="mt-3 grid gap-2 border-t border-border pt-4 sm:grid-cols-3">
@@ -123,10 +119,10 @@ export function SiteHeader({ variant = "solid" }: { variant?: "solid" | "transpa
                 <Phone className="h-4 w-4" /> Call us
               </a>
               <Button asChild variant="outline" className="h-11 w-full rounded-xl border-accent/40 font-semibold text-accent">
-                <Link to="/partners" onClick={() => setOpen(false)}>Become a Partner</Link>
+                <Link to="/pro" onClick={() => setOpen(false)}>{language === "fr" ? "Créer un profil professionnel" : "Join as a professional"}</Link>
               </Button>
               <Button asChild className="h-11 w-full rounded-xl bg-accent font-semibold text-accent-foreground">
-                <Link to="/quote" onClick={() => setOpen(false)}>Get a Quote</Link>
+                <a href="/marketplace?new=1">{language === "fr" ? "Créer une demande" : "Post a request"}</a>
               </Button>
             </div>
           </div>

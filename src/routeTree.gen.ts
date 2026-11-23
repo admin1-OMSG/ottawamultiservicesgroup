@@ -30,6 +30,8 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PricingPolicyRouteImport } from './routes/pricing-policy'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProRouteImport } from './routes/pro'
+import { Route as MarketplaceRouteImport } from './routes/marketplace'
+import { Route as ProMarketRouteImport } from './routes/pro-market'
 import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -43,6 +45,7 @@ import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminMarketingRouteImport } from './routes/admin/marketing'
 import { Route as AdminProfessionalsRouteImport } from './routes/admin/professionals'
+import { Route as AdminMarketplaceRouteImport } from './routes/admin/marketplace'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminResetPasswordRouteImport } from './routes/admin/reset-password'
 import { Route as AdminScheduleRouteImport } from './routes/admin/schedule'
@@ -180,6 +183,16 @@ const ProRoute = ProRouteImport.update({
   path: '/pro',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MarketplaceRoute = MarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProMarketRoute = ProMarketRouteImport.update({
+  id: '/pro-market',
+  path: '/pro-market',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuoteRoute = QuoteRouteImport.update({
   id: '/quote',
   path: '/quote',
@@ -243,6 +256,11 @@ const AdminMarketingRoute = AdminMarketingRouteImport.update({
 const AdminProfessionalsRoute = AdminProfessionalsRouteImport.update({
   id: '/professionals',
   path: '/professionals',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMarketplaceRoute = AdminMarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminReportsRoute = AdminReportsRouteImport.update({
@@ -415,6 +433,8 @@ export interface FileRoutesByFullPath {
   '/pricing-policy': typeof PricingPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/pro': typeof ProRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/pro-market': typeof ProMarketRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -427,6 +447,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/professionals': typeof AdminProfessionalsRoute
+  '/admin/marketplace': typeof AdminMarketplaceRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
@@ -478,6 +499,8 @@ export interface FileRoutesByTo {
   '/pricing-policy': typeof PricingPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/pro': typeof ProRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/pro-market': typeof ProMarketRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -490,6 +513,7 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/professionals': typeof AdminProfessionalsRoute
+  '/admin/marketplace': typeof AdminMarketplaceRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
@@ -544,6 +568,8 @@ export interface FileRoutesById {
   '/pricing-policy': typeof PricingPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/pro': typeof ProRoute
+  '/marketplace': typeof MarketplaceRoute
+  '/pro-market': typeof ProMarketRoute
   '/quote': typeof QuoteRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -556,6 +582,7 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/professionals': typeof AdminProfessionalsRoute
+  '/admin/marketplace': typeof AdminMarketplaceRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/schedule': typeof AdminScheduleRoute
@@ -611,6 +638,8 @@ export interface FileRouteTypes {
     | '/pricing-policy'
     | '/privacy'
     | '/pro'
+    | '/marketplace'
+    | '/pro-market'
     | '/quote'
     | '/services'
     | '/sitemap.xml'
@@ -623,6 +652,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/marketing'
     | '/admin/professionals'
+    | '/admin/marketplace'
     | '/admin/reports'
     | '/admin/reset-password'
     | '/admin/schedule'
@@ -674,6 +704,8 @@ export interface FileRouteTypes {
     | '/pricing-policy'
     | '/privacy'
     | '/pro'
+    | '/marketplace'
+    | '/pro-market'
     | '/quote'
     | '/services'
     | '/sitemap.xml'
@@ -686,6 +718,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/marketing'
     | '/admin/professionals'
+    | '/admin/marketplace'
     | '/admin/reports'
     | '/admin/reset-password'
     | '/admin/schedule'
@@ -739,6 +772,8 @@ export interface FileRouteTypes {
     | '/pricing-policy'
     | '/privacy'
     | '/pro'
+    | '/marketplace'
+    | '/pro-market'
     | '/quote'
     | '/services'
     | '/sitemap.xml'
@@ -751,6 +786,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/marketing'
     | '/admin/professionals'
+    | '/admin/marketplace'
     | '/admin/reports'
     | '/admin/reset-password'
     | '/admin/schedule'
@@ -805,6 +841,8 @@ export interface RootRouteChildren {
   PricingPolicyRoute: typeof PricingPolicyRoute
   PrivacyRoute: typeof PrivacyRoute
   ProRoute: typeof ProRoute
+  MarketplaceRoute: typeof MarketplaceRoute
+  ProMarketRoute: typeof ProMarketRoute
   QuoteRoute: typeof QuoteRoute
   ServicesRoute: typeof ServicesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -964,6 +1002,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/marketplace': {
+      id: '/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof MarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pro-market': {
+      id: '/pro-market'
+      path: '/pro-market'
+      fullPath: '/pro-market'
+      preLoaderRoute: typeof ProMarketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quote': {
       id: '/quote'
       path: '/quote'
@@ -1053,6 +1105,13 @@ declare module '@tanstack/react-router' {
       path: '/professionals'
       fullPath: '/admin/professionals'
       preLoaderRoute: typeof AdminProfessionalsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/marketplace': {
+      id: '/admin/marketplace'
+      path: '/marketplace'
+      fullPath: '/admin/marketplace'
+      preLoaderRoute: typeof AdminMarketplaceRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/reports': {
@@ -1269,6 +1328,7 @@ interface AdminRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
   AdminProfessionalsRoute: typeof AdminProfessionalsRoute
+  AdminMarketplaceRoute: typeof AdminMarketplaceRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminResetPasswordRoute: typeof AdminResetPasswordRoute
   AdminScheduleRoute: typeof AdminScheduleRoute
@@ -1302,6 +1362,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AdminMarketingRoute: AdminMarketingRoute,
   AdminProfessionalsRoute: AdminProfessionalsRoute,
+  AdminMarketplaceRoute: AdminMarketplaceRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminResetPasswordRoute: AdminResetPasswordRoute,
   AdminScheduleRoute: AdminScheduleRoute,
@@ -1368,6 +1429,8 @@ const rootRouteChildren: RootRouteChildren = {
   PricingPolicyRoute: PricingPolicyRoute,
   PrivacyRoute: PrivacyRoute,
   ProRoute: ProRoute,
+  MarketplaceRoute: MarketplaceRoute,
+  ProMarketRoute: ProMarketRoute,
   QuoteRoute: QuoteRoute,
   ServicesRoute: ServicesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

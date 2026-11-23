@@ -56,7 +56,7 @@ const primaryClass =
 const secondaryClass =
   "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50";
 const accountSelect =
-  "id,user_id,email,account_type,business_name,contact_name,phone,city,province,postal_code,website,services,service_areas,preferred_language,review_status,review_message,submitted_at,reviewed_at,created_at,updated_at";
+  "id,user_id,email,account_type,business_name,contact_name,phone,city,province,postal_code,website,google_maps_url,services,service_areas,preferred_language,review_status,review_message,submitted_at,reviewed_at,created_at,updated_at";
 const documentSelect =
   "id,account_id,category,file_name,storage_path,mime_type,file_size,created_at";
 
@@ -141,6 +141,21 @@ function ProfessionalPortal() {
     async function load() {
       try {
         const { data, error: userError } = await supabase.auth.getUser();
+        if (!cancelled && !userError && data.user?.id === userId) {
+          try {
+            const returnTo = window.localStorage.getItem("omsg.marketplace.returnTo");
+            if (returnTo) {
+              const destination = new URL(returnTo, window.location.origin);
+              window.localStorage.removeItem("omsg.marketplace.returnTo");
+              if (destination.origin === window.location.origin && destination.pathname === "/marketplace") {
+                window.location.replace(destination.pathname + destination.search);
+                return;
+              }
+            }
+          } catch {
+            // The client area is still available when browser storage is disabled.
+          }
+        }
         if (userError || !data.user || data.user.id !== userId || !data.user.email_confirmed_at)
           throw new Error("Session could not be verified.");
         if (cancelled) return;
@@ -486,6 +501,8 @@ function ProfessionalPortal() {
             </span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
+            <a href="/marketplace" className="text-sm font-semibold text-teal-800 hover:underline">{t("Client area", "Espace client")}</a>
+            {account?.review_status === "approved" && <a href="/pro-market" className={primaryClass}>{t("View requests", "Voir les demandes")}</a>}
             <LanguageSwitcher compact />
             {session && (
               <button
@@ -959,6 +976,9 @@ function ProfessionalPortal() {
                           aria-invalid={invalid.includes("postal_code")}
                           className={`${fieldClass} uppercase`}
                         />
+                      </Field>
+                      <Field label={t("Google Maps listing (optional)", "Fiche Google Maps (facultatif)")} error={invalid.includes("google_maps_url")}>
+                        <input type="url" value={form.google_maps_url ?? ""} maxLength={2048} onChange={event => update("google_maps_url", event.target.value)} aria-invalid={invalid.includes("google_maps_url")} className={fieldClass} placeholder="https://maps.app.goo.gl/…" />
                       </Field>
                       <Field
                         label={t("Website (optional)", "Site web (facultatif)")}

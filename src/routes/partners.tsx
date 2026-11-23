@@ -46,6 +46,9 @@ function PartnersPage() {
     <div className="min-h-screen bg-background">
       <Toaster richColors position="top-center" />
       <SiteHeader />
+      <div className="border-b border-teal-200 bg-teal-50 px-6 py-4 text-center font-semibold text-teal-900">
+        <a href="/pro" className="underline underline-offset-4">{language === "fr" ? "Créer mon profil sur la plateforme de professionnels OMSG" : "Create my OMSG marketplace professional profile"}</a>
+      </div>
       <PageHero
         eyebrow="Work With Us"
         title="Two ways to partner with Ottawa Multiservices Group."

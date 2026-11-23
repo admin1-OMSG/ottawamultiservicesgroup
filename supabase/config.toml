@@ -11,3 +11,12 @@ verify_jwt = false
 # database operation with a short-lived, body-bound backend signature.
 [functions.interac-sandbox-bridge]
 verify_jwt = false
+
+[functions.market-checkout]
+verify_jwt = false
+
+[functions.market-stripe-webhook]
+verify_jwt = false
+
+[functions.market-dispatch]
+verify_jwt = false

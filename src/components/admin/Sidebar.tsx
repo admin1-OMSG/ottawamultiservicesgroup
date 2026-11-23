@@ -17,8 +17,10 @@ import {
   Users,
   MessageCircleMore,
   ShieldCheck,
+  Store,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/language";
 import { cn } from "@/lib/utils";
 
 const mainNavigation = [
@@ -37,6 +39,7 @@ const mainNavigation = [
   { label: "Marketing", to: "/admin/marketing", icon: Megaphone },
   { label: "Settings", to: "/admin/settings", icon: Settings },
   { label: "Partners", to: "/admin/partners", icon: Handshake },
+  { label: "Service marketplace", french: "Plateforme de services", to: "/admin/marketplace", icon: Store },
   { label: "Professional applications", to: "/admin/professionals", icon: ShieldCheck },
   { label: "Careers", to: "/admin/careers", icon: BriefcaseBusiness },
   { label: "Inventory", to: "/admin/inventory", icon: Package },
@@ -49,6 +52,7 @@ type SidebarProps = {
 
 export function Sidebar({ className, onNavigate }: SidebarProps = {}) {
   const navigate = useNavigate();
+  const { language } = useLanguage();
   async function logout() {
     onNavigate?.();
     await supabase.auth.signOut();
@@ -96,7 +100,7 @@ export function Sidebar({ className, onNavigate }: SidebarProps = {}) {
                   }}
                 >
                   <Icon className="h-5 w-5 shrink-0" />
-                  <span>{item.label}</span>
+                  <span>{language === "fr" && item.french ? item.french : item.label}</span>
                 </Link>
               );
             })}

@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "audit:launch": "node scripts/launch-audit.mjs",
     "test:interac": "node --test tests/interac/protocol.test.mjs tests/interac/bridge.test.ts && node scripts/test-interac-sandbox-database.mjs && vitest run --config vitest.professionals.config.ts tests/interac",
-    "test:professionals": "node --test scripts/test-professional-profile.mjs && node scripts/test-professional-database.mjs && vitest run --config vitest.professionals.config.ts"
+    "test:professionals": "node --test scripts/test-professional-profile.mjs && node scripts/test-professional-database.mjs && vitest run --config vitest.professionals.config.ts",
+    "test:marketplace": "node scripts/test-marketplace-database.mjs && node scripts/test-marketplace-billing.mjs && node --test tests/marketplace/dispatch.test.ts tests/marketplace/dispatch-db.test.mjs && vitest run --config vitest.professionals.config.ts tests/marketplace"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
