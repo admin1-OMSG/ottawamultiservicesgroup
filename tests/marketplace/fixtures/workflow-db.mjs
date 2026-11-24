@@ -35,7 +35,7 @@ async function init(){
  await query('insert into public.admin_users values ($1,true)',[users.admin.id]);
  await db.exec("update market_billing.settings set preview_checkout_enabled=true; update market_billing.offers set credits=case code when 'pack52' then 12 when 'pack104' then 24 else 48 end,enabled=true where kind='pack'; insert into market_billing.tariffs values('cleaning',3);");
 }
-const scalarRpcs = new Set(['market_touch','market_inbox','market_create_request','market_add_request_details','market_wallet','market_unlock','market_read_notification','market_send_message','market_complete','market_review','market_request_refund','market_review_refund','market_billing_admin']);
+const scalarRpcs = new Set(['market_touch','market_inbox','market_create_request','market_add_request_details','market_wallet','market_wallet_v2','market_unlock','market_read_notification','market_send_message','market_complete','market_review','market_request_refund','market_review_refund','market_billing_admin']);
 async function execute({op,role,method,args={}}) {
  if(op==='init') {await init(); return users;}
  if(op==='profile') return (await query('select id,business_name,contact_name,review_status from professional_accounts where user_id=$1',[users[role].id]))[0];
@@ -54,7 +54,7 @@ async function execute({op,role,method,args={}}) {
    return {lead:args.return_request_id};
   } finally {await db.exec('reset role');}
  }
- if(op!=='rpc'||!/^market_[a-z_]+$/.test(method)||Object.keys(args).some(k=>!/^p_[a-z_]+$/.test(k)))throw Error('invalid_test_operation');
+ if(op!=='rpc'||!/^market_[a-z_]+(?:_v2)?$/.test(method)||Object.keys(args).some(k=>!/^p_[a-z_]+$/.test(k)))throw Error('invalid_test_operation');
  await db.exec('set role authenticated');await query("select set_config('request.jwt.claim.sub',$1,false)",[users[role].id]);
  const call='public.'+method+'('+Object.keys(args).map((k,i)=>k+' => $'+(i+1)).join(',')+')';
  try {return scalarRpcs.has(method)?await scalar('select '+call,Object.values(args)):await query('select * from '+call,Object.values(args));}

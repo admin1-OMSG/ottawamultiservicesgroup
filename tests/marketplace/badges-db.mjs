@@ -13,7 +13,7 @@ export async function testMarketplaceBadges({
   request,
   byPhone,
 }) {
-  const readLead = (id) => rows("select * from public.market_requests() where id=$1", [id]);
+  const readLead = (id) => rows("select * from public.market_requests_v2() where id=$1", [id]);
   const append = (requestId, editId, details) =>
     rows("select public.market_add_request_details($1,$2,$3)", [requestId, editId, details]);
   const fourth = randomUUID();
@@ -25,7 +25,7 @@ export async function testMarketplaceBadges({
 
   // This client has published one completed and two withdrawn requests before the migration.
   await auth(client, async () => {
-    assert.equal((await rows("select * from public.market_requests()")).length, 3);
+    assert.equal((await rows("select * from public.market_requests_v2()")).length, 3);
     const [original] = await readLead(request);
     assert.equal(original.repeat_client, false);
     assert.equal(original.details_updated_at, null);
@@ -33,7 +33,7 @@ export async function testMarketplaceBadges({
     assert.equal(original.email_verified, true);
     await publish();
     await publish();
-    assert.equal((await rows("select * from public.market_requests()")).length, 4);
+    assert.equal((await rows("select * from public.market_requests_v2()")).length, 4);
     assert.equal((await readLead(request))[0].repeat_client, true);
   });
   const edit = randomUUID();
@@ -95,21 +95,21 @@ export async function testMarketplaceBadges({
   async function checkProviderBadges(subscribed, phoneVerified) {
     const provider = await auth(
       client,
-      async () => (await rows("select * from public.market_directory() where id=$1", [farId]))[0],
+      async () => (await rows("select * from public.market_directory_v2() where id=$1", [farId]))[0],
     );
     assert.deepEqual(
       [provider.paid_subscriber, provider.phone_verified],
       [subscribed, phoneVerified],
     );
     assert.ok(!("phone" in provider || "stripe_subscription" in provider));
-    const wallet = await auth(far, () => value("select public.market_wallet()"));
+    const wallet = await auth(far, () => value("select public.market_wallet_v2()"));
     assert.deepEqual([wallet.paid_subscriber, wallet.phone_verified], [subscribed, phoneVerified]);
     const thread = await auth(
       client,
       async () =>
         (
           await rows(
-            "select * from public.market_my_contacts() where request_id=$1 and provider_id=$2",
+            "select * from public.market_my_contacts_v2() where request_id=$1 and provider_id=$2",
             [request, farId],
           )
         )[0],

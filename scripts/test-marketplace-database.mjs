@@ -200,7 +200,20 @@ try {
     assert.equal((await inbox(false)).items.length,2);
   });
   // Apply the badge migration to existing requests and contacts, just as during an upgrade.
+  const readLegacyViews = () => auth(far, async () => ({
+    leads: await rows("select * from public.market_requests() order by id"),
+    providers: await rows("select * from public.market_directory() order by id"),
+    contacts: await rows("select * from public.market_my_contacts() order by id"),
+    wallet: await value("select public.market_wallet()"),
+  }));
+  const legacyViews = await readLegacyViews();
+  // One provider remains approved. Read the old directory as its client for a non-empty projection.
+  const readLegacyDirectory = () => auth(client, () => rows("select * from public.market_directory() order by id"));
+  const legacyDirectory = await readLegacyDirectory();
+  assert.ok(legacyViews.leads.length && legacyDirectory.length && legacyViews.contacts.length);
   await migrate("20261124020000_marketplace_badges.sql");
+  assert.deepEqual(await readLegacyViews(), legacyViews);
+  assert.deepEqual(await readLegacyDirectory(), legacyDirectory);
   await testMarketplaceBadges({ rows, value, auth, as, client, phoneClient, far, farId, request, byPhone });
   console.log("PASS marketplace badges, verified phones, paid subscriptions and owner-only request additions.");
   console.log("PASS verified contacts, matching, invitations, message privacy, idempotent debits, ratings, worker leases, withdrawals and reviewed refunds.");

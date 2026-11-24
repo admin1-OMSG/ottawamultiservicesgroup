@@ -72,72 +72,44 @@ returns boolean language sql immutable set search_path='' as $$
 $$;
 revoke all on function market_private.profile_phone_verified(text,text,timestamptz) from public,anon,authenticated,service_role;
 
--- Recreate the affected projections to append fields to their return types.
--- Keep existing visibility rules, sort order and locked contact details intact.
-drop function public.market_requests(), public.market_directory(), public.market_my_contacts();
-drop function market_private.requests(), market_private.directory(), market_private.my_contacts();
-
-create function market_private.requests() returns table (
+-- Extend only rows visible through the established marketplace projections.
+-- Versioned reads let already-running clients finish on the original API.
+create function market_private.requests_v2() returns table (
   id uuid,service text,city text,title text,description text,urgency text,status text,credit_cost int,
   created_at timestamptz,client_active_at timestamptz,email_verified boolean,phone_verified boolean,
   preferred_ids uuid[],preferred_names text[],is_owner boolean,matched boolean,invited boolean,
   repeat_client boolean,details_updated_at timestamptz
 ) language sql stable security definer set search_path='' as $$
-  select r.id,r.service,r.city,r.title,concat_ws(E'\n\n',r.description,details.body),r.urgency,r.status,r.credit_cost,r.created_at,
-    coalesce(act.active_at,r.created_at),u.email_confirmed_at is not null and nullif(u.email,'') is not null,
-    u.phone_confirmed_at is not null and coalesce(u.phone ~ '[0-9]',false),
-    case when r.client_id=auth.uid() then coalesce(pref.ids,'{}') else '{}' end,
-    case when r.client_id=auth.uid() then coalesce(pref.names,'{}') else '{}' end,
-    r.client_id=auth.uid(),coalesce(target.matched,false),coalesce(target.invited,false),
-    exists(select 1 from market_private.requests history where history.client_id=r.client_id offset 3),
-    details.last_added
-  from market_private.requests r join auth.users u on u.id=r.client_id
-  left join market_private.activity act on act.user_id=r.client_id
-  left join public.professional_accounts me on me.user_id=auth.uid() and me.review_status='approved'
-  left join market_private.recipients target on target.provider_id=me.id and target.request_id=r.id
-  left join lateral (
-    select array_agg(a.id order by a.id) as ids,array_agg(coalesce(nullif(a.business_name,''),a.contact_name) order by a.id) as names
-    from market_private.recipients x join public.professional_accounts a on a.id=x.provider_id
-    where x.request_id=r.id and x.invited and r.client_id=auth.uid()
-  ) pref on true
+  select v.id,v.service,v.city,v.title,concat_ws(E'\n\n',v.description,details.body),v.urgency,v.status,
+    v.credit_cost,v.created_at,v.client_active_at,v.email_verified,v.phone_verified and coalesce(u.phone ~ '[0-9]',false),
+    v.preferred_ids,v.preferred_names,v.is_owner,v.matched,v.invited,
+    exists(select 1 from market_private.requests history where history.client_id=r.client_id offset 3),details.last_added
+  from market_private.requests() v join market_private.requests r on r.id=v.id
+  join auth.users u on u.id=r.client_id
   left join lateral (
     select string_agg(d.body,E'\n\n' order by d.created_at,d.id) as body,max(d.created_at) as last_added
     from market_private.request_details d where d.request_id=r.id
   ) details on true
-  where r.client_id=auth.uid() or (me.id is not null and
-    (r.status='open' or exists(select 1 from market_private.contacts c where c.request_id=r.id and c.provider_id=me.id)))
-  order by r.created_at desc,r.id;
+  order by v.created_at desc,v.id;
 $$;
 
-create function market_private.directory() returns table (
+create function market_private.directory_v2() returns table (
   id uuid,name text,services text[],service_areas text[],city text,review_status text,active_at timestamptz,
   completed_count int,review_count int,average_rating numeric,google_maps_url text,paid_subscriber boolean,phone_verified boolean
 ) language sql stable security definer set search_path='' as $$
-  select a.id,coalesce(nullif(a.business_name,''),a.contact_name),a.services,a.service_areas,a.city,a.review_status,
-    coalesce(t.active_at,a.submitted_at),stats.jobs,stats.reviews,stats.rating,to_jsonb(a)->>'google_maps_url',
-    market_billing.is_paid_subscriber(a.id),market_private.profile_phone_verified(a.phone,u.phone,u.phone_confirmed_at)
-  from public.professional_accounts a join auth.users u on u.id=a.user_id
-  left join market_private.activity t on t.user_id=a.user_id
-  cross join lateral (select count(c.completed_at)::int as jobs,count(r.rating)::int as reviews,round(avg(r.rating),1) as rating
-    from market_private.contacts c left join market_private.reviews r on r.contact_id=c.id where c.provider_id=a.id) stats
-  where auth.uid() is not null and a.review_status='approved' and a.user_id<>auth.uid()
-  order by coalesce(nullif(a.business_name,''),a.contact_name),a.id;
+  select v.*,market_billing.is_paid_subscriber(a.id),market_private.profile_phone_verified(a.phone,u.phone,u.phone_confirmed_at)
+  from market_private.directory() v join public.professional_accounts a on a.id=v.id join auth.users u on u.id=a.user_id
+  order by v.name,v.id;
 $$;
 
-create function market_private.my_contacts() returns table (
+create function market_private.my_contacts_v2() returns table (
   id uuid,request_id uuid,provider_id uuid,provider_name text,request_title text,credit_cost int,created_at timestamptz,
   completed_at timestamptz,review_rating int,review_body text,client_email text,client_phone text,my_provider boolean,
   provider_paid_subscriber boolean,provider_phone_verified boolean
 ) language sql stable security definer set search_path='' as $$
-  select c.id,r.id,a.id,coalesce(nullif(a.business_name,''),a.contact_name),r.title,c.credit_cost,c.created_at,c.completed_at,
-    v.rating,v.body,case when u.email_confirmed_at is not null then nullif(u.email,'') end,
-    case when u.phone_confirmed_at is not null and u.phone ~ '[0-9]' then u.phone end,a.user_id=auth.uid(),
-    market_billing.is_paid_subscriber(a.id),market_private.profile_phone_verified(a.phone,p.phone,p.phone_confirmed_at)
-  from market_private.contacts c join market_private.requests r on r.id=c.request_id
-  join public.professional_accounts a on a.id=c.provider_id join auth.users u on u.id=r.client_id
-  join auth.users p on p.id=a.user_id left join market_private.reviews v on v.contact_id=c.id
-  where r.client_id=auth.uid() or (a.user_id=auth.uid() and a.review_status='approved')
-  order by c.created_at desc,c.id;
+  select v.*,market_billing.is_paid_subscriber(a.id),market_private.profile_phone_verified(a.phone,u.phone,u.phone_confirmed_at)
+  from market_private.my_contacts() v join public.professional_accounts a on a.id=v.provider_id join auth.users u on u.id=a.user_id
+  order by v.created_at desc,v.id;
 $$;
 
 do $$
@@ -145,7 +117,7 @@ declare f record;
 begin
   for f in select p.proname,pg_get_function_result(p.oid) as result
     from pg_proc p where p.pronamespace='market_private'::regnamespace and p.pronargs=0
-      and p.proname in ('requests','directory','my_contacts')
+      and p.proname in ('requests_v2','directory_v2','my_contacts_v2')
   loop
     execute format('create function public.%I() returns %s language sql stable security invoker set search_path='''' as %L',
       'market_'||f.proname,f.result,format('select * from market_private.%I()',f.proname));
@@ -156,22 +128,20 @@ begin
   end loop;
 end; $$;
 
-create or replace function market_billing.wallet() returns jsonb language plpgsql stable security definer set search_path='' as $$
-declare pid uuid := market_billing.provider(false); wallet market_billing.wallets;
+create function market_billing.wallet_v2() returns jsonb language plpgsql stable security definer set search_path='' as $$
+declare base jsonb := market_billing.wallet();
 begin
-  select * into wallet from market_billing.wallets where provider_id=pid;
-  return jsonb_build_object('balance',coalesce(wallet.balance,0),'discount_percent',coalesce(wallet.discount_percent,0),
-    'paid_subscriber',market_billing.is_paid_subscriber(pid),
-    'phone_verified',(select market_private.profile_phone_verified(a.phone,u.phone,u.phone_confirmed_at)
-      from public.professional_accounts a join auth.users u on u.id=a.user_id where a.id=pid),
-    'preview_checkout_enabled',(select preview_checkout_enabled from market_billing.settings),
-    'packs',(select jsonb_agg(to_jsonb(o)||jsonb_build_object('list_price_cents',o.price_cents,
-          'price_cents',market_billing.price(o.price_cents,coalesce(wallet.discount_percent,0))) order by o.price_cents nulls last) from market_billing.offers o),
-    'subscription',(select jsonb_build_object('status',sub_status,'offer_code',offer_code) from market_billing.orders
-      where provider_id=pid and sub_status is not null and sub_status not in ('canceled','incomplete_expired') order by created_at desc limit 1),
-    'refunds',coalesce((select jsonb_agg(jsonb_build_object('contact_id',f.contact_id,'status',f.status,'reason',f.reason,'note',f.note))
-      from market_billing.refunds f join market_private.contacts c on c.id=f.contact_id where c.provider_id=pid),'[]'::jsonb));
+  return base || (
+    select jsonb_build_object('paid_subscriber',market_billing.is_paid_subscriber(a.id),
+      'phone_verified',market_private.profile_phone_verified(a.phone,u.phone,u.phone_confirmed_at))
+    from public.professional_accounts a join auth.users u on u.id=a.user_id where a.user_id=auth.uid()
+  );
 end; $$;
+create function public.market_wallet_v2() returns jsonb language sql stable security invoker set search_path='' as $$
+  select market_billing.wallet_v2();
+$$;
+revoke all on function public.market_wallet_v2(),market_billing.wallet_v2() from public,anon,authenticated,service_role;
+grant execute on function public.market_wallet_v2(),market_billing.wallet_v2() to authenticated;
 
 notify pgrst,'reload schema';
 commit;

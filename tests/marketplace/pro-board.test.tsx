@@ -25,9 +25,9 @@ beforeEach(()=>{
   balance=8;unlocked=false;
   rpc.mockImplementation(async(name:string)=>{
     switch(name){
-      case "market_requests":return {data:[lead]};
-      case "market_my_contacts":return {data:unlocked?[{id:"c",request_id:lead.id,provider_id:"p",request_title:lead.title,credit_cost:6,created_at:lead.created_at}]:[]};
-      case "market_wallet":return {data:{balance,packs:deals,discount_percent:0,subscription:null,refunds:[],preview_checkout_enabled:true}};
+      case "market_requests_v2":return {data:[lead]};
+      case "market_my_contacts_v2":return {data:unlocked?[{id:"c",request_id:lead.id,provider_id:"p",request_title:lead.title,credit_cost:6,created_at:lead.created_at}]:[]};
+      case "market_wallet_v2":return {data:{balance,packs:deals,discount_percent:0,subscription:null,refunds:[],preview_checkout_enabled:true}};
       case "market_inbox":return {data:{unread:0,items:[],has_older:false}};
       case "market_unlock":unlocked=true;balance-=6;return {data:"c"};
       default:return {data:null};
@@ -43,9 +43,9 @@ describe("professional contact workflow",()=>{
       details_updated_at: new Date().toISOString(), description: "Clean the kitchen\nAlso clean the stove.",
     };
     rpc.mockImplementation(async (name, args) => {
-      if (name === "market_requests") return {data: [updated]};
+      if (name === "market_requests_v2") return {data: [updated]};
       const result = await fallback(name, args);
-      return name === "market_wallet"
+      return name === "market_wallet_v2"
         ? {data: {...result.data, paid_subscriber: true, phone_verified: false}}
         : result;
     });
@@ -152,7 +152,7 @@ describe("professional contact workflow",()=>{
     const user = userEvent.setup();
     show();
     const payment = await screen.findByRole("button", {name:/Your selection.*\$\s*208.*Continue to payment/});
-    expect(rpc.mock.calls.some(([name])=>name==="market_requests")).toBe(false);
+    expect(rpc.mock.calls.some(([name])=>name==="market_requests_v2")).toBe(false);
     expect(invoke).not.toHaveBeenCalled();
     await user.click(payment);
     expect(invoke).toHaveBeenCalledWith("market-checkout",{body:expect.objectContaining({offer_code:"p208"})});
@@ -163,7 +163,7 @@ describe("professional contact workflow",()=>{
     const row = { id: conversationId, request_id: lead.id, request_title: lead.title, credit_cost: 6, created_at: lead.created_at };
     let currentProvider = "another-professional";
     const read = rpc.getMockImplementation()!;
-    rpc.mockImplementation((name: string) => name === "market_my_contacts"
+    rpc.mockImplementation((name: string) => name === "market_my_contacts_v2"
       ? Promise.resolve({ data: [{ ...row, provider_id: currentProvider }] })
       : read(name));
     window.history.replaceState(null, "", "/pro-market?contact=" + conversationId);

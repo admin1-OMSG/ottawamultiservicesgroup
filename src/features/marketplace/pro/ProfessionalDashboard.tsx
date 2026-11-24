@@ -44,14 +44,14 @@ export function ProfessionalDashboard({userId,profileId,name,language,t}:{userId
   },[userId,fastRefresh]);
   const wallet=useQuery({
     queryKey:["professional-market-wallet",userId,profileId],retry:1,gcTime:0,refetchInterval:fastRefresh?4000:30000,
-    queryFn:()=>rpc<Wallet>("market_wallet"),
+    queryFn:()=>rpc<Wallet>("market_wallet_v2"),
   });
   const data=useQuery({
     queryKey:["professional-market-desk",userId,profileId],enabled:pane!=="wallet",retry:1,gcTime:0,refetchInterval:30000,
     queryFn:async()=>{
       const [leads,replies]=await Promise.all([
-        readMarketRows<MarketLead>("market_requests",{},{field:"is_owner",value:false}),
-        readMarketRows<Reply>("market_my_contacts",{},{field:"my_provider",value:true})
+        readMarketRows<MarketLead>("market_requests_v2",{},{field:"is_owner",value:false}),
+        readMarketRows<Reply>("market_my_contacts_v2",{},{field:"my_provider",value:true})
       ]);
       const byRequest=new Map(leads.map(lead=>[lead.id,lead]));
       const ownReplies=replies.filter(row=>row.provider_id===profileId).map(row=>({...row,request:byRequest.get(row.request_id)}));

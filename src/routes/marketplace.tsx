@@ -62,9 +62,9 @@ function Marketplace(){
 }
 async function loadDashboard(){
   const [requests,contacts,directory]=await Promise.all([
-    readMarketRows<MarketRequest>("market_requests",{}, {field:"is_owner",value:true}),
-    readMarketRows<MarketContact>("market_my_contacts",{}, {field:"my_provider",value:false}),
-    readMarketRows<DirectoryProvider>("market_directory")
+    readMarketRows<MarketRequest>("market_requests_v2",{}, {field:"is_owner",value:true}),
+    readMarketRows<MarketContact>("market_my_contacts_v2",{}, {field:"my_provider",value:false}),
+    readMarketRows<DirectoryProvider>("market_directory_v2")
   ]);
   const ownRequests=requests.filter(r=>r.is_owner);
   const ownIds=new Set(ownRequests.map(r=>r.id));

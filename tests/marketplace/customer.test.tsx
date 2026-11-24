@@ -191,7 +191,7 @@ describe("customer marketplace",()=>{
   it("paginates matching rows including the oldest results",async()=>{
     const range=vi.fn().mockResolvedValueOnce({data:Array(200).fill("recent")}).mockResolvedValueOnce({data:["old"]});
     const eq=vi.fn().mockReturnValue({range});mocks.rpc.mockReturnValue({eq});
-    const rows=await readMarketRows<string>("market_requests",{},{field:"is_owner",value:true});
+    const rows=await readMarketRows<string>("market_requests_v2",{},{field:"is_owner",value:true});
     expect(rows).toHaveLength(201);expect(rows.at(-1)).toBe("old");
     expect(eq).toHaveBeenCalledWith("is_owner",true);
     expect(range.mock.calls).toEqual([[0,199],[200,399]]);
