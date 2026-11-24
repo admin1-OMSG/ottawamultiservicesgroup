@@ -263,6 +263,10 @@ export function PricingLanding() {
             )}
           </p>
         </div>
+        <Link to="/pro-pricing" className="mt-4 inline-flex min-h-11 items-center gap-2 font-semibold text-teal-800 underline underline-offset-4">
+          {t("See credit packs and subscriptions for professionals", "Voir les packs de crédits et les abonnements pour professionnels")}
+          <ArrowRight aria-hidden className="h-4 w-4" />
+        </Link>
         <div className="mt-9 grid gap-8 md:grid-cols-2">
           {(["residential", "commercial"] as const).map((audience) => {
             const residential = audience === "residential";

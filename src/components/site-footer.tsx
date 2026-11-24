@@ -30,8 +30,7 @@ export function SiteFooter() {
             </div>
           </div>
           <p className="mt-5 max-w-md text-base leading-relaxed text-slate-600">
-            Home and property services across Ottawa and Gatineau, with clear quotes, online
-            scheduling and a client portal that keeps everything in one place.
+            {language === "fr" ? "Trouvez un professionnel pour votre projet à Ottawa–Gatineau." : "Find a local service professional for your project in Ottawa–Gatineau."}
           </p>
           <div className="mt-5 space-y-1 text-base">
             <a
@@ -109,6 +108,7 @@ export function SiteFooter() {
               { label: "Cleaning Prices", to: "/pricing" },
               { label: "About", to: "/about" },
               { label: "FAQ", to: "/faq" },
+              { label: language === "fr" ? "Tarifs pros" : "Pro pricing", to: "/pro-pricing" },
               { label: "Blog", to: "/blog" },
               { label: "Contact", to: "/contact" },
               { label: language === "fr" ? "Carrières" : "Careers", to: "/careers" },
@@ -117,7 +117,9 @@ export function SiteFooter() {
           <FooterCol
             title="For Customers"
             links={[
-              { label: "Get a Quote", to: "/quote" },
+              { label: language === "fr" ? "Mes demandes de services" : "My service requests", to: "/marketplace" },
+              { label: language === "fr" ? "Profil professionnel" : "Professional profile", to: "/pro" },
+              { label: language === "fr" ? "Devis direct OMSG" : "Quote from OMSG", to: "/quote" },
               { label: "Customer Portal", to: "/portal" },
               { label: "Become a Partner", to: "/partners" },
             ]}
