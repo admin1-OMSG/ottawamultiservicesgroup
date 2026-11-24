@@ -2,14 +2,17 @@ import { PROFESSIONAL_SERVICE_OPTIONS } from "@/features/professionals/model";
 export type MarketLanguage = "en" | "fr";
 export type MarketRequest = {
   id: string; service: string; city: string; title: string; description: string; urgency: string;
+  repeat_client: boolean; phone_verified: boolean; details_updated_at: string | null;
   status: "open" | "completed" | "withdrawn"; created_at: string; is_owner: boolean; preferred_ids: string[]; preferred_names: string[];
 };
 export type DirectoryProvider = {
   id: string; name: string; services: string[]; service_areas: string[]; city: string; review_status: "approved"; active_at: string | null;
+  paid_subscriber: boolean; phone_verified: boolean;
   completed_count: number; review_count: number; average_rating: number | null; google_maps_url: string | null;
 };
 export type MarketContact = {
   id: string; request_id: string; provider_id: string; provider_name: string; completed_at: string | null; review_rating: number | null;
+  provider_paid_subscriber: boolean; provider_phone_verified: boolean;
   review_body: string | null; my_provider: boolean;
 };
 export type MarketNotice = {

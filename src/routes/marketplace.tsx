@@ -9,6 +9,7 @@ import { PROFESSIONAL_SERVICE_OPTIONS } from "@/features/professionals/model";
 import { MarketInbox, useMarketInbox } from "@/features/marketplace/MarketInbox";
 import { readMarketRows } from "@/features/marketplace/market-read";
 import { CustomerSignIn, MARKET_RETURN_KEY } from "@/features/marketplace/CustomerSignIn";
+import { MarketBadges } from "@/features/marketplace/MarketBadges";
 import { CustomerDirectory } from "@/features/marketplace/CustomerDirectory";
 import { CustomerRequestForm } from "@/features/marketplace/CustomerRequestForm";
 import { CustomerRequestDetail } from "@/features/marketplace/CustomerRequestDetail";
@@ -54,7 +55,7 @@ function Marketplace(){
     </div></header>
     {authError && <p role="alert" className="mx-auto mt-4 max-w-5xl px-5 text-sm text-red-800">{t("There was a problem with your session. Refresh the page or sign in again.","Un problème de session est survenu. Actualisez la page ou reconnectez-vous.")}</p>}
     {session===undefined?<div role="status" className="mx-auto max-w-6xl px-5 py-10">{t("Opening your account…","Ouverture de votre espace…")}</div> :
-      user && verified ? <Dashboard key={user.id} userId={user.id}/> : <CustomerSignIn/>}
+      user && verified ? <Dashboard key={user.id} userId={user.id} phoneVerified={Boolean(user.phone && user.phone_confirmed_at)}/> : <CustomerSignIn/>}
     <footer className="mx-auto mt-8 flex max-w-6xl flex-wrap justify-between gap-3 border-t border-slate-200 px-5 py-6 text-xs text-slate-600 sm:px-8">
       <span>Ottawa Multiservices Group Inc.</span><div className="flex gap-4"><a href="/privacy" className="underline">{t("Privacy","Confidentialité")}</a><a href="/terms" className="underline">{t("Terms","Conditions")}</a></div></footer>
   </div>;
@@ -69,7 +70,7 @@ async function loadDashboard(){
   const ownIds=new Set(ownRequests.map(r=>r.id));
   return {requests:ownRequests,contacts:contacts.filter(c=>!c.my_provider&&ownIds.has(c.request_id)),directory};
 }
-function Dashboard({userId}:{userId:string}){
+function Dashboard({userId,phoneVerified}:{userId:string;phoneVerified:boolean}){
   const {language}=useLanguage();
   const t=(en:string,fr:string)=>language==="fr"?fr:en;
   const search=Route.useSearch();
@@ -108,7 +109,7 @@ function Dashboard({userId}:{userId:string}){
     catch{setNoticeError(t("The notification may still appear as unread.","La notification pourrait encore apparaître comme non lue."));}
   }
   return <main className="mx-auto max-w-6xl px-5 py-7 sm:px-8 sm:py-10">
-    <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{t("My service requests","Mes demandes de services")}</h1><p className="mt-2 flex items-center gap-1.5 text-sm text-slate-600"><MapPin size={15}/>Ottawa–Gatineau</p></div><div className="flex flex-wrap items-center gap-2"><button className={marketSecondary} aria-expanded={notices} onClick={()=>{inbox.first();setNotices(!notices);}}><Bell size={16}/>{t("Notifications","Notifications")}{unread>0 && <span className="rounded-full bg-teal-800 px-2 text-xs text-white">{unread}</span>}</button><button className={marketPrimary} onClick={()=>go({new:1})}><Plus size={18}/>{t("Create a request","Créer une demande")}</button></div></div>
+    <div className="flex flex-wrap items-start justify-between gap-4"><div><h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{t("My service requests","Mes demandes de services")}</h1><p className="mt-2 flex items-center gap-1.5 text-sm text-slate-600"><MapPin size={15}/>Ottawa–Gatineau</p><MarketBadges t={t} repeatCustomer={data?.requests[0]?.repeat_client} phoneVerified={phoneVerified}/></div><div className="flex flex-wrap items-center gap-2"><button className={marketSecondary} aria-expanded={notices} onClick={()=>{inbox.first();setNotices(!notices);}}><Bell size={16}/>{t("Notifications","Notifications")}{unread>0 && <span className="rounded-full bg-teal-800 px-2 text-xs text-white">{unread}</span>}</button><button className={marketPrimary} onClick={()=>go({new:1})}><Plus size={18}/>{t("Create a request","Créer une demande")}</button></div></div>
     <nav aria-label={t("Customer dashboard","Espace client")} className="my-6 flex flex-wrap gap-2 border-b border-slate-200 pb-3">
       <button className={view==="requests"||view==="detail"?marketPrimary:marketSecondary} aria-current={view==="requests"||view==="detail"?"page":undefined} onClick={()=>go({})}><ClipboardList size={16}/>{t("My requests","Mes demandes")}</button>
       <button className={view==="providers"?marketPrimary:marketSecondary} aria-current={view==="providers"?"page":undefined} onClick={()=>go({providers:1})}><Users size={16}/>{t("Find professionals","Choisir des professionnels")}</button>
@@ -124,7 +125,7 @@ function Dashboard({userId}:{userId:string}){
       {view==="requests" && <section aria-label={t("My requests","Mes demandes")}>
         {(search.request||search.contact) && <p role="status" className="mb-4 rounded-xl bg-amber-50 p-3 text-sm">{t("This request or conversation isn’t available in your account.","Cette demande ou conversation n’est pas disponible dans votre compte.")}</p>}
         {!data.requests.length?<div className="rounded-2xl border border-dashed border-teal-300 bg-white px-6 py-10 text-center"><div className="mx-auto mb-4 grid size-12 place-items-center rounded-full bg-teal-50 text-teal-800"><BriefcaseBusiness size={23}/></div><h2 className="text-2xl font-bold">{t("What do you need help with?","De quel service avez-vous besoin ?")}</h2><p className="mt-2 text-sm text-slate-600">{t("Create your first free request to hear from local professionals.","Créez votre première demande gratuite pour recevoir des réponses de professionnels locaux.")}</p><button className={marketPrimary+" mt-5"} onClick={()=>go({new:1})}>{t("Post my first request","Publier ma première demande")}<ArrowRight size={16}/></button></div>:
-          <ul className="grid gap-4 md:grid-cols-2">{data.requests.map(r=><li key={r.id}><button className="flex h-full w-full flex-col items-start rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm hover:border-teal-600" onClick={()=>go({request:r.id})}><span className="flex w-full justify-between gap-3 text-xs font-bold text-teal-800"><span>{serviceName(r.service,language)}</span><span>{requestStatus(r.status,language)}</span></span><span className="mt-2 break-words text-lg font-bold">{r.title}</span><span className="mt-2 text-sm text-slate-600">{r.city} · {dateLabel(r.created_at,language)}</span><span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-teal-800">{data.contacts.filter(c=>c.request_id===r.id).length} {t("replies","réponses")} <ArrowRight size={15}/></span></button></li>)}</ul>}
+          <ul className="grid gap-4 md:grid-cols-2">{data.requests.map(r=><li key={r.id}><button className="flex h-full w-full flex-col items-start rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm hover:border-teal-600" onClick={()=>go({request:r.id})}><span className="flex w-full justify-between gap-3 text-xs font-bold text-teal-800"><span>{serviceName(r.service,language)}</span><span>{requestStatus(r.status,language)}</span></span><span className="mt-2 break-words text-lg font-bold">{r.title}</span><MarketBadges t={t} urgent={r.status==="open" && r.urgency==="asap"} detailsAdded={Boolean(r.details_updated_at)}/><span className="mt-2 text-sm text-slate-600">{r.city} · {dateLabel(r.created_at,language)}</span><span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-teal-800">{data.contacts.filter(c=>c.request_id===r.id).length} {t("replies","réponses")} <ArrowRight size={15}/></span></button></li>)}</ul>}
       </section>}
     </>}
   </main>;

@@ -22,7 +22,7 @@ async function init(){
  create table storage.objects(id uuid default gen_random_uuid(),bucket_id text,name text,metadata jsonb);
  grant usage on schema storage to anon,authenticated; grant all on storage.objects to anon,authenticated;`);
  const folder=path.join(repo,'supabase/migrations');
- for(const match of ['_professional_onboarding.sql','_marketplace.sql','_marketplace_billing.sql','_professional_google_maps_link.sql','_market_request_withdrawal.sql','_marketplace_subscription_retry.sql','_market_notification_inbox.sql','_market_loyalty_208.sql']){
+ for(const match of ['_professional_onboarding.sql','_marketplace.sql','_marketplace_billing.sql','_professional_google_maps_link.sql','_market_request_withdrawal.sql','_marketplace_subscription_retry.sql','_market_notification_inbox.sql','_market_loyalty_208.sql','_marketplace_badges.sql']){
   const name=fs.readdirSync(folder).find(f=>f.endsWith(match));
   await db.exec(fs.readFileSync(path.join(folder,name),'utf8'));
  }
@@ -35,7 +35,7 @@ async function init(){
  await query('insert into public.admin_users values ($1,true)',[users.admin.id]);
  await db.exec("update market_billing.settings set preview_checkout_enabled=true; update market_billing.offers set credits=case code when 'pack52' then 12 when 'pack104' then 24 else 48 end,enabled=true where kind='pack'; insert into market_billing.tariffs values('cleaning',3);");
 }
-const scalarRpcs = new Set(['market_touch','market_inbox','market_create_request','market_wallet','market_unlock','market_read_notification','market_send_message','market_complete','market_review','market_request_refund','market_review_refund','market_billing_admin']);
+const scalarRpcs = new Set(['market_touch','market_inbox','market_create_request','market_add_request_details','market_wallet','market_unlock','market_read_notification','market_send_message','market_complete','market_review','market_request_refund','market_review_refund','market_billing_admin']);
 async function execute({op,role,method,args={}}) {
  if(op==='init') {await init(); return users;}
  if(op==='profile') return (await query('select id,business_name,contact_name,review_status from professional_accounts where user_id=$1',[users[role].id]))[0];

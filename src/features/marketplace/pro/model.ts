@@ -9,14 +9,16 @@ export interface MarketLead {
   urgency:"asap"|"week"|"flexible"; status:"open"|"completed"|"withdrawn"; credit_cost:number|null;
   created_at:string; client_active_at:string|null; email_verified:boolean; phone_verified:boolean;
   is_owner:boolean; matched:boolean; invited:boolean;
+  repeat_client?:boolean; details_updated_at?:string|null;
 }
 export interface Reply {
   id:string; request_id:string; provider_id:string; request_title:string; credit_cost:number;
-  request_status?:MarketLead["status"]; created_at:string; completed_at:string|null;
+  request?:MarketLead; created_at:string; completed_at:string|null;
   client_email:string|null; client_phone:string|null;
 }
 export type Offer = CreditOffer;
 export interface Wallet {
+  paid_subscriber?:boolean; phone_verified?:boolean;
   balance:number; discount_percent:number; preview_checkout_enabled:boolean; packs:Offer[];
   subscription:{status:string;offer_code:string}|null;
   refunds:{contact_id:string;status:string;reason:string;note?:string}[];

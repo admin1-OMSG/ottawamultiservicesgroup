@@ -74,19 +74,33 @@ const title="Nettoyage de mon appartement", incorrect="Demande créée par erreu
 
 it("publishes, matches, buys a test pack, unlocks, exchanges messages, reviews work and refunds an erroneous lead through three authenticated dashboards",async()=>{
  const user=userEvent.setup();
- async function publish(label:string,invite:boolean){
+ async function publish(label:string,invite:boolean,urgency="flexible"){
   await user.click(await button("Créer une demande"));
   await user.selectOptions(await screen.findByLabelText("Catégorie de service"),"cleaning");
   await user.type(screen.getByLabelText("Ville ou quartier"),"Orléans");
   await user.type(screen.getByLabelText("Titre de la demande"),label);
+  await user.selectOptions(screen.getByLabelText("Quand souhaitez-vous le service ?"),urgency);
   await user.type(screen.getByLabelText("Décrivez le travail"),"Nettoyer deux chambres et les fenêtres.");
   if(invite){await user.click(await button(/Inviter des professionnels de votre choix/));await user.click(await screen.findByLabelText("Inviter pour ma demande"));}
   await user.click(await button("Publier ma demande gratuite"));
   await screen.findByRole("heading",{name:label,exact:true});
  }
- await show("client");await publish(title,true);
+ await show("client");await publish(title,true,"asap");
+ const ownerCard=within((await screen.findByRole("heading",{name:title})).closest("article")!);
+ expect(ownerCard.getByText("Urgente")).toBeTruthy();
+ expect(ownerCard.queryByText("Précisions ajoutées")).toBeNull();
+ await user.click(await button("Ajouter des précisions"));
+ const addition="Les fenêtres sont au deuxième étage.";
+ await user.type(screen.getByLabelText("Nouvelles précisions pour les professionnels"),addition);
+ await user.click(await button("Publier la mise à jour"));
+ await ownerCard.findByText("Précisions ajoutées");
  expect((await state()).notifications).toBe(1);
- await show("pro");await user.click(await button("Contacter le client"));
+ await show("pro");
+ const leadCard=within((await screen.findByRole("heading",{name:title})).closest("article")!);
+ expect(leadCard.getByText("Urgente")).toBeTruthy();
+ expect(leadCard.getByText("Précisions ajoutées")).toBeTruthy();
+ expect(leadCard.getByText("Nettoyer deux chambres et les fenêtres. "+addition)).toBeTruthy();
+ await user.click(leadCard.getByRole("button",{name:"Contacter le client"}));
  const dialog=await screen.findByRole("dialog");
  expect(within(dialog).getByText("Solde disponible")).toBeTruthy();
  expect(within(dialog).getByText(/Crédits manquants/)).toBeTruthy();

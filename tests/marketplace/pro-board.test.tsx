@@ -36,6 +36,40 @@ beforeEach(()=>{
 });
 afterEach(()=>{cleanup();window.history.replaceState(null,"","/");});
 describe("professional contact workflow",()=>{
+  it("shows earned badges on the lead and professional and carries the new details into the response", async () => {
+    const fallback = rpc.getMockImplementation()!;
+    const updated = {
+      ...lead, urgency: "asap", repeat_client: true, phone_verified: true,
+      details_updated_at: new Date().toISOString(), description: "Clean the kitchen\nAlso clean the stove.",
+    };
+    rpc.mockImplementation(async (name, args) => {
+      if (name === "market_requests") return {data: [updated]};
+      const result = await fallback(name, args);
+      return name === "market_wallet"
+        ? {data: {...result.data, paid_subscriber: true, phone_verified: false}}
+        : result;
+    });
+    const user = userEvent.setup();
+    unlocked = true;
+    show();
+    const card = (await screen.findByRole("heading", {name: lead.title})).closest("article")!;
+    for (const label of ["Urgent", "Frequent client", "Phone verified", "Details added"]) {
+      expect(within(card).getByText(label)).toBeTruthy();
+    }
+    expect(screen.getByText("Pro subscriber")).toBeTruthy();
+    await user.click(within(card).getByRole("button", {name: "Open conversation"}));
+    const thread = (await screen.findByText("Conversation c")).closest("article")!;
+    expect(within(thread).getByText("Details added")).toBeTruthy();
+    expect(within(thread).getByText(/Also clean the stove/)).toBeTruthy();
+  });
+  it("does not award badges to an ordinary request or a professional without a paid subscription", async () => {
+    show();
+    const card = (await screen.findByRole("heading", {name: lead.title})).closest("article")!;
+    for (const label of ["Urgent", "Frequent client", "Phone verified", "Details added", "Pro subscriber"]) {
+      expect(screen.queryByText(label)).toBeNull();
+    }
+    expect(within(card).getByText("Email verified")).toBeTruthy();
+  });
   it("refreshes a newly notified conversation before navigating without a second debit",async()=>{
     const fallback=rpc.getMockImplementation()!;
     let read=false;

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
+import { testMarketplaceBadges } from "../tests/marketplace/badges-db.mjs";
 
 const db = new PGlite();
 const rows = async (query, args = []) => (await db.query(query, args)).rows;
@@ -198,6 +199,10 @@ try {
     assert.deepEqual(await inbox(true),{items:[],unread:0,has_older:false});
     assert.equal((await inbox(false)).items.length,2);
   });
+  // Apply the badge migration to existing requests and contacts, just as during an upgrade.
+  await migrate("20261124020000_marketplace_badges.sql");
+  await testMarketplaceBadges({ rows, value, auth, as, client, phoneClient, far, farId, request, byPhone });
+  console.log("PASS marketplace badges, verified phones, paid subscriptions and owner-only request additions.");
   console.log("PASS verified contacts, matching, invitations, message privacy, idempotent debits, ratings, worker leases, withdrawals and reviewed refunds.");
 } finally {
   await db.close();

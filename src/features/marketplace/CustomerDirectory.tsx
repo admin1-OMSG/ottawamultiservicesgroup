@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MapPin, BadgeCheck, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/lib/language";
+import { MarketBadges } from "./MarketBadges";
 import { readMarketRows } from "./market-read";
 import { PROFESSIONAL_SERVICE_OPTIONS } from "@/features/professionals/model";
 import { GoogleProfileReviews } from "@/features/professionals/GoogleProfileReviews";
@@ -35,7 +36,7 @@ export function CustomerDirectory({providers, selected, onChange}:Props) {
     {filtered.length===0 && <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">{t("No professionals match these filters. You can still publish your request.","Aucun professionnel ne correspond à ces filtres. Vous pouvez quand même publier votre demande.")}</p>}
     <ul className="grid gap-3">{filtered.map(p=><li key={p.id} className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="text-lg font-bold">{p.name}</h3><p className="mt-1 flex items-center gap-1 text-sm text-slate-600"><MapPin size={14}/>{p.city}</p></div>
-      <span className="flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-800"><BadgeCheck size={14}/>{t("Application approved","Dossier approuvé")}</span></div>
+      <div className="flex flex-wrap items-center gap-2"><MarketBadges t={t} subscriber={p.paid_subscriber} phoneVerified={p.phone_verified}/><span className="flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-800"><BadgeCheck size={14}/>{t("Application approved","Dossier approuvé")}</span></div></div>
       <p className="mt-3 text-sm">{p.services.map(k=>serviceName(k,language)).join(" · ")}</p>
       <dl className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-600"><div><dt className="sr-only">{t("Completed jobs","Travaux réalisés")}</dt><dd>{p.completed_count} {t("jobs completed","travaux réalisés")}</dd></div><div><dt className="sr-only">{t("Reviews","Avis")}</dt><dd>{p.average_rating!=null && Number(p.average_rating).toLocaleString(language,{maximumFractionDigits:1})+" / 5 · "}{p.review_count} {t("OMSG reviews","avis OMSG")}</dd></div>{p.active_at && <div><dt className="inline">{t("Active ","Actif le ")}</dt><dd className="inline">{dateLabel(p.active_at,language)}</dd></div>}</dl>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><label className="flex min-h-11 items-center gap-2 text-sm font-semibold text-teal-900"><input type="checkbox" className="size-4 accent-teal-800" checked={selected.includes(p.id)} onChange={e=>onChange(e.target.checked ? [...selected,p.id] : selected.filter(id=>id!==p.id))}/>{t("Invite to my request","Inviter pour ma demande")}</label>

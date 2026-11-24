@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { MarketConversation } from "@/features/marketplace/MarketConversation";
 import { CustomerSignIn } from "@/features/marketplace/CustomerSignIn";
+import { CustomerDirectory } from "@/features/marketplace/CustomerDirectory";
 import { CustomerRequestForm } from "@/features/marketplace/CustomerRequestForm";
 import { CustomerRequestDetail } from "@/features/marketplace/CustomerRequestDetail";
 import { readMarketRows } from "@/features/marketplace/market-read";
@@ -12,9 +13,9 @@ import type { DirectoryProvider,MarketContact, MarketRequest } from "@/features/
 
 const mocks=vi.hoisted(()=>({rpc:vi.fn(),signIn:vi.fn(),verify:vi.fn()}));
 vi.mock("@/lib/supabase",()=>({supabase:{rpc:mocks.rpc,auth:{signInWithOtp:mocks.signIn,verifyOtp:mocks.verify}}}));
-const provider:DirectoryProvider={id:"pro",name:"Local team",services:["cleaning"],service_areas:["Ottawa"],city:"Ottawa",review_status:"approved",active_at:null,completed_count:3,review_count:1,average_rating:5,google_maps_url:null};
-const request:MarketRequest={id:"req",service:"cleaning",city:"Ottawa",title:"Move out clean",description:"Clean the apartment",urgency:"week",status:"open",created_at:"2026-11-23T10:00:00Z",is_owner:true,preferred_ids:[],preferred_names:[]};
-const contact:MarketContact={id:"contact",request_id:request.id,provider_id:"pro",provider_name:"Local team",completed_at:null,review_rating:null,review_body:null,my_provider:false};
+const provider:DirectoryProvider={id:"pro",paid_subscriber:false,phone_verified:false,name:"Local team",services:["cleaning"],service_areas:["Ottawa"],city:"Ottawa",review_status:"approved",active_at:null,completed_count:3,review_count:1,average_rating:5,google_maps_url:null};
+const request:MarketRequest={id:"req",repeat_client:false,phone_verified:false,details_updated_at:null,service:"cleaning",city:"Ottawa",title:"Move out clean",description:"Clean the apartment",urgency:"week",status:"open",created_at:"2026-11-23T10:00:00Z",is_owner:true,preferred_ids:[],preferred_names:[]};
+const contact:MarketContact={id:"contact",provider_paid_subscriber:false,provider_phone_verified:false,request_id:request.id,provider_id:"pro",provider_name:"Local team",completed_at:null,review_rating:null,review_body:null,my_provider:false};
 afterEach(()=>{cleanup();vi.unstubAllEnvs();vi.unstubAllGlobals();});
 beforeEach(()=>{mocks.rpc.mockReset();mocks.signIn.mockReset();mocks.verify.mockReset();});
 function authSettings(phone:boolean) {
@@ -83,6 +84,59 @@ describe("customer marketplace",()=>{
     expect(mocks.rpc.mock.calls[0]).toEqual(mocks.rpc.mock.calls[1]);
     expect(mocks.rpc.mock.calls[1][1]).toMatchObject({p_city:"Orléans",p_preferred_ids:["pro"],p_service:"cleaning"});
     expect(done).toHaveBeenCalledWith("req");
+  });
+  it("only displays subscription and phone badges when the directory confirms them", () => {
+    const props = {selected: [], onChange: vi.fn()};
+    const {rerender} = render(<CustomerDirectory providers={[provider]} {...props}/>);
+    expect(screen.queryByText("Pro subscriber")).toBeNull();
+    expect(screen.queryByText("Phone verified")).toBeNull();
+    rerender(<CustomerDirectory providers={[{...provider, paid_subscriber: true, phone_verified: true}]} {...props}/>);
+    expect(screen.getByText("Pro subscriber")).toBeTruthy();
+    expect(screen.getByText("Phone verified")).toBeTruthy();
+  });
+
+  it("publishes additional details with a stable retry key and displays the urgent and updated badges", async () => {
+    mocks.rpc.mockResolvedValueOnce({error: Error("timeout")}).mockResolvedValue({error: null});
+    const user = userEvent.setup();
+    const props = {contacts: [], providers: [], select: vi.fn(), refresh: vi.fn().mockResolvedValue(undefined)};
+    const urgentRequest = {...request, urgency: "asap"};
+    const {rerender} = render(<CustomerRequestDetail request={urgentRequest} {...props}/>);
+    expect(screen.getByText("Urgent")).toBeTruthy();
+    expect(screen.queryByText("Details added")).toBeNull();
+    await user.click(screen.getByRole("button", {name: "Add details"}));
+    expect((screen.getByRole("button", {name: "Publish update"}) as HTMLButtonElement).disabled).toBe(true);
+    await user.type(screen.getByLabelText("New details for professionals"), "  Parking is available.  ");
+    await user.click(screen.getByRole("button", {name: "Publish update"}));
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    await user.click(screen.getByRole("button", {name: "Publish update"}));
+    expect(mocks.rpc).toHaveBeenCalledTimes(2);
+    expect(mocks.rpc.mock.calls[0]).toEqual(mocks.rpc.mock.calls[1]);
+    expect(mocks.rpc).toHaveBeenCalledWith("market_add_request_details", {p_request_id: "req", p_id: expect.any(String), p_details: "Parking is available."});
+    expect(await screen.findByText("Your new details are published.")).toBeTruthy();
+    rerender(<CustomerRequestDetail request={{...urgentRequest, description: "Work details. Parking is available.", details_updated_at: request.created_at}} {...props}/>);
+    expect(screen.getByText("Details added")).toBeTruthy();
+    expect(screen.getByText("Work details. Parking is available.")).toBeTruthy();
+    rerender(<CustomerRequestDetail request={{...urgentRequest, status: "withdrawn"}} {...props}/>);
+    expect(screen.queryByText("Urgent")).toBeNull();
+    expect(screen.queryByRole("button", {name: "Add details"})).toBeNull();
+  });
+  it("asks for different details on a duplicate and explains when a request is already closed", async () => {
+    mocks.rpc.mockResolvedValueOnce({error: {message: "market_duplicate_details"}})
+      .mockResolvedValueOnce({error: {message: "market_request_closed"}});
+    const user = userEvent.setup();
+    render(<CustomerRequestDetail request={request} contacts={[]} providers={[]} select={vi.fn()} refresh={vi.fn()}/>);
+    await user.click(screen.getByRole("button", {name: "Add details"}));
+    const field = screen.getByLabelText("New details for professionals") as HTMLTextAreaElement;
+    const publish = screen.getByRole("button", {name: "Publish update"}) as HTMLButtonElement;
+    await user.type(field, request.description);
+    await user.click(publish);
+    expect((await screen.findByRole("alert")).textContent).toContain("already appear");
+    expect(publish.disabled).toBe(true);
+    await user.type(field, " and windows");
+    await user.click(publish);
+    expect((await screen.findByRole("alert")).textContent).toContain("request is closed");
+    expect(field.disabled).toBe(true);
+    expect(publish.disabled).toBe(true);
   });
   it("keeps drafts for retry and never sends into a previously viewed thread",async()=>{
     const user=userEvent.setup();

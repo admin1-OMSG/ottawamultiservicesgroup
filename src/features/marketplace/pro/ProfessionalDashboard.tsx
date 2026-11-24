@@ -4,6 +4,7 @@ import {Bell,Check,ChevronRight,Coins,Layers3,LoaderCircle,MessagesSquare,Wallet
 import {supabase} from "@/lib/supabase";
 import {Button} from "@/components/ui/button";
 import {Dialog,DialogContent,DialogDescription,DialogTitle} from "@/components/ui/dialog";
+import {MarketBadges,RequestBadges} from "../MarketBadges";
 import {MarketInbox,useMarketInbox} from "../MarketInbox";
 import type {MarketNotice} from "../customer-model";
 import {readMarketRows} from "../market-read";
@@ -52,8 +53,8 @@ export function ProfessionalDashboard({userId,profileId,name,language,t}:{userId
         readMarketRows<MarketLead>("market_requests",{},{field:"is_owner",value:false}),
         readMarketRows<Reply>("market_my_contacts",{},{field:"my_provider",value:true})
       ]);
-      const byRequest=new Map(leads.map(lead=>[lead.id,lead.status]));
-      const ownReplies=replies.filter(row=>row.provider_id===profileId).map(row=>({...row,request_status:byRequest.get(row.request_id)}));
+      const byRequest=new Map(leads.map(lead=>[lead.id,lead]));
+      const ownReplies=replies.filter(row=>row.provider_id===profileId).map(row=>({...row,request:byRequest.get(row.request_id)}));
       return {leads,replies:ownReplies};
     }
   });
@@ -106,7 +107,7 @@ export function ProfessionalDashboard({userId,profileId,name,language,t}:{userId
   const unread=inbox.page.data?.unread??0;
   const controls=[["wallet",t("My credits","Mes crédits"),WalletCards],["alerts",t("Notifications","Notifications"),Bell]] as const;
   return <div className="space-y-6">
-    <div className="flex flex-wrap items-end justify-between gap-5"><div><p className="mb-2 text-xs font-bold uppercase tracking-[.15em] text-teal-800">{name||t("Professional account","Compte professionnel")}</p><h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{t("Professional dashboard","Tableau de bord professionnel")}</h1></div><div className="flex flex-wrap gap-2">{controls.map(([id,label,Icon])=><Button key={id} variant={pane===id?"default":"outline"} aria-pressed={pane===id} onClick={()=>{if(id==="alerts")inbox.first();setPane(pane===id?"leads":id);}}><Icon/>{id==="wallet"&&wallet.data?label+" · "+credits(wallet.data.balance,t):label}{id==="alerts"&&unread>0&&<span className="rounded-full bg-amber-100 px-1.5 text-xs text-amber-900">{unread}</span>}</Button>)}</div></div>
+    <div className="flex flex-wrap items-end justify-between gap-5"><div><div className="mb-2 flex flex-wrap items-center gap-2"><p className="text-xs font-bold uppercase tracking-[.15em] text-teal-800">{name||t("Professional account","Compte professionnel")}</p><MarketBadges t={t} subscriber={wallet.data?.paid_subscriber} phoneVerified={wallet.data?.phone_verified}/></div><h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{t("Professional dashboard","Tableau de bord professionnel")}</h1></div><div className="flex flex-wrap gap-2">{controls.map(([id,label,Icon])=><Button key={id} variant={pane===id?"default":"outline"} aria-pressed={pane===id} onClick={()=>{if(id==="alerts")inbox.first();setPane(pane===id?"leads":id);}}><Icon/>{id==="wallet"&&wallet.data?label+" · "+credits(wallet.data.balance,t):label}{id==="alerts"&&unread>0&&<span className="rounded-full bg-amber-100 px-1.5 text-xs text-amber-900">{unread}</span>}</Button>)}</div></div>
     <nav className="flex flex-wrap gap-1 border-b border-slate-200" aria-label={t("Requests","Demandes")}>{([["leads",t("All requests","Toutes les demandes"),Layers3],["replies",t("My responses","Mes réponses"),MessagesSquare]] as const).map(([key,label,Icon])=><button type="button" key={key} aria-current={pane===key?"page":undefined} className={"inline-flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-bold "+(pane===key?"border-teal-800 text-teal-900":"border-transparent text-slate-600 hover:text-teal-800")} onClick={()=>{setPane(key);setSelectedReply(null);}}><Icon size={16}/>{label}{key==="replies"&&!!loaded?.replies.length&&<span className="text-xs">({loaded.replies.length})</span>}</button>)}</nav>
     {checkoutStatus==="success"&&<p role="status" className="rounded-xl bg-teal-50 px-4 py-3 text-sm text-teal-900">{t("Your balance updates when the payment is confirmed.","Votre solde sera actualisé après confirmation du paiement.")}</p>}
     {checkoutStatus==="simulated"&&<p role="status" className="rounded-xl bg-teal-50 px-4 py-3 text-sm text-teal-900">{t("You are back from the test checkout. Your wallet shows your available test credits.","Vous êtes de retour après le paiement simulé. Votre portefeuille affiche vos crédits d’essai disponibles.")}</p>}
@@ -122,7 +123,7 @@ export function ProfessionalDashboard({userId,profileId,name,language,t}:{userId
       {pane==="replies"&&<RepliesPanel replies={loaded.replies} wallet={loaded.wallet} selected={selectedReply} open={openReply} language={language} t={t} reload={refreshDashboard}/>}
       <Dialog open={!!selectedLead} onOpenChange={open=>{if(!open&&!busy){clearSearch();setSelectedLead(null);setFailure("");}}}>
         <DialogContent data-i18n-ignore="true" className="max-h-[90dvh] overflow-y-auto rounded-2xl"><DialogTitle>{t("Contact client","Contacter le client")}</DialogTitle><DialogDescription>{lead?.title||previous?.request_title||t("This request is closed or unavailable.","Cette demande est fermée ou indisponible.")}</DialogDescription>
-          {previous?<Button onClick={()=>openReply(previous.id)}>{t("Open conversation","Ouvrir la conversation")}<ChevronRight/></Button>:lead&&<><dl className="space-y-2 rounded-xl bg-slate-50 p-4 text-sm"><div className="flex justify-between gap-4"><dt>{t("Request cost","Coût de la demande")}</dt><dd className="font-bold">{cost!==null?credits(cost,t):t("Price pending","Tarif à venir")}</dd></div><div className="flex justify-between gap-4"><dt>{t("Available balance","Solde disponible")}</dt><dd className="font-bold">{credits(loaded.wallet.balance,t)}</dd></div></dl>
+          {previous?<Button onClick={()=>openReply(previous.id)}>{t("Open conversation","Ouvrir la conversation")}<ChevronRight/></Button>:lead&&<><RequestBadges request={lead} t={t}/><p className="whitespace-pre-line break-words text-sm text-slate-700">{lead.description}</p><dl className="space-y-2 rounded-xl bg-slate-50 p-4 text-sm"><div className="flex justify-between gap-4"><dt>{t("Request cost","Coût de la demande")}</dt><dd className="font-bold">{cost!==null?credits(cost,t):t("Price pending","Tarif à venir")}</dd></div><div className="flex justify-between gap-4"><dt>{t("Available balance","Solde disponible")}</dt><dd className="font-bold">{credits(loaded.wallet.balance,t)}</dd></div></dl>
           {cost!==null&&(loaded.wallet.balance>=cost?<Button disabled={busy} onClick={()=>void confirm()}>{busy?<LoaderCircle className="animate-spin"/>:<Check/>}{t("Confirm contact","Confirmer le contact")}</Button>:<><p className="flex items-center gap-2 text-sm font-semibold text-amber-900"><Coins size={16}/>{t("Credits needed","Crédits manquants")} · {credits(cost-loaded.wallet.balance,t)}</p><WalletPanel packsOnly wallet={loaded.wallet} language={language} t={t} leadId={lead.id}/></>)}</>}
           {failure&&<p role="alert" className="text-sm text-red-800">{failure}</p>}
         </DialogContent>

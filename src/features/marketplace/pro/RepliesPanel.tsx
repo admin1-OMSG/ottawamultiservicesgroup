@@ -1,6 +1,7 @@
 import {useRef,useState} from "react";
 import {ArrowLeft,ArrowUpRight,Mail,MessagesSquare,Phone} from "lucide-react";
 import {Button} from "@/components/ui/button";
+import {RequestBadges} from "../MarketBadges";
 import {MarketConversation} from "@/features/marketplace/MarketConversation";
 import {supabase} from "@/lib/supabase";
 import {credits,dateText,type Language,type Reply,type Translate,type Wallet} from "./model";
@@ -8,7 +9,8 @@ import {credits,dateText,type Language,type Reply,type Translate,type Wallet} fr
 export function RepliesPanel({replies,wallet,selected,open,t,language,reload}:{replies:Reply[];wallet:Wallet;selected:string|null;open:(id:string|null)=>void;t:Translate;language:Language;reload:()=>Promise<unknown>}) {
   const reply=replies.find(row=>row.id===selected);
   if(reply) return <div className="space-y-4"><Button variant="ghost" onClick={()=>open(null)}><ArrowLeft/>{t("All my responses","Toutes mes réponses")}</Button>
-    <article className="rounded-2xl border bg-white p-5"><h2 className="break-words text-xl font-bold">{reply.request_title}</h2><p className="mt-1 text-sm text-slate-600">{dateText(reply.created_at,language)} · {credits(reply.credit_cost,t)}{reply.request_status==="withdrawn" && " · "+t("Request withdrawn","Demande retirée")}</p>
+    <article className="rounded-2xl border bg-white p-5"><h2 className="break-words text-xl font-bold">{reply.request_title}</h2><p className="mt-1 text-sm text-slate-600">{dateText(reply.created_at,language)} · {credits(reply.credit_cost,t)}{reply.request?.status==="withdrawn" && " · "+t("Request withdrawn","Demande retirée")}</p>
+      {reply.request && <div className="mt-3 space-y-2"><RequestBadges request={reply.request} t={t}/><p className="whitespace-pre-line break-words text-sm text-slate-700">{reply.request.description}</p></div>}
       <div className="mt-3 flex flex-wrap gap-4 text-sm text-teal-800">{reply.client_email && <a className="inline-flex items-center gap-1.5 break-all underline" href={"mailto:"+reply.client_email}><Mail size={14}/>{reply.client_email}</a>}{reply.client_phone && <a className="inline-flex items-center gap-1.5 underline" href={"tel:"+reply.client_phone}><Phone size={14}/>{reply.client_phone}</a>}</div>
       <div className="mt-4 border-t pt-4"><MarketConversation key={reply.id} contactId={reply.id}/></div>
     </article>
@@ -19,7 +21,7 @@ export function RepliesPanel({replies,wallet,selected,open,t,language,reload}:{r
     <Button variant="outline" onClick={()=>open(null)}><ArrowLeft/>{t("All my responses","Toutes mes réponses")}</Button>
   </div>;
   return <section className="space-y-3">{!replies.length && <div className="rounded-2xl border bg-white p-8 text-center"><MessagesSquare className="mx-auto mb-3 text-teal-700"/><h2 className="font-semibold">{t("You haven’t contacted any clients yet.","Vous n’avez encore contacté aucun client.")}</h2></div>}
-    {replies.map(item=><article key={item.id} className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-white p-5"><div><h2 className="break-words font-bold">{item.request_title}</h2><p className="mt-1 text-sm text-slate-600">{dateText(item.created_at,language)} · {credits(item.credit_cost,t)}{item.request_status==="withdrawn" && " · "+t("Request withdrawn","Demande retirée")}{item.completed_at && " · "+t("Completed","Terminé")}</p></div><Button variant="outline" onClick={()=>open(item.id)}>{t("Open conversation","Ouvrir la conversation")}<ArrowUpRight/></Button></article>)}</section>;
+    {replies.map(item=><article key={item.id} className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-white p-5"><div><h2 className="break-words font-bold">{item.request_title}</h2>{item.request && <RequestBadges request={item.request} t={t}/>}<p className="mt-1 text-sm text-slate-600">{dateText(item.created_at,language)} · {credits(item.credit_cost,t)}{item.request?.status==="withdrawn" && " · "+t("Request withdrawn","Demande retirée")}{item.completed_at && " · "+t("Completed","Terminé")}</p></div><Button variant="outline" onClick={()=>open(item.id)}>{t("Open conversation","Ouvrir la conversation")}<ArrowUpRight/></Button></article>)}</section>;
 }
 
 function RefundPanel({reply,refund,t,reload}:{reply:Reply;refund?:Wallet["refunds"][number];t:Translate;reload:()=>Promise<unknown>}) {
