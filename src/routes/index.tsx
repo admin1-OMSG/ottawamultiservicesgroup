@@ -12,10 +12,10 @@ import movingPhoto from "@/assets/omsg-moving-service.png";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "OMSG | Find local service professionals in Ottawa–Gatineau" },
+      { title: "OMSG | Find a service professional near you" },
       { name: "description", content: "Request a service for free, compare local professionals and follow their replies in Ottawa and Gatineau." },
       { property: "og:title", content: "OMSG | Find a local service professional" },
-      { property: "og:description", content: "Connect with professionals serving Ottawa–Gatineau." },
+      { property: "og:description", content: "OMSG aims to connect clients and service professionals worldwide, starting in Ottawa–Gatineau, Canada." },
     ],
     links: [{ rel: "canonical", href: "https://www.ottawamultiservicesgroup.com/" }],
   }),
@@ -39,9 +39,9 @@ function MarketplaceHome() {
         <section className="overflow-hidden border-b border-stone-200 bg-[#f5f4ed]">
           <div className="mx-auto grid max-w-[1340px] items-center gap-9 px-5 py-10 sm:px-9 sm:py-12 lg:grid-cols-[1.03fr_1fr] lg:gap-14 lg:px-12 lg:py-16">
             <div className="min-w-0">
-              <p className="mb-5 flex items-center gap-2 text-sm font-semibold text-teal-900"><MapPin size={17} aria-hidden="true" /> Ottawa–Gatineau</p>
+              <p className="mb-5 flex items-center gap-2 text-sm font-semibold text-teal-900"><MapPin size={17} aria-hidden="true" /> {fr ? "Région pilote : Ottawa–Gatineau, Canada" : "Pilot region: Ottawa–Gatineau, Canada"}</p>
               <h1 className="max-w-[16ch] font-display text-[clamp(2.6rem,5.1vw,5rem)] font-bold leading-[1.02] tracking-[-.055em] text-[#183c36]">{fr ? "Quel service cherchez-vous ?" : "What service do you need?"}</h1>
-              <p className="mt-5 max-w-md text-base leading-relaxed text-[#425751] sm:text-lg">{fr ? "Décrivez votre projet gratuitement et échangez avec des professionnels de votre région." : "Post your request for free and hear from professionals who work in your area."}</p>
+              <p className="mt-5 max-w-md text-base leading-relaxed text-[#425751] sm:text-lg">{fr ? "Publiez gratuitement votre demande et échangez avec des professionnels près de chez vous. Notre ambition est de proposer ce service partout dans le monde, en commençant par Ottawa–Gatineau." : "Post a request for free and connect with professionals near you. Our goal is to offer this service worldwide, starting in Ottawa–Gatineau."}</p>
               <form action="/marketplace" method="get" className="mt-7 flex max-w-xl flex-col gap-2 rounded-2xl border border-stone-300 bg-white p-2 shadow-sm sm:flex-row">
                 <input type="hidden" name="new" value="1" />
                 <label className="relative flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-xl px-2 focus-within:ring-2 focus-within:ring-teal-700">
